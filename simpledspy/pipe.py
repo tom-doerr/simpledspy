@@ -182,23 +182,37 @@ class PipeFunction:
         
         # Handle outputs based on the output_names list with type conversion
         outputs = []
-        for field in output_names:
+        for i, field in enumerate(output_names):
             value = getattr(result, field)
-            if output_types and field in output_types:
-                output_type = output_types[field]
-                try:
-                    # Convert value to specified type
-                    if output_type is int:
-                        value = int(value)
-                    elif output_type is float:
-                        value = float(value)
-                    elif output_type is bool:
-                        value = bool(value)
-                    elif output_type is str:
-                        value = str(value)
-                except (ValueError, TypeError):
-                    # If conversion fails, keep original value
-                    pass
+            
+            # Get the output type for this field
+            output_type = None
+            if output_types:
+                # Try to match by field name first
+                if field in output_types:
+                    output_type = output_types[field]
+                # Fall back to positional index for tuple returns
+                elif f'output_{i}' in output_types:
+                    output_type = output_types[f'output_{i}']
+                elif 'output' in output_types and len(output_names) == 1:
+                    output_type = output_types['output']
+            
+            # Perform type conversion if we have a type
+            if output_type:
+                # Handle string numbers with commas/spaces
+                if isinstance(value, str) and output_type in (int, float):
+                    value = value.replace(',', '').strip()
+                
+                # Convert to target type
+                if output_type is int:
+                    value = int(float(value))  # Convert via float first to handle decimal strings
+                elif output_type is float:
+                    value = float(value)
+                elif output_type is bool:
+                    value = bool(value)
+                elif output_type is str:
+                    value = str(value)
+            
             outputs.append(value)
             
         if len(outputs) == 1:
