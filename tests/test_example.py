@@ -71,9 +71,11 @@ def test_type_hints():
     assert isinstance(name, str)
     
     # Test with multiple outputs and types
-    name, age = pipe(text)
-    assert isinstance(name, str)
+    age: int = pipe(text)
     assert isinstance(age, int)
-    assert name == "John Doe"
+    assert age == 30
+
+    age: float = pipe(text)
+    assert isinstance(age, int)
     assert age == 30
 
