@@ -136,6 +136,9 @@ class PipeFunction:
         frame = inspect.currentframe().f_back
         
         from typing import get_type_hints
+        # Get the input and output variable names
+        input_names, output_names = self._get_caller_context(len(args))
+        
         # Get type hints from the caller's local scope
         type_hints = {}
         if '__annotations__' in frame.f_locals:
