@@ -118,9 +118,7 @@ class PipeFunction:
         finally:
             del frame
 
-    def __call__(self, *args, description: str = None, metric: Callable = None, 
-                input_types: Dict[str, type] = None,
-                output_types: Dict[str, type] = None) -> Any:
+    def __call__(self, *args, description: str = None, metric: Callable = None) -> Any:
         """
         Executes a DSPy module with the given signature.
         
@@ -128,12 +126,30 @@ class PipeFunction:
             *args: Input arguments
             description: Optional description of the module's purpose
             metric: Optional metric function for optimization
-            input_types: Dictionary mapping input names to types
-            output_types: Dictionary mapping output names to types
             
         Returns:
             The output value
         """
+        # Get the caller's frame and function
+        frame = inspect.currentframe().f_back
+        caller_func = frame.f_locals.get('self', frame.f_globals.get(frame.f_code.co_name))
+        
+        # Get type hints from the caller's function
+        type_hints = typing.get_type_hints(caller_func)
+        
+        # Extract input and output types
+        input_types = {}
+        output_types = {}
+        
+        for name, hint in type_hints.items():
+            if name == 'return':
+                # Handle multiple return values
+                if typing.get_origin(hint) is tuple:
+                    output_types = {f'output_{i}': t for i, t in enumerate(typing.get_args(hint))}
+                else:
+                    output_types = {'output': hint}
+            else:
+                input_types[name] = hint
         # Configure metric if provided
         if metric is not None:
             self.optimization_manager.configure(metric=metric)
@@ -141,7 +157,7 @@ class PipeFunction:
         # Get the input and output variable names
         input_names, output_names = self._get_caller_context(len(args))
         
-        # Create module with type hints
+        # Create module with type hints from reflection
         module = self._create_module(
             input_names, 
             output_names,
