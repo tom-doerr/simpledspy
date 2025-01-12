@@ -1,4 +1,4 @@
-from typing import Any, Tuple, List, Callable, Dict, Optional
+from typing import Any, Tuple, List, Callable, Dict, Optional, get_type_hints, get_origin, get_args
 import dspy
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
@@ -135,7 +135,7 @@ class PipeFunction:
         caller_func = frame.f_locals.get('self', frame.f_globals.get(frame.f_code.co_name))
         
         # Get type hints from the caller's function
-        type_hints = typing.get_type_hints(caller_func)
+        type_hints = get_type_hints(caller_func)
         
         # Extract input and output types
         input_types = {}
@@ -144,8 +144,8 @@ class PipeFunction:
         for name, hint in type_hints.items():
             if name == 'return':
                 # Handle multiple return values
-                if typing.get_origin(hint) is tuple:
-                    output_types = {f'output_{i}': t for i, t in enumerate(typing.get_args(hint))}
+                if get_origin(hint) is tuple:
+                    output_types = {f'output_{i}': t for i, t in enumerate(get_args(hint))}
                 else:
                     output_types = {'output': hint}
             else:
