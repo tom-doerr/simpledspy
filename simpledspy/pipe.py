@@ -132,27 +132,27 @@ class PipeFunction:
         Returns:
             The output value
         """
-        # Get the caller's frame and function
+        # Get the caller's frame
         frame = inspect.currentframe().f_back
-        caller_func = frame.f_locals.get('self', frame.f_globals.get(frame.f_code.co_name))
         
-        # Get type hints from the caller's function
-        type_hints = get_type_hints(caller_func)
-        print("type_hints:", type_hints)
-        
-        # Extract input and output types
-        input_types = {}
+        # Get type hints from the caller's local scope
+        type_hints = {}
+        if '__annotations__' in frame.f_locals:
+            type_hints = frame.f_locals['__annotations__']
+        elif '__annotations__' in frame.f_globals:
+            type_hints = frame.f_globals['__annotations__']
+            
+        # Extract output type from the assignment target
         output_types = {}
-        
-        for name, hint in type_hints.items():
-            if name == 'return':
-                # Handle multiple return values
+        for var_name, hint in type_hints.items():
+            if var_name in frame.f_locals:
                 if get_origin(hint) is tuple:
+                    # Multiple return values
                     output_types = {f'output_{i}': t for i, t in enumerate(get_args(hint))}
                 else:
+                    # Single return value
                     output_types = {'output': hint}
-            else:
-                input_types[name] = hint
+                break
         # Configure metric if provided
         if metric is not None:
             self.optimization_manager.configure(metric=metric)
