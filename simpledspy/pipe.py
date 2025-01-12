@@ -135,12 +135,17 @@ class PipeFunction:
         # Get the caller's frame
         frame = inspect.currentframe().f_back
         
+        from typing import get_type_hints
         # Get type hints from the caller's local scope
         type_hints = {}
         if '__annotations__' in frame.f_locals:
             type_hints = frame.f_locals['__annotations__']
         elif '__annotations__' in frame.f_globals:
             type_hints = frame.f_globals['__annotations__']
+        type_hints = get_type_hints(globals())
+        print("type_hints:", type_hints)
+        type_hint_float = type_hints.get('float')
+        print("type_hint_float:", type_hint_float)
             
         # Extract output type from the assignment target
         output_types = {}
