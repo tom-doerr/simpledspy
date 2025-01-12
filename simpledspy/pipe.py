@@ -142,22 +142,20 @@ class PipeFunction:
             type_hints = frame.f_locals['__annotations__']
         elif '__annotations__' in frame.f_globals:
             type_hints = frame.f_globals['__annotations__']
-        type_hints = get_type_hints(globals())
-        print("type_hints:", type_hints)
-        type_hint_float = type_hints.get('float')
-        print("type_hint_float:", type_hint_float)
             
         # Extract output type from the assignment target
         output_types = {}
-        for var_name, hint in type_hints.items():
-            if var_name in frame.f_locals:
+        for out_name in output_names:
+            hint = type_hints.get(out_name)
+            if hint is not None:
                 if get_origin(hint) is tuple:
-                    # Multiple return values
-                    output_types = {f'output_{i}': t for i, t in enumerate(get_args(hint))}
+                    # multiple return values
+                    output_types.update({
+                        f'output_{i}': t for i, t in enumerate(get_args(hint))
+                    })
                 else:
-                    # Single return value
-                    output_types = {'output': hint}
-                break
+                    # single return value
+                    output_types[out_name] = hint
         # Configure metric if provided
         if metric is not None:
             self.optimization_manager.configure(metric=metric)
