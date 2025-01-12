@@ -67,13 +67,13 @@ def test_type_hints():
     text = "John Doe, 30 years old"
     
     # Test with type hints
-    name: str = pipe(text, input_types={'text': str}, output_types={'name': str})
+    name: str = pipe(text)
     assert isinstance(name, str)
     
     # Test with multiple outputs and types
     name: str
     age: int
-    name, age = pipe(text)
+    (name: str, age: int) = pipe(text)
     assert isinstance(name, str)
     assert isinstance(age, int)
     assert name == "John Doe"
