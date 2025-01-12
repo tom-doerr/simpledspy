@@ -52,7 +52,7 @@ def test_cli_stdin_biggest_number():
     
     # Run the CLI command with stdin
     result = subprocess.run(
-        ['simpledspy', '-d', 'get the biggest number'],
+        ['simpledspy', '-d', 'get the biggest number of the numbers listed'],
         input='54 563 125\n',
         capture_output=True,
         text=True
@@ -71,10 +71,8 @@ def test_type_hints():
     assert isinstance(name, str)
     
     # Test with multiple outputs and types
-    name, age = pipe(
-        text,
-        input_types={'text': str},
-        output_types={'name': str, 'age': int}
+    str: name, int: age = pipe(
+        text
     )
     assert isinstance(name, str)
     assert isinstance(age, int)
