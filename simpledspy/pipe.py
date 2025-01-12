@@ -82,6 +82,8 @@ class PipeFunction:
                     # Skip function names and other non-inputs
                     if instr.argval not in ('pipe', 'print', 'self'):
                         # Only add if it's one of our actual arguments
+                        print("instr:", instr)
+                        print("instr.argval:", instr.argval)
                         if len(input_names) < num_args:
                             input_names.append(instr.argval)
             
