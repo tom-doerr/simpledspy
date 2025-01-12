@@ -136,6 +136,7 @@ class PipeFunction:
         
         # Get type hints from the caller's function
         type_hints = get_type_hints(caller_func)
+        print("type_hints:", type_hints)
         
         # Extract input and output types
         input_types = {}
@@ -187,6 +188,7 @@ class PipeFunction:
             
             # Get the output type for this field
             output_type = None
+            print("output_types:", output_types)
             if output_types:
                 # Try to match by field name first
                 if field in output_types:
