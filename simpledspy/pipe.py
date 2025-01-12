@@ -164,7 +164,6 @@ class PipeFunction:
         module = self._create_module(
             input_names, 
             output_names,
-            input_types=input_types,
             output_types=output_types,
             description=description
         )
