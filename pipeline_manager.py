@@ -21,7 +21,7 @@ class PipelineManager:
             "module": module
         })
 
-    def assemble_pipeline(self) -> dspy.Module:
+    def assemble_pipeline(self):
         """
         Assembles the registered steps into a DSPy pipeline module.
         

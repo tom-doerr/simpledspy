@@ -13,7 +13,7 @@ class PipelineManager:
     def register_step(self, inputs: List[str], outputs: List[str], module: Any):
         self._steps.append((inputs, outputs, module))
 
-    def assemble_pipeline(self) -> dspy.Module:
+    def assemble_pipeline(self):
         class Pipeline(dspy.Module):
             def __init__(self, steps):
                 super().__init__()

@@ -1,6 +1,3 @@
-# Import DSPy explicitly to avoid confusion
-import dspy as _dspy
-
 # Import our own modules
 from .pipe import PipeFunction
 from .pipeline_manager import PipelineManager
