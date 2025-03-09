@@ -9,6 +9,14 @@ packages = [{include = "simpledspy"}]
 homepage = "https://github.com/tomdoerr/simpledspy"
 repository = "https://github.com/tomdoerr/simpledspy"
 keywords = ["dspy", "llm", "pipeline", "nlp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
 
 [tool.poetry.scripts]
 simpledspy = "simpledspy.cli:main"
