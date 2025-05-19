@@ -135,10 +135,6 @@ class PipeFunction:
         # Get the caller's frame
         frame = inspect.currentframe().f_back
         
-        from typing import get_type_hints
-        # Get the input and output variable names
-        input_names, output_names = self._get_caller_context(len(args))
-        
         # Get type hints from the caller's local scope
         type_hints = {}
         if '__annotations__' in frame.f_locals:
@@ -148,7 +144,7 @@ class PipeFunction:
             
         # Extract output type from the assignment target
         output_types = {}
-        for out_name in output_names:
+        for out_name in frame.f_locals:
             hint = type_hints.get(out_name)
             if hint is not None:
                 if get_origin(hint) is tuple:
@@ -159,6 +155,7 @@ class PipeFunction:
                 else:
                     # single return value
                     output_types[out_name] = hint
+                    
         # Configure metric if provided
         if metric is not None:
             self.optimization_manager.configure(metric=metric)
@@ -168,8 +165,8 @@ class PipeFunction:
         
         # Create module with type hints from reflection
         module = self._create_module(
-            input_names, 
-            output_names,
+            inputs=input_names, 
+            outputs=output_names,
             output_types=output_types,
             description=description
         )
@@ -177,7 +174,12 @@ class PipeFunction:
         # Use actual input names if we found them, otherwise fall back to generic names
         if len(input_names) != len(args):
             input_names = [f"input_{i+1}" for i in range(len(args))]
-        module = self._create_module(input_names, output_names, description)
+            module = self._create_module(
+                inputs=input_names, 
+                outputs=output_names,
+                output_types=output_types,
+                description=description
+            )
         
         # Create input dict
         input_dict = {field: arg for field, arg in zip(input_names, args)}
@@ -195,16 +197,12 @@ class PipeFunction:
             
             # Get the output type for this field
             output_type = None
-            print("output_types:", output_types)
-            if output_types:
-                # Try to match by field name first
-                if field in output_types:
-                    output_type = output_types[field]
-                # Fall back to positional index for tuple returns
-                elif f'output_{i}' in output_types:
-                    output_type = output_types[f'output_{i}']
-                elif 'output' in output_types and len(output_names) == 1:
-                    output_type = output_types['output']
+            
+            # Get type from the variable annotation in the caller's frame
+            for var_name, var_type in type_hints.items():
+                if var_name in output_names:
+                    output_type = var_type
+                    break
             
             # Perform type conversion if we have a type
             if output_type:
@@ -218,7 +216,10 @@ class PipeFunction:
                 elif output_type is float:
                     value = float(value)
                 elif output_type is bool:
-                    value = bool(value)
+                    if isinstance(value, str):
+                        value = value.lower() == 'true'
+                    else:
+                        value = bool(value)
                 elif output_type is str:
                     value = str(value)
             
