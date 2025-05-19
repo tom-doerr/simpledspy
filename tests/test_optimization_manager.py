@@ -1,6 +1,6 @@
 import pytest
 from simpledspy.optimization_manager import OptimizationManager
-from dspy.teleprompt import BootstrapFewShot, MIPRO
+from dspy.teleprompt import BootstrapFewShot, MIPROv2
 import dspy
 
 def test_default_config():
@@ -66,7 +66,7 @@ def test_get_teleprompter():
     # Test mipro teleprompter
     manager.configure(strategy='mipro')
     teleprompter = manager.get_teleprompter()
-    assert isinstance(teleprompter, MIPRO)
+    assert isinstance(teleprompter, MIPROv2)
 
 def test_default_metric_empty():
     """Test the default metric function with empty inputs"""
