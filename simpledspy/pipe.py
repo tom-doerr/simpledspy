@@ -8,20 +8,14 @@ import os
 import dis
 
 class PipeFunction:
-    _instances: Dict[str, 'PipeFunction'] = {}
+    _instance: Optional['PipeFunction'] = None
 
     def __new__(cls, *args, **kwargs):
-        # Get the caller's file and line number
-        frame = inspect.currentframe().f_back
-        location = f"{os.path.basename(frame.f_code.co_filename)}:{frame.f_lineno}"
-        
-        # Create or return existing instance for this location
-        if location not in cls._instances:
+        if cls._instance is None:
             instance = super(PipeFunction, cls).__new__(cls)
-            cls._instances[location] = instance
-            instance._initialized = False
-            instance._location = location
-        return cls._instances[location]
+            cls._instance = instance
+            instance._initialized = False # Ensure __init__ runs only once for the true instance
+        return cls._instance
 
     def __init__(self):
         if getattr(self, '_initialized', False):
@@ -80,10 +74,7 @@ class PipeFunction:
                 # Only include LOAD operations that are actual inputs
                 if instr.opname in ('LOAD_NAME', 'LOAD_FAST'):
                     # Skip function names and other non-inputs
-                    if instr.argval not in ('pipe', 'print', 'self'):
-                        # Only add if it's one of our actual arguments
-                        print("instr:", instr)
-                        print("instr.argval:", instr.argval)
+                    if instr.argval not in ('pipe', 'print', 'self'): # 'self' could be a valid var name in some contexts
                         if len(input_names) < num_args:
                             input_names.append(instr.argval)
             
@@ -103,14 +94,16 @@ class PipeFunction:
                     instr.positions.lineno == current_line):
                     if instr.opname in ('STORE_NAME', 'STORE_FAST'):
                         output_names.append(instr.argval)
-                        # Stop when we hit a different operation
-                        if instr.opname not in ('STORE_NAME', 'STORE_FAST'):
-                            break
+                        # Stop when we hit a different operation (might be too restrictive for tuple unpacking to multiple statements)
+                        # However, for 'a, b = pipe()', it should capture 'a' and 'b' if they are stored sequentially.
+                        # If it's 'tmp = pipe(); a=tmp[0]; b=tmp[1]', this only gets 'tmp'.
+                    elif output_names: # If we started collecting output_names and hit something else
+                        break 
             
             if not output_names:
                 raise ValueError("pipe must be called in an assignment context.")
             
-            # Remove duplicates and output names from inputs
+            # Remove duplicates and output names from inputs (if accidentally picked up)
             input_names = list(dict.fromkeys(input_names))
             for output_name in output_names:
                 if output_name in input_names:
@@ -137,47 +130,58 @@ class PipeFunction:
         
         # Get type hints from the caller's local scope
         type_hints = {}
-        if '__annotations__' in frame.f_locals:
-            type_hints = frame.f_locals['__annotations__']
-        elif '__annotations__' in frame.f_globals:
-            type_hints = frame.f_globals['__annotations__']
+        # Prioritize f_locals over f_globals for annotations in the immediate calling scope
+        if hasattr(frame, 'f_locals') and '__annotations__' in frame.f_locals:
+            type_hints.update(frame.f_locals['__annotations__'])
+        if hasattr(frame, 'f_globals') and '__annotations__' in frame.f_globals:
+            # Merge global annotations, giving precedence to local ones if names clash
+            for k, v in frame.f_globals['__annotations__'].items():
+                if k not in type_hints:
+                    type_hints[k] = v
             
-        # Extract output type from the assignment target
-        output_types = {}
-        for out_name in frame.f_locals:
-            hint = type_hints.get(out_name)
+        # Get the input and output variable names
+        input_names, output_names = self._get_caller_context(len(args))
+
+        # Extract output types based on determined output_names and available type_hints
+        output_types_for_module = {}
+        for name in output_names:
+            hint = type_hints.get(name)
             if hint is not None:
-                if get_origin(hint) is tuple:
-                    # multiple return values
-                    output_types.update({
-                        f'output_{i}': t for i, t in enumerate(get_args(hint))
-                    })
+                if get_origin(hint) is tuple and get_args(hint): # e.g. result: Tuple[int, str]
+                    # If a single assignment target is a Tuple, this implies multiple conceptual outputs.
+                    # The module signature should reflect these individual fields.
+                    # This part is complex: ModuleFactory expects output_types to map to names in 'outputs' list.
+                    # If 'outputs' is ['result'] but hint is Tuple[int, str], ModuleFactory needs adjustment
+                    # or 'outputs' list itself needs to be ['result_0', 'result_1'].
+                    # For now, we'll pass the type hint for the variable name itself.
+                    # The ModuleFactory will use this to describe the field 'result'.
+                    # Actual parsing of tuple string from LLM and conversion is a deeper issue.
+                    output_types_for_module[name] = hint 
                 else:
-                    # single return value
-                    output_types[out_name] = hint
-                    
+                    output_types_for_module[name] = hint
+            
         # Configure metric if provided
         if metric is not None:
             self.optimization_manager.configure(metric=metric)
             
-        # Get the input and output variable names
-        input_names, output_names = self._get_caller_context(len(args))
-        
         # Create module with type hints from reflection
         module = self._create_module(
             inputs=input_names, 
             outputs=output_names,
-            output_types=output_types,
+            # input_types can be similarly inferred if needed, but not currently done
+            output_types=output_types_for_module,
             description=description
         )
         
         # Use actual input names if we found them, otherwise fall back to generic names
-        if len(input_names) != len(args):
+        # This check ensures that if _get_caller_context's input name inference was incomplete/failed,
+        # we use generic names and recreate the module with that generic signature.
+        if len(input_names) != len(args) or not all(isinstance(name, str) for name in input_names):
             input_names = [f"input_{i+1}" for i in range(len(args))]
             module = self._create_module(
                 inputs=input_names, 
                 outputs=output_names,
-                output_types=output_types,
+                output_types=output_types_for_module,
                 description=description
             )
         
@@ -185,36 +189,38 @@ class PipeFunction:
         input_dict = {field: arg for field, arg in zip(input_names, args)}
         
         # Execute module
-        result = module(**input_dict)
+        prediction_result = module(**input_dict) # This is a dspy.Prediction object
         
         # Register step
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
         # Handle outputs based on the output_names list with type conversion
-        outputs = []
-        for i, field in enumerate(output_names):
-            value = getattr(result, field)
+        processed_outputs = []
+        for i, field_name in enumerate(output_names):
+            value = getattr(prediction_result, field_name)
             
-            # Get the output type for this field
-            output_type = None
-            
-            # Get type from the variable annotation in the caller's frame
-            for var_name, var_type in type_hints.items():
-                if var_name in output_names:
-                    output_type = var_type
-                    break
+            # Get the output type for this specific field_name from the caller's annotations
+            output_type = type_hints.get(field_name)
             
             # Perform type conversion if we have a type
             if output_type:
-                # Handle string numbers with commas/spaces
-                if isinstance(value, str) and output_type in (int, float):
+                # Handle string numbers with commas/spaces before specific type conversion
+                if isinstance(value, str) and (get_origin(output_type) is None and output_type in (int, float)):
                     value = value.replace(',', '').strip()
                 
                 # Convert to target type
+                # TODO: Add more robust handling for complex types like Tuple[int, str]
+                # For now, basic types are handled.
                 if output_type is int:
-                    value = int(float(value))  # Convert via float first to handle decimal strings
+                    try:
+                        value = int(float(value))  # Convert via float first to handle decimal strings like "30.0"
+                    except (ValueError, TypeError):
+                        pass # Keep original value if conversion fails
                 elif output_type is float:
-                    value = float(value)
+                    try:
+                        value = float(value)
+                    except (ValueError, TypeError):
+                        pass 
                 elif output_type is bool:
                     if isinstance(value, str):
                         value = value.lower() == 'true'
@@ -223,11 +229,8 @@ class PipeFunction:
                 elif output_type is str:
                     value = str(value)
             
-            outputs.append(value)
+            processed_outputs.append(value)
             
-        if len(outputs) == 1:
-            return outputs[0]
-        return tuple(outputs)
-
-# Instantiate the pipe function
-pipe = PipeFunction()
+        if len(processed_outputs) == 1:
+            return processed_outputs[0]
+        return tuple(processed_outputs)
