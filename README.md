@@ -33,6 +33,7 @@
 - Clean, minimal API
 - Built-in caching and configuration
 - Type hints and documentation
+- Support for different module types (Predict, ChainOfThought)
 
 ## Installation
 
@@ -43,33 +44,32 @@ pip install simpledspy
 ## Quick Start
 
 ```python
-from simpledspy import pipe
+from simpledspy import predict, chain_of_thought
 
 # Basic text processing
-cleaned_text = pipe("Some messy   text with extra spaces")
+cleaned_text = predict("Some messy   text with extra spaces")
 print(cleaned_text)  # "Some messy text with extra spaces"
 
 # Multiple inputs/outputs
-name, age = pipe("John Doe, 30 years old")
+name, age = predict("John Doe, 30 years old")
 print(name)  # "John Doe"
 print(age)   # 30
 
-# Custom descriptions
-full_name = pipe(
-    "John", "Doe", 
-    description="Combine first and last names"
+# Chain of thought reasoning
+result = chain_of_thought(
+    "If I have 5 apples and eat 2, how many do I have left?",
+    description="Reason step by step"
 )
-print(full_name)  # "John Doe"
+print(result)  # "3"
 ```
 
 ## How It Works
 
-The `pipe` function automatically:
-1. Detects input variable names
-2. Creates appropriate DSPy modules
-3. Tracks pipeline steps
-4. Returns processed outputs
-
+The `predict` and `chain_of_thought` functions automatically:
+1. Detect input variable names
+2. Create appropriate DSPy modules
+3. Track pipeline steps
+4. Return processed outputs
 
 ## Contributing
 
@@ -78,4 +78,3 @@ Contributions are welcome! Please open an issue or pull request on GitHub.
 ## License
 
 MIT License
-

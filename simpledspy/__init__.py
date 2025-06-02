@@ -1,10 +1,11 @@
 # Import our own modules
-from .pipe import PipeFunction
+from .module_caller import Predict, ChainOfThought
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 
-# Create the pipe function instance
-pipe = PipeFunction()
+# Create the function instances
+predict = Predict()
+chain_of_thought = ChainOfThought()
 
 # Check if the module is being imported incorrectly
 import sys as _sys
@@ -16,4 +17,4 @@ if __name__ != "simpledspy" and "simpledspy" in _sys.modules:
         ImportWarning
     )
 
-__all__ = ['pipe', 'PipelineManager', 'ModuleFactory', 'PipeFunction']
+__all__ = ['predict', 'chain_of_thought', 'PipelineManager', 'ModuleFactory']
