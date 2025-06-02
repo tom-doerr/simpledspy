@@ -106,26 +106,50 @@ class PipeFunction:
                     type_hints[k] = v
                     
         input_names, output_names = self._get_caller_context(len(args))
-        output_types_for_module = {}
+        input_types = {}
+        output_types = {}
+        
+        # Get type hints for inputs and outputs
+        for name in input_names:
+            if name in type_hints:
+                input_types[name] = type_hints[name]
+        for name in output_names:
+            if name in type_hints:
+                output_types[name] = type_hints[name]
         
         module = self._create_module(
             inputs=input_names, 
             outputs=output_names,
-            output_types=output_types_for_module,
+            input_types=input_types,
+            output_types=output_types,
             description=description
         )
         
         input_dict = {}
         for i, arg in enumerate(args):
-            input_dict[f'input_{i+1}'] = arg
+            input_dict[input_names[i]] = arg
             
         prediction_result = module(**input_dict)
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
         processed_outputs = []
-        for i in range(len(output_names)):
-            field_name = f"output_{i+1}"
-            value = getattr(prediction_result, field_name)
+        for name in output_names:
+            value = getattr(prediction_result, name)
+            
+            # Apply type conversion if specified
+            if name in output_types:
+                target_type = output_types[name]
+                try:
+                    if target_type is int:
+                        value = int(float(value.replace(',', '').strip()))
+                    elif target_type is float:
+                        value = float(value.replace(',', '').strip())
+                    elif target_type is bool:
+                        value = value.lower() == 'true' if isinstance(value, str) else bool(value)
+                    elif target_type is str:
+                        value = str(value)
+                except (ValueError, TypeError):
+                    pass  # Keep original value on conversion failure
             processed_outputs.append(value)
             
         if len(processed_outputs) == 1:

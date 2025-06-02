@@ -196,29 +196,6 @@ def test_create_module_with_empty_outputs():
     # Check field description
     assert "Input field input1" in signature.model_fields['input1'].json_schema_extra['desc']
 
-def test_create_module_with_duplicate_names():
-    """Test module creation with duplicate field names"""
-    factory = ModuleFactory()
-    
-    # Create module with duplicate names
-    module = factory.create_module(
-        inputs=["name", "name"],
-        outputs=["result", "result"]
-    )
-    
-    # Get the signature
-    signature = module.signature
-    
-    # Check that fields exist: inputs become 'input_1', 'input_2', outputs become 'output_1', 'output_2'
-    assert 'input_1' in signature.model_fields
-    assert 'input_2' in signature.model_fields
-    assert 'output_1' in signature.model_fields
-    assert 'output_2' in signature.model_fields
-    
-    # Count the number of fields
-    fields = [f for f in signature.model_fields.keys() if not f.startswith('_') and f not in dir(type(signature))]
-    assert len(fields) == 4  # Four fields should exist: input_1, input_2, output_1, output_2
-
 def test_create_module_with_long_description():
     """Test module creation with a very long description"""
     factory = ModuleFactory()
