@@ -183,20 +183,23 @@ class PipeFunction:
             # Perform type conversion if we have a type
             if output_type:
                 # For basic types, try to convert
-                try:
-                    if output_type is int:
-                        value = int(float(value.replace(',', '').strip()))
-                    elif output_type is float:
-                        value = float(value.replace(',', '').strip())
-                    elif output_type is bool:
-                        if isinstance(value, str):
-                            value = value.lower() == 'true'
-                        else:
-                            value = bool(value)
-                    elif output_type is str:
-                        value = str(value)
-                except (ValueError, TypeError):
-                    pass  # Keep original value if conversion fails
+                if output_type:
+                    try:
+                        if output_type is int:
+                            value = int(float(value.replace(',', '').strip()))
+                        elif output_type is float:
+                            value = float(value.replace(',', '').strip())
+                        elif output_type is bool:
+                            if isinstance(value, str):
+                                value = value.lower() in ['true', 'yes', '1']
+                            else:
+                                value = bool(value)
+                        elif output_type is str:
+                            value = str(value)
+                    except (ValueError, TypeError):
+                        # Only raise exception for int/float conversion
+                        if output_type in (int, float):
+                            raise
             
             processed_outputs.append(value)
             
