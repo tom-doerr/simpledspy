@@ -56,7 +56,8 @@ class PipeFunction:
             input_names = self._extract_input_names(call_line_source, num_args)
             
             return input_names, output_names
-        except Exception:
+        except Exception as e:
+            # Fallback to generic names on any error
             return self._generic_names(num_args)
 
     def _generic_names(self, num_args: int) -> Tuple[List[str], List[str]]:
@@ -148,8 +149,9 @@ class PipeFunction:
                         value = value.lower() == 'true' if isinstance(value, str) else bool(value)
                     elif target_type is str:
                         value = str(value)
-                except (ValueError, TypeError):
-                    pass  # Keep original value on conversion failure
+                except (ValueError, TypeError) as e:
+                    # Preserve original value but add warning
+                    value = f"CONVERSION ERROR: {str(e)} - Original: {value}"
             processed_outputs.append(value)
             
         if len(processed_outputs) == 1:

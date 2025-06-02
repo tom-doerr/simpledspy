@@ -28,9 +28,10 @@ def main():
     
     # Create module with proper signature
     input_names = [f"input_{i+1}" for i in range(len(inputs))]
+    output_names = ["output"]  # Default to single output
     module = factory.create_module(
         inputs=input_names,
-        outputs=["output"],
+        outputs=output_names,
         description=args.description
     )
     
@@ -40,8 +41,12 @@ def main():
     # Run prediction
     result = module(**input_dict)
     
-    # Print result
-    print(result.output)
+    # Print results
+    if len(output_names) == 1:
+        print(getattr(result, output_names[0]))
+    else:
+        for name in output_names:
+            print(f"{name}: {getattr(result, name)}")
 
 if __name__ == "__main__":
     main()
