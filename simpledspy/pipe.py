@@ -14,19 +14,14 @@ class PipeFunction:
         if cls._instance is None:
             instance = super(PipeFunction, cls).__new__(cls)
             cls._instance = instance
-            instance._initialized = False # Ensure __init__ runs only once for the true instance
+            # Initialize the instance
+            instance.pipeline_manager = PipelineManager()
+            instance.module_factory = ModuleFactory()
+            instance.optimization_manager = OptimizationManager()
+            # Configure default LM with caching disabled
+            instance.lm = dspy.LM(model="deepseek/deepseek-chat")
+            dspy.configure(lm=instance.lm, cache=False)
         return cls._instance
-
-    def __init__(self):
-        if getattr(self, '_initialized', False):
-            return
-        self._initialized = True
-        self.pipeline_manager = PipelineManager()
-        self.module_factory = ModuleFactory()
-        self.optimization_manager = OptimizationManager()
-        # Configure default LM with caching disabled
-        self.lm = dspy.LM(model="deepseek/deepseek-chat")
-        dspy.configure(lm=self.lm, cache=False)
 
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
