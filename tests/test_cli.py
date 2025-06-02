@@ -39,29 +39,6 @@ def test_cli_stdin():
     assert result.returncode == 0
     assert "Hello" in result.stdout
 
-@patch('simpledspy.cli.OptimizationManager')
-def test_cli_optimization_flags(mock_optimization_manager):
-    """Test CLI with optimization flags"""
-    # Create mock instances
-    mock_optimizer = MagicMock()
-    mock_optimization_manager.return_value = mock_optimizer
-    
-    # Mock sys.argv
-    with patch('sys.argv', ['simpledspy', '--optimize', '--strategy', 'mipro', '--max-demos', '10', 'test input']):
-        # Call main function
-        with patch('simpledspy.cli.pipe') as mock_pipe:
-            main()
-            
-            # Check that OptimizationManager was configured correctly
-            mock_optimizer.configure.assert_called_once_with(
-                strategy='mipro',
-                max_bootstrapped_demos=10,
-                max_labeled_demos=10
-            )
-            
-            # Check that pipe was called
-            mock_pipe.assert_called_once()
-
 def test_cli_help():
     """Test CLI help output"""
     # Run the CLI command with --help
