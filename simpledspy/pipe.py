@@ -163,7 +163,6 @@ class PipeFunction:
         module = self._create_module(
             inputs=input_names, 
             outputs=output_names,
-            # input_types can be similarly inferred if needed, but not currently done
             output_types=output_types_for_module,
             description=description
         )
@@ -199,30 +198,21 @@ class PipeFunction:
             
             # Perform type conversion if we have a type
             if output_type:
-                # Handle string numbers with commas/spaces before specific type conversion
-                if isinstance(value, str) and (get_origin(output_type) is None and output_type in (int, float)):
-                    value = value.replace(',', '').strip()
-                
-                # Convert to target type
-                # TODO: Add more robust handling for complex types like Tuple[int, str]
-                # For now, basic types are handled.
-                if output_type is int:
-                    try:
-                        value = int(float(value))  # Convert via float first to handle decimal strings like "30.0"
-                    except (ValueError, TypeError):
-                        pass # Keep original value if conversion fails
-                elif output_type is float:
-                    try:
-                        value = float(value)
-                    except (ValueError, TypeError):
-                        pass 
-                elif output_type is bool:
-                    if isinstance(value, str):
-                        value = value.lower() == 'true'
-                    else:
-                        value = bool(value)
-                elif output_type is str:
-                    value = str(value)
+                # For basic types, try to convert
+                try:
+                    if output_type is int:
+                        value = int(float(value.replace(',', '').strip()))
+                    elif output_type is float:
+                        value = float(value.replace(',', '').strip())
+                    elif output_type is bool:
+                        if isinstance(value, str):
+                            value = value.lower() == 'true'
+                        else:
+                            value = bool(value)
+                    elif output_type is str:
+                        value = str(value)
+                except (ValueError, TypeError):
+                    pass  # Keep original value if conversion fails
             
             processed_outputs.append(value)
             
