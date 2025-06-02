@@ -26,19 +26,13 @@ def main():
     # Create module factory
     factory = ModuleFactory()
     
-    # Create signature
+    # Create module with proper signature
     input_names = [f"input_{i+1}" for i in range(len(inputs))]
-    signature = factory.create_signature(
+    module = factory.create_module(
         inputs=input_names,
         outputs=["output"],
         description=args.description
     )
-    
-    # Create DSPy module based on user choice
-    if args.module == 'predict':
-        module = dspy.Predict(signature)
-    else:
-        module = dspy.ChainOfThought(signature)
     
     # Prepare inputs
     input_dict = {name: value for name, value in zip(input_names, inputs)}
