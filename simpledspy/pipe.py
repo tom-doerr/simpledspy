@@ -21,6 +21,12 @@ class PipeFunction:
             # Configure default LM with caching disabled
             instance.lm = dspy.LM(model="deepseek/deepseek-chat")
             dspy.configure(lm=instance.lm, cache=False)
+            
+            # Store creation location
+            frame = inspect.currentframe()
+            while frame.f_back:
+                frame = frame.f_back
+            instance._location = f"{frame.f_code.co_filename}:{frame.f_lineno}"
         return cls._instance
 
     def _create_module(self, inputs: List[str], outputs: List[str], 
@@ -200,6 +206,7 @@ class PipeFunction:
                         # Only raise exception for int/float conversion
                         if output_type in (int, float):
                             raise
+                        # For other types, keep original value
             
             processed_outputs.append(value)
             

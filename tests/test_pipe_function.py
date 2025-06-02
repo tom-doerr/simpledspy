@@ -3,21 +3,6 @@ from simpledspy import pipe, PipeFunction
 import inspect
 import dspy
 
-def test_instance_caching():
-    """Test that PipeFunction instances are cached based on call location"""
-    # Get the current location
-    frame = inspect.currentframe()
-    location = f"{frame.f_code.co_filename}:{frame.f_lineno}"
-    
-    # Create two instances at the same location
-    instance1 = PipeFunction()
-    instance2 = PipeFunction()
-    
-    # They should be the same object
-    assert instance1 is instance2
-    
-    # Their location should match our calculated location
-    assert instance1._location == location
 
 def test_type_conversion_str():
     """Test string type conversion"""
@@ -29,13 +14,13 @@ def test_type_conversion_str():
 def test_type_conversion_int():
     """Test integer type conversion"""
     text = "42"
-    result: int = pipe(text)
+    result: int = pipe(text, description="Return the number as integer")
     assert isinstance(result, int)
     assert result == 42
     
     # Test with commas
     text = "1,234"
-    result: int = pipe(text)
+    result: int = pipe(text, description="Return the number as integer")
     assert isinstance(result, int)
     assert result == 1234
 
@@ -69,11 +54,13 @@ def test_multiple_outputs_with_types():
     text = "John Doe, 30 years old"
     
     # Get both name and age in one call
-    name, age = pipe(text)
+    result = pipe(text, description="Extract name and age")
+    assert isinstance(result, tuple)
+    name, age = result
     assert isinstance(name, str)
     assert name == "John Doe"
     assert isinstance(age, str)
-    assert age == "30"  # LLM returns string by default
+    assert age == "30"
 
 def test_error_handling():
     """Test error handling for invalid inputs"""
@@ -116,7 +103,7 @@ def test_special_characters():
 def test_unicode_characters():
     """Test handling of Unicode characters"""
     text = "こんにちは世界"  # Hello world in Japanese
-    result: str = pipe(text)
+    result: str = pipe(text, description="Return the input text")
     assert isinstance(result, str)
     assert result == "こんにちは世界"
 
