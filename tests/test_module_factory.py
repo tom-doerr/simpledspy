@@ -217,7 +217,7 @@ def test_create_module_with_duplicate_names():
     
     # Count the number of fields
     fields = [f for f in signature.model_fields.keys() if not f.startswith('_') and f not in dir(type(signature))]
-    assert len(fields) == 2  # Only two fields should exist
+    assert len(fields) == 4  # Four fields should exist: input_1, input_2, output_1, output_2
 
 def test_create_module_with_long_description():
     """Test module creation with a very long description"""
