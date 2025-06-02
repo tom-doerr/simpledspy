@@ -47,7 +47,7 @@ class ModuleFactory:
 
         # Create signature class with proper instructions
         instructions = description or f"Given the fields {', '.join(inputs)}, produce the fields {', '.join(outputs)}."
-        Signature = type(
+        return type(
             'Signature',
             (dspy.Signature,),
             {
@@ -55,7 +55,3 @@ class ModuleFactory:
                 **signature_fields
             }
         )
-
-        # Create and return Predict module
-        # print("Signature:", Signature)
-        return dspy.Predict(Signature)

@@ -1,32 +1,16 @@
 #!/usr/bin/env python3
 import sys
 import argparse
-from simpledspy import pipe
-from .optimization_manager import OptimizationManager
+import dspy
+from .module_factory import ModuleFactory
 
 def main():
     parser = argparse.ArgumentParser(description="SimpleDSPy command line interface")
     parser.add_argument('inputs', nargs='*', help="Input strings to process (use - for stdin)")
     parser.add_argument('-d', '--description', help="Description of the processing task")
-    parser.add_argument('--optimize', action='store_true', help="Enable optimization")
-    parser.add_argument('--strategy', choices=['bootstrap_few_shot', 'mipro'], 
-                       default='bootstrap_few_shot', help="Optimization strategy")
-    parser.add_argument('--max-demos', type=int, default=4, 
-                       help="Maximum number of demonstrations")
-    parser.add_argument('--metric', type=str,
-                       help="Custom metric function to use for optimization")
+    parser.add_argument('-m', '--module', choices=['predict', 'chain_of_thought'], 
+                       default='chain_of_thought', help="DSPy module type to use")
     args = parser.parse_args()
-    
-    # Configure optimization if enabled
-    if args.optimize:
-        from simpledspy import OptimizationManager
-        optimizer = OptimizationManager()
-        optimizer.configure(
-            strategy=args.strategy,
-            max_bootstrapped_demos=args.max_demos,
-            max_labeled_demos=args.max_demos
-        )
-        # TODO: Add training data loading and optimization
     
     # Check if stdin has data
     if not sys.stdin.isatty():
@@ -35,18 +19,31 @@ def main():
     else:
         inputs = args.inputs
         
-    # Process inputs
-    if len(inputs) == 1:
-        answer = pipe(inputs[0], description=args.description)
-    else:
-        answer = pipe(*inputs, description=args.description)
+    # Create module factory
+    factory = ModuleFactory()
     
-    # Print results
-    if isinstance(answer, tuple):
-        for res in answer:
-            print(res)
+    # Create signature
+    input_names = [f"input_{i+1}" for i in range(len(inputs))]
+    signature = factory.create_signature(
+        inputs=input_names,
+        outputs=["output"],
+        description=args.description
+    )
+    
+    # Create DSPy module based on user choice
+    if args.module == 'predict':
+        module = dspy.Predict(signature)
     else:
-        print(answer)
+        module = dspy.ChainOfThought(signature)
+    
+    # Prepare inputs
+    input_dict = {name: value for name, value in zip(input_names, inputs)}
+    
+    # Run prediction
+    result = module(**input_dict)
+    
+    # Print result
+    print(result.output)
 
 if __name__ == "__main__":
     main()
