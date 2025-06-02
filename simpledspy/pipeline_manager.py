@@ -28,9 +28,9 @@ class PipelineManager:
         class Pipeline(dspy.Module):
             def __init__(self, steps_data: List[Tuple[List[str], List[str], dspy.Module]]):
                 super().__init__()
-                self.pipeline_steps_data = steps_data
+                self.steps = steps_data  # Expose steps data for testing
                 # Register each module instance with a unique name like 'step_0', 'step_1', etc.
-                for i, step_data_tuple in enumerate(self.pipeline_steps_data):
+                for i, step_data_tuple in enumerate(self.steps):
                     module_instance = step_data_tuple[2] # The module is the 3rd element
                     setattr(self, f'step_{i}', module_instance)
 
@@ -38,7 +38,7 @@ class PipelineManager:
                 # Start with the initial inputs
                 data = inputs.copy()
                 
-                for i, step_data_tuple in enumerate(self.pipeline_steps_data):
+                for i, step_data_tuple in enumerate(self.steps):
                     input_names_for_this_step = step_data_tuple[0]
                     output_names_for_this_step = step_data_tuple[1]
                     module_instance = getattr(self, f'step_{i}')
