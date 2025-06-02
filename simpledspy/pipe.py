@@ -169,8 +169,10 @@ class PipeFunction:
                 description=description
             )
         
-        # Create input dict
-        input_dict = {field: arg for field, arg in zip(input_names, args)}
+        # Create input dict with positional names: input_1, input_2, ...
+        input_dict = {}
+        for i, arg in enumerate(args):
+            input_dict[f'input_{i+1}'] = arg
         
         # Execute module
         prediction_result = module(**input_dict) # This is a dspy.Prediction object
@@ -178,35 +180,34 @@ class PipeFunction:
         # Register step
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
-        # Handle outputs based on the output_names list with type conversion
+        # Handle outputs based on the positional output names: output_1, output_2, ...
         processed_outputs = []
-        for i, field_name in enumerate(output_names):
+        for i in range(len(output_names)):
+            field_name = f"output_{i+1}"
             value = getattr(prediction_result, field_name)
             
-            # Get the output type for this specific field_name from the caller's annotations
-            output_type = type_hints.get(field_name)
+            # Get the output type for the i-th output variable from the caller's annotations
+            output_type = type_hints.get(output_names[i])
             
             # Perform type conversion if we have a type
             if output_type:
-                # For basic types, try to convert
-                if output_type:
-                    try:
-                        if output_type is int:
-                            value = int(float(value.replace(',', '').strip()))
-                        elif output_type is float:
-                            value = float(value.replace(',', '').strip())
-                        elif output_type is bool:
-                            if isinstance(value, str):
-                                value = value.lower() in ['true', 'yes', '1']
-                            else:
-                                value = bool(value)
-                        elif output_type is str:
-                            value = str(value)
-                    except (ValueError, TypeError):
-                        # Only raise exception for int/float conversion
-                        if output_type in (int, float):
-                            raise
-                        # For other types, keep original value
+                try:
+                    if output_type is int:
+                        value = int(float(value.replace(',', '').strip()))
+                    elif output_type is float:
+                        value = float(value.replace(',', '').strip())
+                    elif output_type is bool:
+                        if isinstance(value, str):
+                            value = value.lower() in ['true', 'yes', '1']
+                        else:
+                            value = bool(value)
+                    elif output_type is str:
+                        value = str(value)
+                except (ValueError, TypeError):
+                    # Only raise exception for int/float conversion
+                    if output_type in (int, float):
+                        raise
+                    # For other types, keep original value
             
             processed_outputs.append(value)
             
