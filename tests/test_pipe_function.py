@@ -1,5 +1,6 @@
 import pytest
 from simpledspy import predict, chain_of_thought
+from simpledspy.module_caller import Predict  # Added import
 import inspect
 import dspy
 from unittest.mock import patch
