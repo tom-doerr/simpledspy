@@ -26,42 +26,35 @@ class PipelineManager:
             raise ValueError("No pipeline steps registered. Please make pipe calls before assembling the pipeline.")
 
         class Pipeline(dspy.Module):
-            def __init__(self, steps_data: List[Tuple[List[str], List[str], dspy.Module]]):
+            def __init__(self, steps: List[Tuple[List[str], List[str], dspy.Module]]):
                 super().__init__()
-                self.steps = steps_data  # Expose steps data for testing
-                # Register each module instance with a unique name like 'step_0', 'step_1', etc.
-                for i, step_data_tuple in enumerate(self.steps):
-                    module_instance = step_data_tuple[2] # The module is the 3rd element
-                    setattr(self, f'step_{i}', module_instance)
+                self.steps = steps
+                # Register each module instance
+                for i, (_, _, module) in enumerate(steps):
+                    setattr(self, f'step_{i}', module)
 
             def forward(self, **inputs):
-                # Start with the initial inputs
                 data = inputs.copy()
                 
-                for i, step_data_tuple in enumerate(self.steps):
-                    input_names_for_this_step = step_data_tuple[0]
-                    output_names_for_this_step = step_data_tuple[1]
-                    module_instance = getattr(self, f'step_{i}')
-                    
-                    # Prepare the input dictionary for this step
+                for i, (input_names, output_names, _) in enumerate(self.steps):
                     step_inputs = {}
-                    for name in input_names_for_this_step:
+                    for name in input_names:
                         if name not in data:
                             raise ValueError(f"Pipeline Step {i}: Missing input '{name}'")
                         step_inputs[name] = data[name]
                     
                     # Execute the module
-                    prediction_object = module_instance(**step_inputs)
+                    prediction = getattr(self, f'step_{i}')(**step_inputs)
                     
-                    # Update data with outputs from this step
-                    for name in output_names_for_this_step:
-                        if not hasattr(prediction_object, name):
+                    # Update data with outputs
+                    for name in output_names:
+                        if not hasattr(prediction, name):
                             raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
-                        data[name] = getattr(prediction_object, name)
+                        data[name] = getattr(prediction, name)
                 
-                # Return the final outputs as they were last stored
-                if len(output_names_for_this_step) == 1:
-                    return data[output_names_for_this_step[0]]
-                return tuple(data[name] for name in output_names_for_this_step)
+                # Return final outputs
+                if len(output_names) == 1:
+                    return data[output_names[0]]
+                return tuple(data[name] for name in output_names)
 
         return Pipeline(self._steps)
