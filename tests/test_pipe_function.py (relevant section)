@@ -1,0 +1,20 @@
+...
+def test_custom_module_creation():
+    """Test creating a custom module with pipe"""
+    # Create a test module
+    class TestModule(dspy.Module):
+        def forward(self, **kwargs):
+            return dspy.Prediction(output_1="test output")
+    
+    # Mock the module creation
+    original_create_module = Predict._create_module
+    try:
+        def mock_create_module(self, *args, **kwargs):
+            return TestModule()
+        Predict._create_module = mock_create_module
+    
+        result = predict("test input")
+        assert result == "test output"
+    finally:
+        Predict._create_module = original_create_module
+...
