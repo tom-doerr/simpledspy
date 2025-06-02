@@ -19,12 +19,14 @@ class ModuleFactory:
                 desc += f" of type {field_type.__name__}"
             signature_fields[inp] = dspy.InputField(desc=desc)
             
-        for outp in outputs:
+        for i, outp in enumerate(outputs):
             field_type = output_types.get(outp) if output_types else None
             desc = f"Output field {outp}"
             if field_type:
                 desc += f" of type {field_type.__name__}"
-            signature_fields[outp] = dspy.OutputField(desc=desc)
+            # Use position-based field name to handle multiple outputs
+            field_name = f"output_{i+1}" if len(outputs) > 1 else outp
+            signature_fields[field_name] = dspy.OutputField(desc=desc)
 
         instructions = description or f"Given the fields {', '.join(inputs)}, produce the fields {', '.join(outputs)}."
         signature_class = type(
