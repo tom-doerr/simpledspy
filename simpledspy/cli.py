@@ -10,6 +10,10 @@ def main():
     parser.add_argument('-d', '--description', help="Description of the processing task")
     parser.add_argument('-m', '--module', choices=['predict', 'chain_of_thought'], 
                        default='chain_of_thought', help="DSPy module type to use")
+    parser.add_argument('--optimize', action='store_true', help="Enable pipeline optimization")
+    parser.add_argument('--strategy', choices=['bootstrap_few_shot', 'mipro'], 
+                       default='bootstrap_few_shot', help="Optimization strategy")
+    parser.add_argument('--max-demos', type=int, default=4, help="Maximum demonstrations for optimization")
     args = parser.parse_args()
     
     # Check if stdin has data

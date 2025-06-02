@@ -2,13 +2,8 @@ from typing import List, Tuple, Any
 import dspy
 
 class PipelineManager:
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._steps = [] 
-        return cls._instance
+    def __init__(self):
+        self._steps = []
 
     def register_step(self, inputs: List[str], outputs: List[str], module: Any):
         self._steps.append((inputs, outputs, module))

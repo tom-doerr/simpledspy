@@ -37,72 +37,38 @@ class PipeFunction:
         )
 
     def _get_caller_context(self, num_args: int) -> Tuple[List[str], List[str]]:
-        """Get the names of variables being passed and assigned.
-        
-        Args:
-            num_args: Number of arguments expected
-            
-        Returns:
-            Tuple of (input_names, output_names)
-        """
+        """Get the names of variables being passed and assigned using frame inspection."""
         frame = inspect.currentframe()
         try:
             # Go up two frames to get the assignment context
             outer_frame = frame.f_back.f_back
-            # Get the bytecode for the current frame
-            bytecode = dis.Bytecode(outer_frame.f_code)
             
-            # Find the variable names being passed
+            # Get input variable names from the call
+            call_line = outer_frame.f_lineno
+            source_lines = inspect.getsource(outer_frame.f_code).splitlines()
+            call_line_source = source_lines[call_line - 1].strip()
+            
+            # Extract output names (left side of assignment)
+            output_names = []
+            if '=' in call_line_source:
+                assignment_target = call_line_source.split('=')[0].strip()
+                # Handle tuple unpacking
+                if ',' in assignment_target:
+                    output_names = [name.strip() for name in assignment_target.split(',')]
+                else:
+                    output_names = [assignment_target]
+            
+            # Extract input names from the call arguments
             input_names = []
-            seen_ops = set()
+            call_args = call_line_source.split('pipe(')[1].split(')')[0].split(',')
+            for arg in call_args:
+                arg = arg.strip()
+                if arg and not arg.startswith('description='):
+                    input_names.append(arg)
             
-            # Walk backwards through instructions to find actual inputs
-            for instr in reversed(list(bytecode)):
-                if instr.offset >= outer_frame.f_lasti:
-                    continue
-                    
-                # Skip if we've already seen this operation
-                if instr.offset in seen_ops:
-                    continue
-                seen_ops.add(instr.offset)
-                
-                # Only include LOAD operations that are actual inputs
-                if instr.opname in ('LOAD_NAME', 'LOAD_FAST'):
-                    # Skip function names and other non-inputs
-                    if instr.argval not in ('pipe', 'print', 'self'): # 'self' could be a valid var name in some contexts
-                        if len(input_names) < num_args:
-                            input_names.append(instr.argval)
-            
-            # Reverse to maintain original order and ensure correct count
-            input_names = list(reversed(input_names))
-            
-            # If we didn't get enough names, fill with generic ones
+            # If we didn't get enough input names, use generics
             if len(input_names) < num_args:
                 input_names.extend(f"input_{i+1}" for i in range(len(input_names), num_args))
-                
-            # Find STORE_NAME/STORE_FAST opcodes only for the current line
-            output_names = []
-            current_line = outer_frame.f_lineno
-            for instr in bytecode:
-                # Only look at instructions after our call and on the same line
-                if (instr.offset > outer_frame.f_lasti and 
-                    instr.positions.lineno == current_line):
-                    if instr.opname in ('STORE_NAME', 'STORE_FAST'):
-                        output_names.append(instr.argval)
-                        # Stop when we hit a different operation (might be too restrictive for tuple unpacking to multiple statements)
-                        # However, for 'a, b = pipe()', it should capture 'a' and 'b' if they are stored sequentially.
-                        # If it's 'tmp = pipe(); a=tmp[0]; b=tmp[1]', this only gets 'tmp'.
-                    elif output_names: # If we started collecting output_names and hit something else
-                        break 
-            
-            if not output_names:
-                raise ValueError("pipe must be called in an assignment context.")
-            
-            # Remove duplicates and output names from inputs (if accidentally picked up)
-            input_names = list(dict.fromkeys(input_names))
-            for output_name in output_names:
-                if output_name in input_names:
-                    input_names.remove(output_name)
             
             return input_names, output_names
         finally:
