@@ -4,11 +4,12 @@ import dspy
 from unittest.mock import MagicMock
 
 class MockModule(dspy.Module):
-    def __init__(self):
+    def __init__(self, output_value):
         super().__init__()
+        self.output_value = output_value
     
-    def forward(self, *args):
-        return args
+    def forward(self, **kwargs):
+        return dspy.Prediction(output=self.output_value)
 
 def test_singleton_pattern():
     """Test that PipelineManager follows the singleton pattern"""
@@ -30,7 +31,7 @@ def test_pipeline_reset():
     manager = PipelineManager()
     manager.reset()
     
-    module = MockModule()
+    module = MockModule("test output")
     manager.register_step(
         inputs=["input1"],
         outputs=["output1"],
@@ -42,3 +43,67 @@ def test_pipeline_reset():
     assert len(manager._steps) == 0
     with pytest.raises(ValueError):
         pipeline = manager.assemble_pipeline()
+
+def test_pipeline_assembly():
+    """Test assembling a pipeline with multiple steps"""
+    manager = PipelineManager()
+    manager.reset()
+    
+    module1 = MockModule("step1 output")
+    module2 = MockModule("step2 output")
+    
+    manager.register_step(
+        inputs=["input1"],
+        outputs=["output1"],
+        module=module1
+    )
+    manager.register_step(
+        inputs=["output1"],
+        outputs=["output2"],
+        module=module2
+    )
+    
+    pipeline = manager.assemble_pipeline()
+    assert pipeline is not None
+    
+    # Test pipeline execution
+    result = pipeline(input1="test input")
+    assert result == {"output1": "step1 output", "output2": "step2 output"}
+
+def test_missing_input():
+    """Test missing input in pipeline execution"""
+    manager = PipelineManager()
+    manager.reset()
+    
+    module = MockModule("test output")
+    manager.register_step(
+        inputs=["input1"],
+        outputs=["output1"],
+        module=module
+    )
+    
+    pipeline = manager.assemble_pipeline()
+    
+    with pytest.raises(ValueError):
+        result = pipeline()  # Missing input
+
+def test_missing_output():
+    """Test missing output in pipeline execution"""
+    manager = PipelineManager()
+    manager.reset()
+    
+    class BadModule(dspy.Module):
+        def forward(self, **kwargs):
+            return {}  # No output
+    
+    module = BadModule()
+    manager.register_step(
+        inputs=["input1"],
+        outputs=["output1"],
+        module=module
+    )
+    
+    pipeline = manager.assemble_pipeline()
+    
+    with pytest.raises(ValueError):
+        result = pipeline(input1="test input")
