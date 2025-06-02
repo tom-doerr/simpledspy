@@ -2,16 +2,18 @@ from typing import List, Tuple, Any
 import dspy
 
 class PipelineManager:
-    def __init__(self):
-        self._steps = []
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._steps = []
+        return cls._instance
 
     def register_step(self, inputs: List[str], outputs: List[str], module: Any):
         self._steps.append((inputs, outputs, module))
 
     def assemble_pipeline(self):
-        if not self._steps:
-            raise ValueError("No pipeline steps registered. Please make pipe calls before assembling the pipeline.")
-
         class Pipeline(dspy.Module):
             def __init__(self, steps: List[Tuple[List[str], List[str], dspy.Module]]):
                 super().__init__()
@@ -36,6 +38,7 @@ class PipelineManager:
                             raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
                         data[name] = getattr(prediction, name)
                 
+                # The last step's outputs are the final outputs
                 if len(output_names) == 1:
                     return data[output_names[0]]
                 return tuple(data[name] for name in output_names)

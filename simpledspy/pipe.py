@@ -42,10 +42,21 @@ class PipeFunction:
         try:
             # Go up two frames to get the assignment context
             outer_frame = frame.f_back.f_back
+            if outer_frame is None:
+                # Fallback to generic names if we can't get the outer frame
+                input_names = [f"input_{i+1}" for i in range(num_args)]
+                output_names = [f"output_{i+1}" for i in range(1)]  # Default to one output
+                return input_names, output_names
             
             # Get input variable names from the call
             call_line = outer_frame.f_lineno
             source_lines = inspect.getsource(outer_frame.f_code).splitlines()
+            if call_line > len(source_lines):
+                # Fallback to generic names if the call line is beyond the source
+                input_names = [f"input_{i+1}" for i in range(num_args)]
+                output_names = [f"output_{i+1}" for i in range(1)]  # Default to one output
+                return input_names, output_names
+                
             call_line_source = source_lines[call_line - 1].strip()
             
             # Extract output names (left side of assignment)
@@ -60,16 +71,23 @@ class PipeFunction:
             
             # Extract input names from the call arguments
             input_names = []
-            call_args = call_line_source.split('pipe(')[1].split(')')[0].split(',')
-            for arg in call_args:
-                arg = arg.strip()
-                if arg and not arg.startswith('description='):
-                    input_names.append(arg)
+            # Check if the call to pipe is present
+            if 'pipe(' in call_line_source:
+                call_args = call_line_source.split('pipe(')[1].split(')')[0].split(',')
+                for arg in call_args:
+                    arg = arg.strip()
+                    if arg and not arg.startswith('description='):
+                        input_names.append(arg)
             
             # If we didn't get enough input names, use generics
             if len(input_names) < num_args:
                 input_names.extend(f"input_{i+1}" for i in range(len(input_names), num_args))
             
+            return input_names, output_names
+        except Exception as e:
+            # Fallback to generic names on any error
+            input_names = [f"input_{i+1}" for i in range(num_args)]
+            output_names = [f"output_{i+1}" for i in range(1)]  # Default to one output
             return input_names, output_names
         finally:
             del frame
