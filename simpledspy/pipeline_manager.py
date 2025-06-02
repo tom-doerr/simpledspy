@@ -27,7 +27,7 @@ class PipelineManager:
 
             def forward(self, **inputs):
                 data = inputs.copy()
-                output_names = []
+                final_outputs = []
                 
                 for i, (input_names, output_names, _) in enumerate(self.steps):
                     step_inputs = {}
@@ -42,11 +42,14 @@ class PipelineManager:
                         if not hasattr(prediction, name):
                             raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
                         data[name] = getattr(prediction, name)
+                    
+                    # Track final outputs for this step
+                    final_outputs = output_names
                 
-                if not output_names:
+                if not final_outputs:
                     return None
-                if len(output_names) == 1:
-                    return data[output_names[0]]
-                return tuple(data[name] for name in output_names)
+                if len(final_outputs) == 1:
+                    return data[final_outputs[0]]
+                return tuple(data[name] for name in final_outputs)
 
         return Pipeline(self._steps)

@@ -18,9 +18,15 @@ class OptimizationManager:
         
     def default_metric(self, example, prediction, trace=None):
         """Default metric function that checks exact match of predictions"""
+        # Handle different types of predictions
+        if isinstance(prediction, tuple):
+            prediction = {f'output_{i}': val for i, val in enumerate(prediction)}
+        elif not isinstance(prediction, dict):
+            prediction = {'output': prediction}
+            
         # Handle empty example case
-        if not example or len(example) == 0:
-            return 0.0 if prediction and len(prediction) > 0 else 1.0
+        if not example:
+            return 0.0 if prediction else 1.0
             
         score = 0
         for key, value in example.items():

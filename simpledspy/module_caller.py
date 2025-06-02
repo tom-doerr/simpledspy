@@ -78,10 +78,15 @@ class BaseCaller:
 
     def _extract_input_names(self, source: str, num_args: int) -> List[str]:
         """Extract input variable names from function call"""
-        if f'{self.__class__.__name__.lower()}(' not in source:
+        # Use the actual function name from the class
+        func_name = self.FUNCTION_NAME
+        if not func_name:
             return self._generic_names(num_args)[0]
             
-        args_str = source.split(f'{self.__class__.__name__.lower()}(')[1].split(')')[0]
+        if f'{func_name}(' not in source:
+            return self._generic_names(num_args)[0]
+            
+        args_str = source.split(f'{func_name}(')[1].split(')')[0]
         args_list = [arg.strip() for arg in args_str.split(',') if arg.strip()]
         
         # Filter out description keyword arguments
@@ -160,10 +165,12 @@ class BaseCaller:
 
 class Predict(BaseCaller):
     """Predict module caller - replaces pipe() function"""
-    pass
+    FUNCTION_NAME = 'predict'
 
 class ChainOfThought(BaseCaller):
     """ChainOfThought module caller"""
+    FUNCTION_NAME = 'chain_of_thought'
+    
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,

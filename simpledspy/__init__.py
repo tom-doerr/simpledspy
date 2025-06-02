@@ -9,7 +9,7 @@ chain_of_thought = ChainOfThought()
 
 # Check if the module is being imported incorrectly
 import sys as _sys
-if __name__ != "simpledspy" and "simpledspy" in _sys.modules:
+if not _sys.modules["simpledspy"].__name__.startswith("simpledspy"):
     import warnings as _warnings
     _warnings.warn(
         "It looks like you might be importing 'simpledspy' incorrectly. "
