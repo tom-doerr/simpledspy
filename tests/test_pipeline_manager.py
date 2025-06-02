@@ -23,7 +23,7 @@ def test_empty_pipeline():
     manager = PipelineManager()
     manager._steps = []
     pipeline = manager.assemble_pipeline()
-    assert pipeline(None) is None
+    assert pipeline() is None
 
 def test_pipeline_reset():
     """Test resetting the pipeline"""
@@ -41,4 +41,4 @@ def test_pipeline_reset():
     manager._steps = []
     assert len(manager._steps) == 0
     pipeline = manager.assemble_pipeline()
-    assert pipeline(None) is None
+    assert pipeline() is None
