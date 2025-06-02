@@ -26,30 +26,32 @@ class PipelineManager:
                     setattr(self, f'step_{i}', module)
 
             def forward(self, **inputs):
+                # Start with the initial inputs
                 data = inputs.copy()
-                final_outputs = []
+                
+                # We'll collect all outputs for the final result
+                all_outputs = {}
                 
                 for i, (input_names, output_names, _) in enumerate(self.steps):
+                    # Prepare inputs for this step
                     step_inputs = {}
                     for name in input_names:
                         if name not in data:
                             raise ValueError(f"Pipeline Step {i}: Missing input '{name}'")
                         step_inputs[name] = data[name]
                     
+                    # Run the step
                     prediction = getattr(self, f'step_{i}')(**step_inputs)
                     
+                    # Store outputs for next steps and final collection
                     for name in output_names:
                         if not hasattr(prediction, name):
                             raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
-                        data[name] = getattr(prediction, name)
-                    
-                    # Track final outputs for this step
-                    final_outputs = output_names
+                        value = getattr(prediction, name)
+                        data[name] = value  # Make available for next steps
+                        all_outputs[name] = value
                 
-                if not final_outputs:
-                    return None
-                if len(final_outputs) == 1:
-                    return data[final_outputs[0]]
-                return tuple(data[name] for name in final_outputs)
+                # Return all outputs as a dictionary
+                return all_outputs
 
         return Pipeline(self._steps)
