@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any
+from typing import Any, List
 import dspy
 
 class PipelineManager:
@@ -23,6 +23,7 @@ class PipelineManager:
 
             def forward(self, **inputs):
                 data = inputs.copy()
+                output_names = []
                 
                 for i, (input_names, output_names, _) in enumerate(self.steps):
                     step_inputs = {}
@@ -38,7 +39,8 @@ class PipelineManager:
                             raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
                         data[name] = getattr(prediction, name)
                 
-                # The last step's outputs are the final outputs
+                if not output_names:
+                    return None
                 if len(output_names) == 1:
                     return data[output_names[0]]
                 return tuple(data[name] for name in output_names)
