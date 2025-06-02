@@ -42,6 +42,20 @@ class ModuleFactory:
                 desc += f" of type {field_type.__name__}"
             signature_fields[outp] = dspy.OutputField(desc=desc)
 
+        # Create signature class
+        instructions = description or f"Given the fields {', '.join(inputs)}, produce the fields {', '.join(outputs)}."
+        signature_class = type(
+            'Signature',
+            (dspy.Signature,),
+            {
+                '__doc__': instructions,
+                **signature_fields
+            }
+        )
+        
+        # Create and return a Predict module with the signature
+        return dspy.Predict(signature_class)
+
 
 
 
