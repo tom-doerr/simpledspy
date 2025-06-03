@@ -16,6 +16,7 @@ def main():
                        default='bootstrap_few_shot', help="Optimization strategy")
     parser.add_argument('--max-demos', type=int, default=4, help="Maximum demonstrations for optimization")
     parser.add_argument('--json', action='store_true', help="Output in JSON format")
+    parser.add_argument('--pipeline', nargs='+', help="Run a pipeline with multiple step descriptions")
     args = parser.parse_args()
     
     # Use command-line arguments if present, otherwise check stdin
@@ -52,11 +53,41 @@ def main():
         trainset = [input_dict]
         module = manager.optimize(module, trainset)
     
-    # Run prediction
-    result = module(**input_dict)
-    
-    # Handle output
-    output_data = {name: getattr(result, name) for name in output_names}
+    # Handle pipeline execution if enabled
+    if args.pipeline:
+        from .pipeline_manager import PipelineManager
+        manager = PipelineManager()
+        manager.reset()
+        
+        # Create steps from descriptions
+        for i, desc in enumerate(args.pipeline):
+            step_module = factory.create_module(
+                inputs=[f"input_{i+1}"],
+                outputs=[f"output_{i+1}"],
+                description=desc
+            )
+            if i == 0:
+                inputs = [f"input_{i+1}"]
+            else:
+                inputs = [f"output_{i}"]
+                
+            manager.register_step(
+                inputs=inputs,
+                outputs=[f"output_{i+1}"],
+                module=step_module
+            )
+        
+        pipeline = manager.assemble_pipeline()
+        result = pipeline(**{f"input_1": " ".join(inputs)})
+        
+        # Get final output
+        output_name = f"output_{len(args.pipeline)}"
+        output_value = getattr(result, output_name)
+        output_data = {output_name: output_value}
+    else:
+        # Run single module prediction
+        result = module(**input_dict)
+        output_data = {name: getattr(result, name) for name in output_names}
     
     # Format output
     if args.json:

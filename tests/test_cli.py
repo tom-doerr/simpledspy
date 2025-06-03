@@ -105,3 +105,32 @@ def test_cli_optimization(capsys):
             # Verify optimization was called
             mock_manager.configure.assert_called_once()
             mock_manager.optimize.assert_called_once()
+def test_cli_pipeline(capsys):
+    """Test CLI pipeline execution"""
+    # Mock the arguments
+    with patch('sys.argv', ['cli.py', 'Hello, world!', '--pipeline', 
+                           'Step 1 description', 'Step 2 description']):
+        # Mock dependencies
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
+             patch('simpledspy.cli.PipelineManager') as MockPipelineManager:
+            
+            # Setup mock module factory
+            mock_factory = MockFactory.return_value
+            
+            # Setup mock pipeline
+            mock_manager = MockPipelineManager.return_value
+            mock_pipeline = MagicMock()
+            mock_manager.assemble_pipeline.return_value = mock_pipeline
+            mock_pipeline.return_value = MagicMock(output_2="Pipeline Output")
+            
+            # Call the main function
+            main()
+            
+            # Capture the output
+            captured = capsys.readouterr()
+            assert "Pipeline Output" in captured.out
+            
+            # Verify pipeline was created and executed
+            mock_manager.register_step.assert_called()
+            mock_manager.assemble_pipeline.assert_called_once()
+            mock_pipeline.assert_called_once()
