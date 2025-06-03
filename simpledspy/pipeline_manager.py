@@ -20,6 +20,7 @@ class PipelineManager:
         dspy.settings.configure(reset=True)
 
     def assemble_pipeline(self):
+        """Assembles and returns a DSPy pipeline from registered steps"""
         if not self._steps:
             raise ValueError("Cannot assemble an empty pipeline")
             
@@ -31,56 +32,61 @@ class PipelineManager:
                     setattr(self, f'step_{i}', module)
 
             def forward(self, **inputs):
-                # Start with the initial inputs
-                data = inputs.copy()
-                
-                # We'll collect all outputs for the final result
-                all_outputs = {}
-                
-                for i, (input_names, output_names, _) in enumerate(self.steps):
-                    # Prepare inputs for this step
-                    step_inputs = {}
-                    for name in input_names:
-                        if name not in data:
-                            # Try to find matching input by prefix/suffix
-                            matches = [k for k in data.keys() if name in k]
-                            if matches:
-                                step_inputs[name] = data[matches[0]]
-                            else:
-                                raise ValueError(f"Pipeline Step {i}: Missing input '{name}'")
-                        else:
-                            step_inputs[name] = data[name]
+                """Executes the pipeline with given inputs"""
+                try:
+                    # Start with the initial inputs
+                    data = inputs.copy()
                     
-                    # Run the step
-                    prediction = getattr(self, f'step_{i}')(**step_inputs)
+                    # We'll collect all outputs for the final result
+                    all_outputs = {}
                     
-                    # Store outputs for next steps and final collection
-                    for name in output_names:
-                        if isinstance(prediction, dict):
-                            if name in prediction:
-                                value = prediction[name]
-                            else:
-                                # Try to find matching output by prefix/suffix
-                                matches = [k for k in prediction if name in k]
+                    for i, (input_names, output_names, _) in enumerate(self.steps):
+                        # Prepare inputs for this step
+                        step_inputs = {}
+                        for name in input_names:
+                            if name not in data:
+                                # Try to find matching input by prefix/suffix
+                                matches = [k for k in data.keys() if name in k]
                                 if matches:
-                                    value = prediction[matches[0]]
+                                    step_inputs[name] = data[matches[0]]
                                 else:
-                                    raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
-                        else:
-                            if hasattr(prediction, name):
-                                value = getattr(prediction, name)
+                                    raise ValueError(f"Pipeline Step {i}: Missing input '{name}'")
                             else:
-                                # Try to find matching output by prefix/suffix
-                                matches = [k for k in prediction.__dict__ if name in k]
-                                if matches:
-                                    value = getattr(prediction, matches[0])
+                                step_inputs[name] = data[name]
+                        
+                        # Run the step
+                        prediction = getattr(self, f'step_{i}')(**step_inputs)
+                        
+                        # Store outputs for next steps and final collection
+                        for name in output_names:
+                            if isinstance(prediction, dict):
+                                if name in prediction:
+                                    value = prediction[name]
                                 else:
-                                    raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
-                
-                        data[name] = value  # Make available for next steps
-                        all_outputs[name] = value
-                
-                # Return all outputs as a dictionary
-                return dspy.Prediction(**all_outputs)
+                                    # Try to find matching output by prefix/suffix
+                                    matches = [k for k in prediction if name in k]
+                                    if matches:
+                                        value = prediction[matches[0]]
+                                    else:
+                                        raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
+                            else:
+                                if hasattr(prediction, name):
+                                    value = getattr(prediction, name)
+                                else:
+                                    # Try to find matching output by prefix/suffix
+                                    matches = [k for k in prediction.__dict__ if name in k]
+                                    if matches:
+                                        value = getattr(prediction, matches[0])
+                                    else:
+                                        raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
+                    
+                            data[name] = value  # Make available for next steps
+                            all_outputs[name] = value
+                    
+                    # Return all outputs as a dictionary
+                    return dspy.Prediction(**all_outputs)
+                except Exception as e:
+                    # Add context to the error
+                    raise RuntimeError(f"Pipeline execution failed: {str(e)}") from e
 
         return Pipeline(self._steps)

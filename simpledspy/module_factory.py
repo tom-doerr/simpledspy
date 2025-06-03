@@ -43,6 +43,19 @@ class ModuleFactory:
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,
                     description: str = "") -> dspy.Module:
+        """
+        Creates a DSPy module with the specified signature
+        
+        Args:
+            inputs: List of input field names
+            outputs: List of output field names
+            input_types: Optional dictionary mapping input names to types
+            output_types: Optional dictionary mapping output names to types
+            description: Custom description for the module signature
+            
+        Returns:
+            DSPy Predict module with the configured signature
+        """
         signature_class = self.create_signature(
             inputs=inputs,
             outputs=outputs,

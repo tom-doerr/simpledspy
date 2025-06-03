@@ -68,7 +68,16 @@ class OptimizationManager:
             )
 
     def optimize(self, module, trainset):
-        """Optimize a module or pipeline using the configured strategy"""
+        """
+        Optimize a module or pipeline using the configured strategy
+        
+        Args:
+            module: DSPy module or pipeline to optimize
+            trainset: Training dataset for optimization
+            
+        Returns:
+            Optimized DSPy module or pipeline
+        """
         teleprompter = self.get_teleprompter()
         compiled = teleprompter.compile(module, trainset=trainset)
         
