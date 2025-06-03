@@ -34,6 +34,9 @@
 - Built-in caching and configuration
 - Type hints and documentation
 - Support for different module types (Predict, ChainOfThought)
+- Pipeline optimization strategies
+- Flexible type hinting for inputs/outputs
+- CLI for easy pipeline execution
 
 ## Installation
 
@@ -51,7 +54,11 @@ cleaned_text = predict("Some messy   text with extra spaces")
 print(cleaned_text)  # "Some messy text with extra spaces"
 
 # Multiple inputs/outputs
-name, age = predict("John Doe, 30 years old")
+name, age = predict(
+    "John Doe, 30 years old",
+    inputs=["text"],
+    outputs=["name", "age"]
+)
 print(name)  # "John Doe"
 print(age)   # 30
 
@@ -61,15 +68,51 @@ result = chain_of_thought(
     description="Reason step by step"
 )
 print(result)  # "3"
+
+# Building pipelines
+from simpledspy import PipelineManager
+
+manager = PipelineManager()
+manager.register_step(
+    inputs=["text"],
+    outputs=["cleaned"],
+    module=predict("Clean text")
+)
+manager.register_step(
+    inputs=["cleaned"],
+    outputs=["sentiment"],
+    module=chain_of_thought("Analyze sentiment")
+)
+
+pipeline = manager.assemble_pipeline()
+result = pipeline(text="I love this product!")
+print(result.sentiment)  # "positive"
 ```
 
 ## How It Works
 
 The `predict` and `chain_of_thought` functions automatically:
-1. Detect input variable names
-2. Create appropriate DSPy modules
-3. Track pipeline steps
-4. Return processed outputs
+1. Create DSPy modules from input/output specifications
+2. Handle type hinting and descriptions
+3. Track pipeline steps through the PipelineManager
+4. Return processed outputs as either single values or tuples
+
+Pipelines can be optimized using various strategies:
+- BootstrapFewShot: Few-shot learning with bootstrapped demonstrations
+- MIPRO: More advanced optimization with iterative prompt refinement
+
+## CLI Usage
+
+```bash
+# Process text with description
+simpledspy "Hello, world!" -d "Extract greeting"
+
+# Process from stdin
+echo "John Doe, 30 years old" | simpledspy -d "Extract name and age"
+
+# Enable optimization
+simpledspy "Complex problem" -d "Solve step by step" --optimize
+```
 
 ## Contributing
 
