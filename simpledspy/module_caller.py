@@ -187,11 +187,11 @@ class ChainOfThought(BaseCaller):
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,
                      description: str = "") -> dspy.Module:
-        signature = self.module_factory.create_module(
+        signature_class = self.module_factory.create_signature(
             inputs=inputs,
             outputs=outputs,
             input_types=input_types,
             output_types=output_types,
             description=description
         )
-        return dspy.ChainOfThought(signature)
+        return dspy.ChainOfThought(signature_class)

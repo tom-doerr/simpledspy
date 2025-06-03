@@ -2,10 +2,10 @@ import dspy
 from typing import List, Dict, Any
 
 class ModuleFactory:
-    def create_module(self, inputs: List[str], outputs: List[str], 
+    def create_signature(self, inputs: List[str], outputs: List[str], 
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,
-                    description: str = "") -> dspy.Module:
+                    description: str = "") -> dspy.Signature:
         signature_fields = {}
         
         # Use original input names
@@ -25,7 +25,7 @@ class ModuleFactory:
             signature_fields[outp] = dspy.OutputField(desc=desc)
 
         instructions = description or f"Given the fields {', '.join(inputs)}, produce the fields {', '.join(outputs)}."
-        signature_class = type(
+        return type(
             'Signature',
             (dspy.Signature,),
             {
@@ -33,5 +33,16 @@ class ModuleFactory:
                 **signature_fields
             }
         )
-        
+
+    def create_module(self, inputs: List[str], outputs: List[str], 
+                    input_types: Dict[str, type] = None,
+                    output_types: Dict[str, type] = None,
+                    description: str = "") -> dspy.Module:
+        signature_class = self.create_signature(
+            inputs=inputs,
+            outputs=outputs,
+            input_types=input_types,
+            output_types=output_types,
+            description=description
+        )
         return dspy.Predict(signature_class)

@@ -4,8 +4,10 @@ import dspy
 from unittest.mock import MagicMock
 
 class MockModule(dspy.Module):
-    def __init__(self, **outputs):
+    def __init__(self, output_value=None, **outputs):
         super().__init__()
+        if output_value:
+            outputs['output'] = output_value
         self.outputs = outputs
     
     def forward(self, **kwargs):
