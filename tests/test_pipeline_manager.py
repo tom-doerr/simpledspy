@@ -4,12 +4,12 @@ import dspy
 from unittest.mock import MagicMock
 
 class MockModule(dspy.Module):
-    def __init__(self, output_value):
+    def __init__(self, **outputs):
         super().__init__()
-        self.output_value = output_value
+        self.outputs = outputs
     
     def forward(self, **kwargs):
-        return dspy.Prediction(output=self.output_value)
+        return dspy.Prediction(**self.outputs)
 
 def test_singleton_pattern():
     """Test that PipelineManager follows the singleton pattern"""

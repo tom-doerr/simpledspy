@@ -14,7 +14,13 @@ def test_basic_string_output():
 def test_chain_of_thought():
     """Test chain_of_thought function"""
     with patch('simpledspy.module_caller.BaseCaller._create_module') as mock_create:
-        mock_module = dspy.ChainOfThought(lambda text: dspy.Prediction(output="result"))
+        # Create a proper signature for ChainOfThought
+        class TestSignature(dspy.Signature):
+            text = dspy.InputField()
+            output = dspy.OutputField()
+            
+        mock_module = dspy.ChainOfThought(TestSignature)
+        mock_module.forward = lambda **kwargs: dspy.Prediction(output="result")
         mock_create.return_value = mock_module
         
         text = "What is the capital of France?"

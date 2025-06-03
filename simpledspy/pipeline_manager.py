@@ -18,6 +18,9 @@ class PipelineManager:
         self._steps = []
 
     def assemble_pipeline(self):
+        if not self._steps:
+            raise ValueError("Cannot assemble an empty pipeline")
+            
         class Pipeline(dspy.Module):
             def __init__(self, steps: List[Tuple[List[str], List[str], dspy.Module]]):
                 super().__init__()

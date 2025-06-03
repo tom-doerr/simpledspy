@@ -18,12 +18,14 @@ def main():
     parser.add_argument('--json', action='store_true', help="Output in JSON format")
     args = parser.parse_args()
     
-    # Check if stdin has data
-    if not sys.stdin.isatty():
+    # Use command-line arguments if present, otherwise check stdin
+    if args.inputs:
+        inputs = args.inputs
+    elif not sys.stdin.isatty():
         input_text = sys.stdin.read().strip()
         inputs = [input_text]
     else:
-        inputs = args.inputs
+        inputs = []
         
     # Create module factory
     factory = ModuleFactory()
