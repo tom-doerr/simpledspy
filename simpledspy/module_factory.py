@@ -8,13 +8,13 @@ class ModuleFactory:
                     description: str = "") -> dspy.Signature:
         signature_fields = {}
         
-        # Create meaningful descriptions for inputs
+        # Create descriptions for inputs
         for inp in inputs:
             field_type = input_types.get(inp) if input_types else None
             type_info = f" (type: {field_type.__name__})" if field_type else ""
             signature_fields[inp] = dspy.InputField(desc=f"{inp}{type_info}")
             
-        # Create meaningful descriptions for outputs
+        # Create descriptions for outputs
         for outp in outputs:
             field_type = output_types.get(outp) if output_types else None
             type_info = f" (type: {field_type.__name__})" if field_type else ""

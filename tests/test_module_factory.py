@@ -57,9 +57,9 @@ def test_create_module_with_types():
     greeting_field = signature.model_fields['greeting']
     
     # Check that type information is included in descriptions
-    assert "of type str" in name_field.json_schema_extra['desc']
-    assert "of type int" in age_field.json_schema_extra['desc']
-    assert "of type str" in greeting_field.json_schema_extra['desc']
+    assert "(type: str)" in name_field.json_schema_extra['desc']
+    assert "(type: int)" in age_field.json_schema_extra['desc']
+    assert "(type: str)" in greeting_field.json_schema_extra['desc']
 
 def test_create_module_with_description():
     """Test module creation with custom description"""
@@ -94,10 +94,10 @@ def test_create_module_with_missing_types():
     farewell_field = signature.model_fields['farewell']
     
     # Check that type information is included only where provided
-    assert "of type str" in name_field.json_schema_extra['desc']
-    assert "of type str" not in age_field.json_schema_extra['desc']
-    assert "of type str" in greeting_field.json_schema_extra['desc']
-    assert "of type str" not in farewell_field.json_schema_extra['desc']
+    assert "(type: str)" in name_field.json_schema_extra['desc']
+    assert "(type: str)" not in age_field.json_schema_extra['desc']
+    assert "(type: str)" in greeting_field.json_schema_extra['desc']
+    assert "(type: str)" not in farewell_field.json_schema_extra['desc']
 
 def test_create_module_with_complex_types():
     """Test module creation with complex type hints"""
@@ -119,10 +119,10 @@ def test_create_module_with_complex_types():
     metadata_field = signature.model_fields['metadata']
     
     # Check that type information is included in descriptions
-    assert "of type List" in items_field.json_schema_extra['desc']
-    assert "of type Dict" in config_field.json_schema_extra['desc']
-    assert "of type List" in result_field.json_schema_extra['desc']
-    assert "of type Dict" in metadata_field.json_schema_extra['desc']
+    assert "(type: List)" in items_field.json_schema_extra['desc']
+    assert "(type: Dict)" in config_field.json_schema_extra['desc']
+    assert "(type: List)" in result_field.json_schema_extra['desc']
+    assert "(type: Dict)" in metadata_field.json_schema_extra['desc']
 
 def test_create_module_with_optional_types():
     """Test module creation with Optional type hints"""
@@ -143,9 +143,9 @@ def test_create_module_with_optional_types():
     greeting_field = signature.model_fields['greeting']
     
     # Check that type information is included in descriptions
-    assert "of type str" in name_field.json_schema_extra['desc']
-    assert "of type Optional" in age_field.json_schema_extra['desc']
-    assert "of type Optional" in greeting_field.json_schema_extra['desc']
+    assert "(type: str)" in name_field.json_schema_extra['desc']
+    assert "(type: Optional)" in age_field.json_schema_extra['desc']
+    assert "(type: Optional)" in greeting_field.json_schema_extra['desc']
 
 def test_create_module_with_union_types():
     """Test module creation with Union type hints"""
@@ -165,8 +165,8 @@ def test_create_module_with_union_types():
     result_field = signature.model_fields['result']
     
     # Check that type information is included in descriptions
-    assert "of type Union" in value_field.json_schema_extra['desc']
-    assert "of type Union" in result_field.json_schema_extra['desc']
+    assert "(type: Union)" in value_field.json_schema_extra['desc']
+    assert "(type: Union)" in result_field.json_schema_extra['desc']
 
 def test_create_module_with_empty_inputs():
     """Test module creation with no inputs"""
@@ -183,7 +183,7 @@ def test_create_module_with_empty_inputs():
     # Check that output field exists
     assert 'result' in signature.model_fields
     # Check field description
-    assert "Output field result" in signature.model_fields['result'].json_schema_extra['desc']
+    assert "result" == signature.model_fields['result'].json_schema_extra['desc']
     
     # Check signature docstring
     expected_doc = f"Produce outputs ({', '.join(outputs)})"
@@ -207,7 +207,7 @@ def test_create_module_with_empty_outputs():
     # Check that input field exists
     assert 'input1' in signature.model_fields
     # Check field description
-    assert "Input field input1" in signature.model_fields['input1'].json_schema_extra['desc']
+    assert "input1" == signature.model_fields['input1'].json_schema_extra['desc']
     
     # Check signature docstring
     expected_doc = f"Process inputs ({', '.join(inputs)})"
