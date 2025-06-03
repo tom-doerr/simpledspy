@@ -78,7 +78,7 @@ def main():
             )
         
         pipeline = manager.assemble_pipeline()
-        result = pipeline(**{f"input_1": " ".join(inputs)})
+        result = pipeline(**input_dict)
         
         # Get final output
         output_name = f"output_{len(args.pipeline)}"
