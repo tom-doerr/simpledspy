@@ -30,8 +30,16 @@ class BaseCaller:
             description=description
         )
 
-    def __call__(self, *args, outputs: List[str] = None, description: str = None) -> Any:
-        input_names = [f"input_{i+1}" for i in range(len(args))]
+    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None) -> Any:
+        # Use custom input names if provided, otherwise generate meaningful defaults
+        if inputs is None:
+            input_names = [f"input_{i+1}" for i in range(len(args))]
+        else:
+            if len(inputs) != len(args):
+                raise ValueError(f"Expected {len(args)} input names, got {len(inputs)}")
+            input_names = inputs
+        
+        # Use custom output names if provided, otherwise use a single default
         output_names = outputs or ["output"]
         
         module = self._create_module(

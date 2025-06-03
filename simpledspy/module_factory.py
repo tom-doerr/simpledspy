@@ -8,23 +8,28 @@ class ModuleFactory:
                     description: str = "") -> dspy.Signature:
         signature_fields = {}
         
-        # Use original input names
+        # Create meaningful descriptions for inputs
         for inp in inputs:
             field_type = input_types.get(inp) if input_types else None
-            desc = f"Input field {inp}"
-            if field_type:
-                desc += f" of type {field_type.__name__}"
-            signature_fields[inp] = dspy.InputField(desc=desc)
+            type_info = f" (type: {field_type.__name__})" if field_type else ""
+            signature_fields[inp] = dspy.InputField(desc=f"{inp}{type_info}")
             
-        # Use original output names
+        # Create meaningful descriptions for outputs
         for outp in outputs:
             field_type = output_types.get(outp) if output_types else None
-            desc = f"Output field {outp}"
-            if field_type:
-                desc += f" of type {field_type.__name__}"
-            signature_fields[outp] = dspy.OutputField(desc=desc)
+            type_info = f" (type: {field_type.__name__})" if field_type else ""
+            signature_fields[outp] = dspy.OutputField(desc=f"{outp}{type_info}")
 
-        instructions = description or f"Given the fields {', '.join(inputs)}, produce the fields {', '.join(outputs)}."
+        # Create better default instructions
+        if description:
+            instructions = description
+        elif inputs and outputs:
+            instructions = f"Process inputs ({', '.join(inputs)}) to produce outputs ({', '.join(outputs)})"
+        elif inputs:
+            instructions = f"Process inputs ({', '.join(inputs)})"
+        else:
+            instructions = f"Produce outputs ({', '.join(outputs)})"
+            
         return type(
             'Signature',
             (dspy.Signature,),
