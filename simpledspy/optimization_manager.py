@@ -18,21 +18,26 @@ class OptimizationManager:
         
     def default_metric(self, example, prediction, trace=None):
         """Default metric function that checks exact match of predictions"""
-        # Handle different types of predictions
-        if isinstance(prediction, tuple):
-            prediction = {f'output_{i}': val for i, val in enumerate(prediction)}
-        elif not isinstance(prediction, dict):
-            prediction = {'output': prediction}
-            
         # Handle empty example case
         if not example:
-            return 0.0 if prediction else 1.0
+            return 1.0 if not prediction else 0.0
             
+        # Normalize prediction to dict
+        if not isinstance(prediction, dict):
+            if isinstance(prediction, tuple):
+                prediction = {f'output_{i}': val for i, val in enumerate(prediction)}
+            else:
+                prediction = {'output': prediction}
+                
+        # Calculate exact match score
         score = 0
+        total = 0
         for key, value in example.items():
+            total += 1
             if key in prediction and prediction[key] == value:
                 score += 1
-        return score / len(example)
+                
+        return score / total if total > 0 else 0.0
 
     def configure(self, **kwargs):
         """Update optimization configuration"""
