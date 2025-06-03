@@ -112,7 +112,7 @@ def test_cli_pipeline(capsys):
                            'Step 1 description', 'Step 2 description']):
         # Mock dependencies
         with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
-             patch('simpledspy.cli.PipelineManager') as MockPipelineManager:
+             patch('simpledspy.pipeline_manager.PipelineManager') as MockPipelineManager:
             
             # Setup mock module factory
             mock_factory = MockFactory.return_value
