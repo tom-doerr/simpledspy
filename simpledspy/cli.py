@@ -42,6 +42,16 @@ def main():
     # Prepare inputs
     input_dict = {name: value for name, value in zip(input_names, inputs)}
     
+    # Handle optimization if enabled
+    if args.optimize:
+        from .optimization_manager import OptimizationManager
+        manager = OptimizationManager()
+        manager.configure(strategy=args.strategy, max_bootstrapped_demos=args.max_demos)
+        
+        # Create simple trainset for demonstration (should be provided by user)
+        trainset = [input_dict]
+        module = manager.optimize(module, trainset)
+    
     # Run prediction
     result = module(**input_dict)
     

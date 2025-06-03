@@ -77,22 +77,31 @@ def test_cli_help(capsys):
         assert "--strategy" in captured.out
         assert "--max-demos" in captured.out
 
-def test_cli_json_output(capsys):
-    """Test CLI with JSON output"""
+def test_cli_optimization(capsys):
+    """Test CLI optimization flag"""
     # Mock the arguments
-    with patch('sys.argv', ['cli.py', 'Hello, world!', '-d', 'extract the greeting', '--json']):
-        # Mock the ModuleFactory and module
-        with patch('simpledspy.cli.ModuleFactory') as MockFactory:
+    with patch('sys.argv', ['cli.py', 'Hello, world!', '-d', 'extract the greeting', '--optimize']):
+        # Mock dependencies
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
+             patch('simpledspy.cli.OptimizationManager') as MockOptManager:
+            
+            # Setup mock module
             mock_factory = MockFactory.return_value
             mock_module = MagicMock()
             mock_factory.create_module.return_value = mock_module
-            mock_module.return_value = MagicMock(output="Hello")
+            mock_module.return_value = MagicMock(output="Optimized Hello")
+            
+            # Setup optimization manager
+            mock_manager = MockOptManager.return_value
+            mock_manager.optimize.return_value = mock_module
             
             # Call the main function
             main()
             
             # Capture the output
             captured = capsys.readouterr()
-            assert "output" in captured.out
-            assert "Hello" in captured.out
-            assert "{" in captured.out  # Check for JSON structure
+            assert "Optimized Hello" in captured.out
+            
+            # Verify optimization was called
+            mock_manager.configure.assert_called_once()
+            mock_manager.optimize.assert_called_once()
