@@ -6,9 +6,11 @@ from typing import List, Dict, Any, Optional, Union
 def test_create_module_basic():
     """Test basic module creation without type hints"""
     factory = ModuleFactory()
+    inputs = ["input1", "input2"]
+    outputs = ["output1"]
     module = factory.create_module(
-        inputs=["input1", "input2"],
-        outputs=["output1"]
+        inputs=inputs,
+        outputs=outputs
     )
     
     # Check that it's a DSPy module
@@ -26,6 +28,10 @@ def test_create_module_basic():
     assert signature.model_fields['input1'].annotation == str
     assert signature.model_fields['input2'].annotation == str
     assert signature.model_fields['output1'].annotation == str
+    
+    # Check signature docstring
+    expected_doc = f"Process inputs ({', '.join(inputs)}) to produce outputs ({', '.join(outputs)})"
+    assert signature.__doc__ == expected_doc
 
 def test_create_module_with_types():
     """Test module creation with type hints"""
@@ -165,9 +171,10 @@ def test_create_module_with_union_types():
 def test_create_module_with_empty_inputs():
     """Test module creation with no inputs"""
     factory = ModuleFactory()
+    outputs = ["result"]
     module = factory.create_module(
         inputs=[],
-        outputs=["result"]
+        outputs=outputs
     )
     
     # Get the signature
@@ -177,15 +184,21 @@ def test_create_module_with_empty_inputs():
     assert 'result' in signature.model_fields
     # Check field description
     assert "Output field result" in signature.model_fields['result'].json_schema_extra['desc']
+    
+    # Check signature docstring
+    expected_doc = f"Produce outputs ({', '.join(outputs)})"
+    assert signature.__doc__ == expected_doc
 
 def test_create_module_with_empty_outputs():
     """Test module creation with no outputs"""
     factory = ModuleFactory()
+    inputs = ["input1"]
+    outputs = []
     
     # Create module with empty outputs - this should work in the implementation
     module = factory.create_module(
-        inputs=["input1"],
-        outputs=[]
+        inputs=inputs,
+        outputs=outputs
     )
     
     # Get the signature
@@ -195,6 +208,10 @@ def test_create_module_with_empty_outputs():
     assert 'input1' in signature.model_fields
     # Check field description
     assert "Input field input1" in signature.model_fields['input1'].json_schema_extra['desc']
+    
+    # Check signature docstring
+    expected_doc = f"Process inputs ({', '.join(inputs)})"
+    assert signature.__doc__ == expected_doc
 
 def test_create_module_with_long_description():
     """Test module creation with a very long description"""
