@@ -83,7 +83,7 @@ def test_cli_optimization(capsys):
     with patch('sys.argv', ['cli.py', 'Hello, world!', '-d', 'extract the greeting', '--optimize']):
         # Mock dependencies
         with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
-             patch('simpledspy.cli.OptimizationManager') as MockOptManager:
+             patch('simpledspy.optimization_manager.OptimizationManager') as MockOptManager:
             
             # Setup mock module
             mock_factory = MockFactory.return_value
