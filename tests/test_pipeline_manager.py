@@ -51,8 +51,8 @@ def test_pipeline_assembly():
     manager = PipelineManager()
     manager.reset()
     
-    module1 = MockModule("step1 output")
-    module2 = MockModule("step2 output")
+    module1 = MockModule(output1="step1 output")
+    module2 = MockModule(output2="step2 output")
     
     manager.register_step(
         inputs=["input1"],
