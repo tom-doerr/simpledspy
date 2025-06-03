@@ -68,6 +68,12 @@ class OptimizationManager:
             )
 
     def optimize(self, module, trainset):
-        """Optimize a module using the configured strategy"""
+        """Optimize a module or pipeline using the configured strategy"""
         teleprompter = self.get_teleprompter()
-        return teleprompter.compile(module, trainset=trainset)
+        compiled = teleprompter.compile(module, trainset=trainset)
+        
+        # For pipelines, reset after optimization to avoid state carryover
+        if hasattr(module, 'steps'):
+            module.reset()
+            
+        return compiled
