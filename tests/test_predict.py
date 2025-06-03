@@ -17,7 +17,7 @@ def test_chain_of_thought():
         # Create a mock module that properly handles forward calls
         class MockModule(dspy.Module):
             def forward(self, **kwargs):
-                return dspy.Prediction(output_1="result")
+                return dspy.Prediction(output="result")
             
         mock_create.return_value = MockModule()
             
