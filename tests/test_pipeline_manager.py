@@ -70,7 +70,8 @@ def test_pipeline_assembly():
     
     # Test pipeline execution
     result = pipeline(input1="test input")
-    assert result == {"output1": "step1 output", "output2": "step2 output"}
+    assert result.output1 == "step1 output"
+    assert result.output2 == "step2 output"
 
 def test_missing_input():
     """Test missing input in pipeline execution"""

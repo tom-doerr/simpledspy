@@ -56,16 +56,27 @@ class PipelineManager:
                     
                     # Store outputs for next steps and final collection
                     for name in output_names:
-                        if not hasattr(prediction, name):
-                            # Try to find matching output by prefix/suffix
-                            matches = [k for k in prediction.__dict__ if name in k]
-                            if matches:
-                                value = getattr(prediction, matches[0])
+                        if isinstance(prediction, dict):
+                            if name in prediction:
+                                value = prediction[name]
                             else:
-                                raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
+                                # Try to find matching output by prefix/suffix
+                                matches = [k for k in prediction if name in k]
+                                if matches:
+                                    value = prediction[matches[0]]
+                                else:
+                                    raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
                         else:
-                            value = getattr(prediction, name)
-                            
+                            if hasattr(prediction, name):
+                                value = getattr(prediction, name)
+                            else:
+                                # Try to find matching output by prefix/suffix
+                                matches = [k for k in prediction.__dict__ if name in k]
+                                if matches:
+                                    value = getattr(prediction, matches[0])
+                                else:
+                                    raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
+                
                         data[name] = value  # Make available for next steps
                         all_outputs[name] = value
                 
