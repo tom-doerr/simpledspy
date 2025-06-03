@@ -43,11 +43,9 @@ def test_cli_multiple_inputs(capsys):
 
 def test_cli_stdin(capsys, monkeypatch):
     """Test CLI with stdin input"""
-    # Mock stdin
-    monkeypatch.setattr('sys.stdin', open('mock_stdin.txt', 'w'))
-    # We cannot easily mock stdin in this way, so instead we can mock sys.stdin.isatty and sys.stdin.read
-    # But note: the CLI uses sys.stdin.isatty() to check if there's data, and then reads sys.stdin.read()
-    # We can mock both
+    # We cannot easily mock stdin by opening a file, so instead we mock sys.stdin.isatty and sys.stdin.read
+    # The CLI uses sys.stdin.isatty() to check if there's data, and then reads sys.stdin.read()
+    # We mock both
     with patch('sys.stdin.isatty', return_value=False):
         with patch('sys.stdin.read', return_value='Hello, world!'):
             with patch('sys.argv', ['cli.py', '-d', 'extract the first word']):
