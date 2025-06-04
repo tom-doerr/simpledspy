@@ -51,15 +51,10 @@ def test_create_module_with_types():
     assert 'age' in signature.model_fields
     assert 'greeting' in signature.model_fields
     
-    # Get field objects
-    name_field = signature.model_fields['name']
-    age_field = signature.model_fields['age']
-    greeting_field = signature.model_fields['greeting']
-    
-    # Check that type information is included in descriptions
-    assert "(type: str)" in name_field.json_schema_extra['desc']
-    assert "(type: int)" in age_field.json_schema_extra['desc']
-    assert "(type: str)" in greeting_field.json_schema_extra['desc']
+    # Check field descriptions
+    assert signature.model_fields['name'].json_schema_extra['desc'] == "name"
+    assert signature.model_fields['age'].json_schema_extra['desc'] == "age"
+    assert signature.model_fields['greeting'].json_schema_extra['desc'] == "greeting"
 
 def test_create_module_with_description():
     """Test module creation with custom description"""

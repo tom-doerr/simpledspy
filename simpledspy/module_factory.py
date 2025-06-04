@@ -14,17 +14,13 @@ class ModuleFactory:
                     description: str = "") -> dspy.Signature:
         signature_fields = {}
         
-        # Create descriptions for inputs
+        # Create simple descriptions for inputs
         for inp in inputs:
-            field_type = input_types.get(inp) if input_types else None
-            type_info = f" (type: {field_type.__name__})" if field_type else ""
-            signature_fields[inp] = dspy.InputField(desc=f"{inp}{type_info}")
+            signature_fields[inp] = dspy.InputField(desc=inp)
             
-        # Create descriptions for outputs
+        # Create simple descriptions for outputs
         for outp in outputs:
-            field_type = output_types.get(outp) if output_types else None
-            type_info = f" (type: {field_type.__name__})" if field_type else ""
-            signature_fields[outp] = dspy.OutputField(desc=f"{outp}{type_info}")
+            signature_fields[outp] = dspy.OutputField(desc=outp)
 
         # Create better default instructions
         if description:
@@ -70,16 +66,4 @@ class ModuleFactory:
             description=description
         )
         
-        # Create a custom module that appends "processed:" to inputs
-        class CustomModule(dspy.Module):
-            def __init__(self, signature):
-                super().__init__()
-                self.signature = signature
-                self.predict = dspy.Predict(signature)
-                
-            def forward(self, **kwargs):
-                # Preprocess inputs by adding "processed:" prefix
-                processed_kwargs = {k: f"processed: {v}" for k, v in kwargs.items()}
-                return self.predict(**processed_kwargs)
-                
-        return CustomModule(signature_class)
+        return dspy.Predict(signature_class)
