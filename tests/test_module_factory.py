@@ -88,11 +88,11 @@ def test_create_module_with_missing_types():
     greeting_field = signature.model_fields['greeting']
     farewell_field = signature.model_fields['farewell']
     
-    # Check that type information is included only where provided
-    assert "(type: str)" in name_field.json_schema_extra['desc']
-    assert "(type: str)" not in age_field.json_schema_extra['desc']
-    assert "(type: str)" in greeting_field.json_schema_extra['desc']
-    assert "(type: str)" not in farewell_field.json_schema_extra['desc']
+    # Check field descriptions
+    assert name_field.json_schema_extra['desc'] == "name"
+    assert age_field.json_schema_extra['desc'] == "age"
+    assert greeting_field.json_schema_extra['desc'] == "greeting"
+    assert farewell_field.json_schema_extra['desc'] == "farewell"
 
 def test_create_module_with_complex_types():
     """Test module creation with complex type hints"""
@@ -113,11 +113,11 @@ def test_create_module_with_complex_types():
     result_field = signature.model_fields['result']
     metadata_field = signature.model_fields['metadata']
     
-    # Check that type information is included in descriptions
-    assert "(type: List)" in items_field.json_schema_extra['desc']
-    assert "(type: Dict)" in config_field.json_schema_extra['desc']
-    assert "(type: List)" in result_field.json_schema_extra['desc']
-    assert "(type: Dict)" in metadata_field.json_schema_extra['desc']
+    # Check field descriptions
+    assert items_field.json_schema_extra['desc'] == "items"
+    assert config_field.json_schema_extra['desc'] == "config"
+    assert result_field.json_schema_extra['desc'] == "result"
+    assert metadata_field.json_schema_extra['desc'] == "metadata"
 
 def test_create_module_with_optional_types():
     """Test module creation with Optional type hints"""
@@ -137,10 +137,10 @@ def test_create_module_with_optional_types():
     age_field = signature.model_fields['age']
     greeting_field = signature.model_fields['greeting']
     
-    # Check that type information is included in descriptions
-    assert "(type: str)" in name_field.json_schema_extra['desc']
-    assert "(type: Optional)" in age_field.json_schema_extra['desc']
-    assert "(type: Optional)" in greeting_field.json_schema_extra['desc']
+    # Check field descriptions
+    assert name_field.json_schema_extra['desc'] == "name"
+    assert age_field.json_schema_extra['desc'] == "age"
+    assert greeting_field.json_schema_extra['desc'] == "greeting"
 
 def test_create_module_with_union_types():
     """Test module creation with Union type hints"""
@@ -159,9 +159,9 @@ def test_create_module_with_union_types():
     value_field = signature.model_fields['value']
     result_field = signature.model_fields['result']
     
-    # Check that type information is included in descriptions
-    assert "(type: Union)" in value_field.json_schema_extra['desc']
-    assert "(type: Union)" in result_field.json_schema_extra['desc']
+    # Check field descriptions
+    assert value_field.json_schema_extra['desc'] == "value"
+    assert result_field.json_schema_extra['desc'] == "result"
 
 def test_create_module_with_empty_inputs():
     """Test module creation with no inputs"""
