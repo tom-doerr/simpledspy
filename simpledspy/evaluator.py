@@ -16,7 +16,12 @@ class Evaluator:
         
         # Construct evaluation prompt
         prompt = f"{self.evaluation_instruction}\n\nInputs: {inputs}\nOutputs: {outputs}"
-        response = self.evaluator_lm(prompt)
+        completions = self.evaluator_lm(prompt)
+        if not completions:
+            return 0
+            
+        # Take the first completion
+        response = completions[0]
         
         try:
             # Extract numerical score from response
