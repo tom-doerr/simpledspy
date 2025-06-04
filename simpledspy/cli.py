@@ -6,6 +6,9 @@ Features:
 - Enable optimization with different strategies
 - Evaluate outputs with custom instructions
 - Generate training data from logs
+
+Note: You must configure your language model before use.
+See documentation for configuration instructions.
 """
 import sys
 import argparse

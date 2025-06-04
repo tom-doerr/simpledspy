@@ -43,6 +43,15 @@
 pip install simpledspy
 ```
 
+## Configuration
+
+Before using SimpleDSPy, configure your language model:
+
+```python
+import dspy
+dspy.configure(lm=dspy.OpenAI(model='gpt-3.5-turbo'))
+```
+
 ## Usage
 
 ### Basic Prediction
