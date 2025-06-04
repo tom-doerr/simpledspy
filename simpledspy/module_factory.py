@@ -1,3 +1,9 @@
+"""Factory for creating DSPy signatures and modules
+
+Provides:
+- create_signature: Creates DSPy Signature classes
+- create_module: Creates DSPy Predict/ChainOfThought modules
+"""
 import dspy
 from typing import List, Dict, Any
 

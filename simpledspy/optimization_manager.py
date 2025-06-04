@@ -1,6 +1,6 @@
 from typing import Dict, Any, Callable, Type, Union
 import dspy
-from dspy.teleprompt import BootstrapFewShot, MIPROv2
+from dspy.teleprompt import BootstrapFewShot, MIPROv2, BootstrapFewShotWithRandomSearch
 from dspy.evaluate import Evaluate
 
 """Optimization Manager for DSPy modules and pipelines
@@ -28,7 +28,8 @@ class OptimizationManager:
         }
         self._teleprompters = {
             'bootstrap_few_shot': BootstrapFewShot,
-            'mipro': MIPROv2
+            'mipro': MIPROv2,
+            'bootstrap_random': BootstrapFewShotWithRandomSearch
         }
         
     def default_metric(self, example: Dict[str, Any], 
@@ -89,12 +90,16 @@ class OptimizationManager:
                 max_labeled_demos=self._config['max_labeled_demos']
             )
         elif strategy == 'mipro':
-            # MIPRO doesn't accept max_labeled_demos
             return self._teleprompters[strategy](
                 metric=self._config['metric']
             )
+        elif strategy == 'bootstrap_random':
+            return self._teleprompters[strategy](
+                metric=self._config['metric'],
+                max_bootstrapped_demos=self._config['max_bootstrapped_demos'],
+                max_labeled_demos=self._config['max_labeled_demos']
+            )
         else:
-            # Generic fallback
             return self._teleprompters[strategy](
                 metric=self._config['metric']
             )

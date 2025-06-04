@@ -12,9 +12,10 @@ def main():
     parser.add_argument('-m', '--module', choices=['predict', 'chain_of_thought'], 
                        default='predict', help="DSPy module type to use")
     parser.add_argument('--optimize', action='store_true', help="Enable pipeline optimization")
-    parser.add_argument('--strategy', choices=['bootstrap_few_shot', 'mipro'], 
+    parser.add_argument('--strategy', choices=['bootstrap_few_shot', 'mipro', 'bootstrap_random'], 
                        default='bootstrap_few_shot', help="Optimization strategy")
     parser.add_argument('--max-demos', type=int, default=4, help="Maximum demonstrations for optimization")
+    parser.add_argument('--trainset', type=str, help="Path to JSON file containing training set")
     parser.add_argument('--json', action='store_true', help="Output in JSON format")
     parser.add_argument('--pipeline', nargs='+', help="Run a pipeline with multiple step descriptions")
     parser.add_argument('--evaluation-instruction', type=str, default="", 
@@ -61,8 +62,17 @@ def main():
         manager = OptimizationManager()
         manager.configure(strategy=args.strategy, max_bootstrapped_demos=args.max_demos)
         
-        # Create simple trainset for demonstration (should be provided by user)
-        trainset = [input_dict]
+        if args.trainset:
+            try:
+                with open(args.trainset, 'r') as f:
+                    trainset = json.load(f)
+            except Exception as e:
+                print(f"Error loading trainset: {e}")
+                sys.exit(1)
+        else:
+            print("Warning: Using single input as trainset. Provide --trainset for better optimization.")
+            trainset = [input_dict]
+            
         module = manager.optimize(module, trainset)
     
     # Handle pipeline execution if enabled

@@ -1,3 +1,9 @@
+"""Logging system for DSPy inputs, outputs and evaluations
+
+Provides:
+- Logger: Handles writing log entries to JSONL files
+- get_training_data: Extracts high-scoring examples for training
+"""
 import json
 import time
 from pathlib import Path

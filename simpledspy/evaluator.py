@@ -1,3 +1,9 @@
+"""Evaluation system with 1-10 scoring
+
+Provides:
+- Evaluator: Scores model outputs using LLM evaluation
+- log_with_evaluation: Logs inputs/outputs with scores
+"""
 import dspy
 from typing import Dict, Any
 from .logger import Logger
