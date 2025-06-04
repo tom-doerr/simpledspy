@@ -50,14 +50,14 @@ class BaseCaller:
             description=description
         )
         
-        input_dict = {name: value for name, value in zip(input_names, args)}
+        input_dict = dict(zip(input_names, args))
         prediction_result = module(**input_dict)
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
         output_values = [getattr(prediction_result, name) for name in output_names]
         
         # Log with evaluation
-        output_dict = {name: value for name, value in zip(output_names, output_values)}
+        output_dict = dict(zip(output_names, output_values))
         self.evaluator.log_with_evaluation(
             module=self.FUNCTION_NAME,
             inputs=input_dict,
