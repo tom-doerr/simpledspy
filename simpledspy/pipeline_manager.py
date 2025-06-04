@@ -35,16 +35,15 @@ class PipelineManager:
         class Pipeline(dspy.Module):
             def __init__(self, steps):
                 super().__init__()
-                self.steps = []
+                self.step_tuples = steps  # store the full step tuples
                 for i, (_, _, module) in enumerate(steps):
                     setattr(self, f'step_{i}', module)
-                    self.steps.append(module)
             
             def forward(self, **inputs):
                 data = inputs.copy()
                 all_outputs = {}
                 
-                for i, (input_names, output_names, _) in enumerate(self.steps):
+                for i, (input_names, output_names, _) in enumerate(self.step_tuples):
                     # Prepare step inputs
                     step_inputs = {}
                     for name in input_names:
@@ -54,7 +53,8 @@ class PipelineManager:
                             raise ValueError(f"Pipeline Step {i}: Missing input '{name}'")
                     
                     # Execute step
-                    prediction = getattr(self, f'step_{i}')(**step_inputs)
+                    module = getattr(self, f'step_{i}')
+                    prediction = module(**step_inputs)
                     
                     # Collect outputs
                     for name in output_names:

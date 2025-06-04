@@ -74,6 +74,7 @@ class ModuleFactory:
         class CustomModule(dspy.Module):
             def __init__(self, signature):
                 super().__init__()
+                self.signature = signature
                 self.predict = dspy.Predict(signature)
                 
             def forward(self, **kwargs):
