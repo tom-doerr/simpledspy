@@ -28,15 +28,14 @@
 
 ## Features
 
-- Automatic module creation from input/output names
-- Pipeline management and step tracking
-- Clean, minimal API
-- Built-in caching and configuration
-- Type hints and documentation
-- Support for different module types (Predict, ChainOfThought)
-- Pipeline optimization strategies
-- Flexible type hinting for inputs/outputs
-- CLI for easy pipeline execution
+- **Predict and ChainOfThought Modules**: Easy-to-use function calls for predictions
+- **Pipeline Manager**: Create complex pipelines of DSPy modules
+- **Optimization**: Use DSPy teleprompters to optimize your modules
+- **Evaluation**: Evaluate outputs on a scale of 1-10 and log inputs/outputs
+- **CLI**: Command-line interface for running modules and pipelines
+- **Automatic Module Creation**: Generate DSPy modules from input/output specifications
+- **Type Hinting**: Support for flexible type annotations
+- **Logging**: Built-in logging of inputs/outputs for training data collection
 
 ## Installation
 
@@ -44,33 +43,28 @@
 pip install simpledspy
 ```
 
-## Quick Start
+## Usage
 
+### Basic Prediction
 ```python
-from simpledspy import predict, chain_of_thought
+from simpledspy import predict
 
-# Basic text processing
-cleaned_text = predict("Some messy   text with extra spaces")
-print(cleaned_text)  # "Some messy text with extra spaces"
+result = predict("Hello, world!")
+print(result)
+```
 
-# Multiple inputs/outputs
-name, age = predict(
-    "John Doe, 30 years old",
-    inputs=["text"],
-    outputs=["name", "age"]
-)
-print(name)  # "John Doe"
-print(age)   # 30
+### Chain of Thought
+```python
+from simpledspy import chain_of_thought
 
-# Chain of thought reasoning
-result = chain_of_thought(
-    "If I have 5 apples and eat 2, how many do I have left?",
-    description="Reason step by step"
-)
-print(result)  # "3"
+result = chain_of_thought("What is the capital of France?", 
+                         description="Reason step by step")
+print(result)
+```
 
-# Building pipelines
-from simpledspy import PipelineManager
+### Pipeline Management
+```python
+from simpledspy import PipelineManager, predict
 
 manager = PipelineManager()
 manager.register_step(
@@ -81,7 +75,7 @@ manager.register_step(
 manager.register_step(
     inputs=["cleaned"],
     outputs=["sentiment"],
-    module=chain_of_thought("Analyze sentiment")
+    module=predict("Analyze sentiment")
 )
 
 pipeline = manager.assemble_pipeline()
@@ -89,30 +83,65 @@ result = pipeline(text="I love this product!")
 print(result.sentiment)  # "positive"
 ```
 
-## How It Works
+### Optimization
+```python
+from simpledspy import predict
+from simpledspy.optimization_manager import OptimizationManager
 
-The `predict` and `chain_of_thought` functions automatically:
-1. Create DSPy modules from input/output specifications
-2. Handle type hinting and descriptions
-3. Track pipeline steps through the PipelineManager
-4. Return processed outputs as either single values or tuples
+# Create training data
+trainset = [
+    {"input": "2+2", "output": "4"},
+    {"input": "3*3", "output": "9"}
+]
 
-Pipelines can be optimized using various strategies:
-- BootstrapFewShot: Few-shot learning with bootstrapped demonstrations
-- MIPRO: More advanced optimization with iterative prompt refinement
+# Optimize the module
+manager = OptimizationManager()
+optimized_predict = manager.optimize(predict, trainset)
+
+# Use optimized module
+result = optimized_predict("4*4")
+print(result)  # "16"
+```
+
+### Evaluation
+```python
+from simpledspy.evaluator import Evaluator
+
+evaluator = Evaluator("Rate output quality 1-10")
+score = evaluator.evaluate(
+    {"question": "2+2"},
+    {"answer": "4"}
+)
+print(score)  # 10
+```
 
 ## CLI Usage
 
 ```bash
-# Process text with description
-simpledspy "Hello, world!" -d "Extract greeting"
+# Basic prediction
+python -m simpledspy.cli "Hello, world!" --description "Extract greeting"
 
-# Process from stdin
-echo "John Doe, 30 years old" | simpledspy -d "Extract name and age"
+# Chain of thought reasoning
+python -m simpledspy.cli "What is 2+2?" --module chain_of_thought --description "Reason step by step"
 
 # Enable optimization
-simpledspy "Complex problem" -d "Solve step by step" --optimize
+python -m simpledspy.cli "Solve math problem" --optimize --trainset data/trainset.json
+
+# Evaluate outputs
+python -m simpledspy.cli "What is the capital of France?" --evaluation-instruction "Check if answer is correct"
+
+# Build pipelines
+python -m simpledspy.cli "Input text" --pipeline "Clean text" "Analyze sentiment" "Summarize"
 ```
+
+## How It Works
+
+SimpleDSPy provides:
+1. **High-level API**: `predict()` and `chain_of_thought()` functions handle module creation
+2. **Pipeline Management**: Track and assemble multi-step pipelines
+3. **Optimization**: Improve module performance with training data
+4. **Evaluation**: Score outputs using custom instructions
+5. **Logging**: Record inputs/outputs for analysis and training
 
 ## Contributing
 
