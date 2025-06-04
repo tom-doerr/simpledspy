@@ -29,29 +29,29 @@ def test_configure() -> None:
     assert manager._config['max_bootstrapped_demos'] == 6
     assert manager._config['max_labeled_demos'] == 8
 
-def test_default_metric() -> None:
-    """Test the default metric function"""
-    manager = OptimizationManager()
+def test_dict_exact_match_metric() -> None:
+    """Test the dict_exact_match_metric function"""
+    from simpledspy.metrics import dict_exact_match_metric
     
     # Test with exact match
     example = {'name': 'John', 'age': 30}
     prediction = {'name': 'John', 'age': 30}
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 1.0
     
     # Test with partial match
     prediction = {'name': 'John', 'age': 25}
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 0.5
     
     # Test with no match
     prediction = {'name': 'Jane', 'age': 25}
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 0.0
     
     # Test with missing keys
     prediction = {'name': 'John'}
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 0.5
 
 def test_get_teleprompter() -> None:
@@ -68,36 +68,36 @@ def test_get_teleprompter() -> None:
     teleprompter = manager.get_teleprompter()
     assert isinstance(teleprompter, MIPROv2)
 
-def test_default_metric_empty() -> None:
-    """Test the default metric function with empty inputs"""
-    manager = OptimizationManager()
+def test_dict_exact_match_metric_empty() -> None:
+    """Test the dict_exact_match_metric function with empty inputs"""
+    from simpledspy.metrics import dict_exact_match_metric
     
     # Test with empty example and prediction
     example = {}
     prediction = {}
     
     # Should return 1.0 for empty example and empty prediction
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 1.0
     
     # Test with empty example and non-empty prediction
     prediction = {'name': 'John'}
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 0.0
 
-def test_default_metric_none_values() -> None:
-    """Test the default metric function with None values"""
-    manager = OptimizationManager()
+def test_dict_exact_match_metric_none_values() -> None:
+    """Test the dict_exact_match_metric function with None values"""
+    from simpledspy.metrics import dict_exact_match_metric
     
     # Test with None values
     example = {'name': None, 'age': 30}
     prediction = {'name': None, 'age': 30}
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 1.0
     
     # Test with mismatched None values
     prediction = {'name': 'John', 'age': None}
-    score = manager.default_metric(example, prediction)
+    score = dict_exact_match_metric(example, prediction)
     assert score == 0.0
 
 def test_invalid_strategy() -> None:
@@ -172,9 +172,9 @@ def test_configure_with_invalid_values() -> None:
     assert manager._config['unknown_param'] == 'value'
     assert manager._config['another_unknown'] == 123
 
-def test_metric_with_trace() -> None:
-    """Test metric function with trace parameter"""
-    manager = OptimizationManager()
+def test_dict_exact_match_metric_with_trace() -> None:
+    """Test dict_exact_match_metric function with trace parameter"""
+    from simpledspy.metrics import dict_exact_match_metric
     
     # Create example, prediction and trace
     example = {'name': 'John'}
@@ -182,5 +182,5 @@ def test_metric_with_trace() -> None:
     trace = {'some': 'trace', 'data': 123}
     
     # Metric should work with trace
-    score = manager.default_metric(example, prediction, trace)
+    score = dict_exact_match_metric(example, prediction, trace)
     assert score == 1.0
