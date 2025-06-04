@@ -17,6 +17,10 @@ def main():
     parser.add_argument('--max-demos', type=int, default=4, help="Maximum demonstrations for optimization")
     parser.add_argument('--json', action='store_true', help="Output in JSON format")
     parser.add_argument('--pipeline', nargs='+', help="Run a pipeline with multiple step descriptions")
+    parser.add_argument('--evaluation-instruction', type=str, default="", 
+                       help="Instruction for evaluating outputs on a 1-10 scale")
+    parser.add_argument('--log-file', type=str, default="dspy_logs.jsonl", 
+                       help="File to store input/output logs")
     args = parser.parse_args()
     
     # Use command-line arguments if present, otherwise check stdin
@@ -39,6 +43,14 @@ def main():
         outputs=output_names,
         description=args.description
     )
+    
+    # Setup evaluator if evaluation instruction provided
+    if args.evaluation_instruction:
+        from .evaluator import Evaluator
+        evaluator = Evaluator(evaluation_instruction=args.evaluation_instruction, 
+                             log_file=args.log_file)
+    else:
+        evaluator = None
     
     # Prepare inputs
     input_dict = {name: value for name, value in zip(input_names, inputs)}
@@ -98,6 +110,15 @@ def main():
         else:
             for name, value in output_data.items():
                 print(f"{name}: {value}")
+    
+    # Log with evaluation if evaluator is set
+    if evaluator:
+        evaluator.log_with_evaluation(
+            module=args.module,
+            inputs=input_dict,
+            outputs=output_data,
+            description=args.description
+        )
 
 if __name__ == "__main__":
     main()

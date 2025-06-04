@@ -3,6 +3,7 @@ from typing import Any, Tuple, List, Callable, Dict
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
+from .evaluator import Evaluator
 
 class BaseCaller:
     _instances = {}
@@ -15,6 +16,7 @@ class BaseCaller:
             instance.module_factory = ModuleFactory()
             instance.optimization_manager = OptimizationManager()
             instance.lm = dspy.LM(model="deepseek/deepseek-chat")
+            instance.evaluator = Evaluator()
             dspy.configure(lm=instance.lm, cache=False)
         return cls._instances[cls]
     
@@ -53,6 +55,15 @@ class BaseCaller:
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
         output_values = [getattr(prediction_result, name) for name in output_names]
+        
+        # Log with evaluation
+        output_dict = {name: value for name, value in zip(output_names, output_values)}
+        self.evaluator.log_with_evaluation(
+            module=self.FUNCTION_NAME,
+            inputs=input_dict,
+            outputs=output_dict,
+            description=description
+        )
         
         if len(output_values) == 1:
             return output_values[0]
