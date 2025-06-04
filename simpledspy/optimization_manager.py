@@ -1,9 +1,24 @@
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Type, Union
 import dspy
 from dspy.teleprompt import BootstrapFewShot, MIPROv2
 from dspy.evaluate import Evaluate
 
+"""Optimization Manager for DSPy modules and pipelines
+
+This module provides the OptimizationManager class which:
+1. Configures optimization strategies (BootstrapFewShot or MIPROv2)
+2. Provides a default exact-match metric function
+3. Creates teleprompter instances
+4. Optimizes DSPy modules/pipelines
+"""
+
 class OptimizationManager:
+    """Manages optimization of DSPy modules and pipelines
+    
+    Configures and executes optimization strategies using teleprompters.
+    Provides a default exact-match metric function for evaluation.
+    """
+    
     def __init__(self):
         self._config = {
             'strategy': 'bootstrap_few_shot',
@@ -16,8 +31,25 @@ class OptimizationManager:
             'mipro': MIPROv2
         }
         
-    def default_metric(self, example, prediction, trace=None):
-        """Default metric function that checks exact match of predictions"""
+    def default_metric(self, example: Dict[str, Any], 
+                      prediction: Union[Dict[str, Any], 
+                      trace: Any = None) -> float:
+        """Calculates exact match score between example and prediction
+        
+        Args:
+            example: Ground truth dictionary
+            prediction: Model prediction (dict, tuple, or single value)
+            trace: Optional trace information (unused)
+            
+        Returns:
+            Float score between 0.0 and 1.0
+            
+        Behavior:
+        - Empty example: returns 1.0 if prediction empty, else 0.0
+        - Non-dict predictions are normalized to dict format
+        - Compares keys present in example dictionary
+        - Scores: 1.0 for exact match, 0.0 for no match
+        """
         # Handle empty example case
         if not example:
             return 1.0 if not prediction else 0.0
@@ -67,16 +99,18 @@ class OptimizationManager:
                 metric=self._config['metric']
             )
 
-    def optimize(self, module, trainset):
+    def optimize(self, module: dspy.Module, trainset: list) -> dspy.Module:
         """
         Optimize a module or pipeline using the configured strategy
         
         Args:
             module: DSPy module or pipeline to optimize
-            trainset: Training dataset for optimization
+            trainset: Training dataset for optimization (list of examples)
             
         Returns:
             Optimized DSPy module or pipeline
+            
+        Note: For pipeline modules, resets state after optimization
         """
         teleprompter = self.get_teleprompter()
         compiled = teleprompter.compile(module, trainset=trainset)
