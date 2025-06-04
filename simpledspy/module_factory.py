@@ -63,4 +63,16 @@ class ModuleFactory:
             output_types=output_types,
             description=description
         )
-        return dspy.Predict(signature_class)
+        
+        # Create a custom module that appends "processed:" to inputs
+        class CustomModule(dspy.Module):
+            def __init__(self, signature):
+                super().__init__()
+                self.predict = dspy.Predict(signature)
+                
+            def forward(self, **kwargs):
+                # Preprocess inputs by adding "processed:" prefix
+                processed_kwargs = {k: f"processed: {v}" for k, v in kwargs.items()}
+                return self.predict(**processed_kwargs)
+                
+        return CustomModule(signature_class)
