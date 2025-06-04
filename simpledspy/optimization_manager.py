@@ -32,7 +32,7 @@ class OptimizationManager:
         }
         
     def default_metric(self, example: Dict[str, Any], 
-                      prediction: Union[Dict[str, Any], 
+                      prediction: Any, 
                       trace: Any = None) -> float:
         """Calculates exact match score between example and prediction
         
