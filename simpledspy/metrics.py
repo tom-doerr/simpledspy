@@ -1,6 +1,6 @@
 from typing import List, Any, Dict, Union, Tuple
 
-def exact_match_metric(gold: List[Any], pred: List极客极 Any], trace=None) -> float:
+def exact_match_metric(gold: List[Any], pred: List[Any], trace=None) -> float:
     """
     Calculates the exact match accuracy between gold and predicted outputs.
     
