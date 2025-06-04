@@ -8,3 +8,8 @@ the same file should allow me to set a string for evaluation instruction
 there should be an evaluator that runs and ranks on a scale from 1 to 10 which is used for optimization
 there should be a cli tool where i can start optimization 
 the cli tool should allow me to select the dspy optimization algorithm
+all functionality is documented in the readme
+the readmes should be very comprehensive
+there should be a reward function i can call anywhere 
+the reward feature should enable an additional layer of optimization where i can over time use cummulative discounted rewards to evaluate advice and examples i can give as input to the modules
+the over time weighted few-shot examples (maybe with certainty / error margin) should be usable to generate advice by reflecting on a samples that includes examples that have a positive and examples that have a negative impact on overall reward over time 
