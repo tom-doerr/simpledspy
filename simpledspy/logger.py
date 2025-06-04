@@ -7,10 +7,12 @@ Provides:
 import json
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 class Logger:
-    def __init__(self, log_file: str = "dspy_logs.jsonl"):
+    """Handles logging of DSPy inputs, outputs, and evaluations"""
+    
+    def __init__(self, log_file: str = "dspy_logs.jsonl") -> None:
         self.log_file = Path(log_file)
         # Create parent directories if needed
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -18,14 +20,25 @@ class Logger:
         if not self.log_file.exists():
             self.log_file.touch()
 
-    def log(self, data: Dict[str, Any]):
-        """Log a dictionary as a JSON line"""
+    def log(self, data: Dict[str, Any]) -> None:
+        """Log a dictionary as a JSON line
+        
+        Args:
+            data: Dictionary of data to log
+        """
         data['timestamp'] = time.time()
         with open(self.log_file, "a") as f:
             f.write(json.dumps(data) + "\n")
 
-    def get_training_data(self, min_score: float = 8.0) -> list:
-        """Extract training data from logs with high scores"""
+    def get_training_data(self, min_score: float = 8.0) -> List[Dict[str, Any]]:
+        """Extract training data from logs with high scores
+        
+        Args:
+            min_score: Minimum score to include in training data
+            
+        Returns:
+            List of training examples meeting score threshold
+        """
         training_data = []
         try:
             with open(self.log_file, "r") as f:

@@ -3,7 +3,7 @@ from simpledspy.optimization_manager import OptimizationManager
 from dspy.teleprompt import BootstrapFewShot, MIPROv2
 import dspy
 
-def test_default_config():
+def test_default_config() -> None:
     """Test default configuration"""
     manager = OptimizationManager()
     
@@ -13,7 +13,7 @@ def test_default_config():
     assert manager._config['max_labeled_demos'] == 4
     assert callable(manager._config['metric'])
 
-def test_configure():
+def test_configure() -> None:
     """Test configuration update"""
     manager = OptimizationManager()
     
@@ -29,7 +29,7 @@ def test_configure():
     assert manager._config['max_bootstrapped_demos'] == 6
     assert manager._config['max_labeled_demos'] == 8
 
-def test_default_metric():
+def test_default_metric() -> None:
     """Test the default metric function"""
     manager = OptimizationManager()
     
@@ -54,7 +54,7 @@ def test_default_metric():
     score = manager.default_metric(example, prediction)
     assert score == 0.5
 
-def test_get_teleprompter():
+def test_get_teleprompter() -> None:
     """Test teleprompter creation"""
     manager = OptimizationManager()
     
@@ -68,7 +68,7 @@ def test_get_teleprompter():
     teleprompter = manager.get_teleprompter()
     assert isinstance(teleprompter, MIPROv2)
 
-def test_default_metric_empty():
+def test_default_metric_empty() -> None:
     """Test the default metric function with empty inputs"""
     manager = OptimizationManager()
     
@@ -85,7 +85,7 @@ def test_default_metric_empty():
     score = manager.default_metric(example, prediction)
     assert score == 0.0
 
-def test_default_metric_none_values():
+def test_default_metric_none_values() -> None:
     """Test the default metric function with None values"""
     manager = OptimizationManager()
     
@@ -100,7 +100,7 @@ def test_default_metric_none_values():
     score = manager.default_metric(example, prediction)
     assert score == 0.0
 
-def test_invalid_strategy():
+def test_invalid_strategy() -> None:
     """Test error handling for invalid strategy"""
     manager = OptimizationManager()
     
@@ -111,7 +111,7 @@ def test_invalid_strategy():
     with pytest.raises(KeyError):
         manager.get_teleprompter()
 
-def test_optimize_module():
+def test_optimize_module() -> None:
     """Test module optimization"""
     manager = OptimizationManager()
     
@@ -144,7 +144,7 @@ def test_optimize_module():
     # Restore original method
     manager.get_teleprompter = original_get_teleprompter
 
-def test_configure_multiple_times():
+def test_configure_multiple_times() -> None:
     """Test multiple configuration updates"""
     manager = OptimizationManager()
     
@@ -158,7 +158,7 @@ def test_configure_multiple_times():
     assert manager._config['max_bootstrapped_demos'] == 6
     assert manager._config['max_labeled_demos'] == 8
 
-def test_configure_with_invalid_values():
+def test_configure_with_invalid_values() -> None:
     """Test configuration with invalid values"""
     manager = OptimizationManager()
     
@@ -172,7 +172,7 @@ def test_configure_with_invalid_values():
     assert manager._config['unknown_param'] == 'value'
     assert manager._config['another_unknown'] == 123
 
-def test_metric_with_trace():
+def test_metric_with_trace() -> None:
     """Test metric function with trace parameter"""
     manager = OptimizationManager()
     

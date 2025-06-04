@@ -1,25 +1,41 @@
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Dict
 import dspy
 
 class PipelineManager:
+    """Manages DSPy pipeline construction and execution
+    
+    Provides:
+    - Singleton access to pipeline manager
+    - Step registration with input/output specifications
+    - Pipeline assembly from registered steps
+    - State reset functionality
+    """
+    
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls) -> "PipelineManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._steps = []
         return cls._instance
 
-    def register_step(self, inputs: List[str], outputs: List[str], module: Any):
+    def register_step(self, inputs: List[str], outputs: List[str], module: Any) -> None:
+        """Register a pipeline step with input/output specifications
+        
+        Args:
+            inputs: List of input field names
+            outputs: List of output field names
+            module: DSPy module to execute for this step
+        """
         self._steps.append((inputs, outputs, module))
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the pipeline steps and any module state"""
         self._steps = []
         # Also reset any DSPy module state
         dspy.settings.configure(reset=True)
 
-    def assemble_pipeline(self):
+    def assemble_pipeline(self) -> dspy.Module:
         """Assembles and returns a DSPy pipeline from registered steps
         
         The pipeline is constructed as a DSPy Module that chains together
@@ -28,18 +44,21 @@ class PipelineManager:
         
         Returns:
             dspy.Module: The assembled pipeline module
+            
+        Raises:
+            ValueError: If no steps are registered
         """
         if not self._steps:
             raise ValueError("Cannot assemble an empty pipeline")
         
         class Pipeline(dspy.Module):
-            def __init__(self, steps):
+            def __init__(self, steps: List[Tuple[List[str], List[str], Any]]) -> None:
                 super().__init__()
                 self.step_tuples = steps  # store the full step tuples
                 for i, (_, _, module) in enumerate(steps):
                     setattr(self, f'step_{i}', module)
             
-            def forward(self, **inputs):
+            def forward(self, **inputs: Dict[str, Any]) -> dspy.Prediction:
                 data = inputs.copy()
                 all_outputs = {}
                 

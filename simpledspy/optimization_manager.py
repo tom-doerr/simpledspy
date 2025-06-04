@@ -6,8 +6,8 @@ from dspy.evaluate import Evaluate
 """Optimization Manager for DSPy modules and pipelines
 
 This module provides the OptimizationManager class which:
-1. Configures optimization strategies (BootstrapFewShot or MIPROv2)
-2. Provides a default exact-match metric function
+1. Configures optimization strategies (BootstrapFewShot, MIPROv2, or BootstrapFewShotWithRandomSearch)
+2. Provides a default exact-match metric function for evaluation
 3. Creates teleprompter instances
 4. Optimizes DSPy modules/pipelines
 """
@@ -19,7 +19,7 @@ class OptimizationManager:
     Provides a default exact-match metric function for evaluation.
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         self._config = {
             'strategy': 'bootstrap_few_shot',
             'metric': self.default_metric,
