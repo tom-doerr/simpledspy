@@ -1,8 +1,10 @@
 """Evaluation system with 1-10 scoring
 
-Provides:
-- Evaluator: Scores model outputs using LLM evaluation
-- log_with_evaluation: Logs inputs/outputs with scores
+Features:
+- Scores outputs using LLM evaluation with custom instructions
+- Logs inputs/outputs with scores
+- Provides a reward function that can be called anywhere
+- Supports cumulative reward tracking for optimization
 """
 import dspy
 from typing import Dict, Any

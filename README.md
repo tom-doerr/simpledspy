@@ -137,11 +137,13 @@ python -m simpledspy.cli "Input text" --pipeline "Clean text" "Analyze sentiment
 ## How It Works
 
 SimpleDSPy provides:
-1. **High-level API**: `predict()` and `chain_of_thought()` functions handle module creation
-2. **Pipeline Management**: Track and assemble multi-step pipelines
-3. **Optimization**: Improve module performance with training data
-4. **Evaluation**: Score outputs using custom instructions
-5. **Logging**: Record inputs/outputs for analysis and training
+1. **High-level API**: `predict()` and `chain_of_thought()` functions
+2. **Pipeline Management**: Multi-step DSPy pipelines
+3. **Optimization**: Module optimization with training data
+4. **Evaluation**: 1-10 scoring with custom instructions
+5. **Logging**: Input/output logging for training data
+6. **Reward Function**: `evaluate()` method for cumulative rewards
+7. **Training Data**: Extract high-scoring examples from logs
 
 ## Contributing
 

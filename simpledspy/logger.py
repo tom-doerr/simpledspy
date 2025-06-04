@@ -1,8 +1,9 @@
 """Logging system for DSPy inputs, outputs and evaluations
 
-Provides:
-- Logger: Handles writing log entries to JSONL files
-- get_training_data: Extracts high-scoring examples for training
+Features:
+- Logs inputs, outputs, and evaluations to JSONL files
+- Extracts high-scoring examples for training data
+- Supports easy data collection for optimization datasets
 """
 import json
 import time

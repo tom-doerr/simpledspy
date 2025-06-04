@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""Command Line Interface for SimpleDSPy
+
+Features:
+- Run DSPy modules and pipelines
+- Enable optimization with different strategies
+- Evaluate outputs with custom instructions
+- Generate training data from logs
+"""
 import sys
 import argparse
 import dspy
