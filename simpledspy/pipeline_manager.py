@@ -9,6 +9,7 @@ Provides:
 
 from typing import Any, List, Tuple, Dict
 import dspy
+import threading
 
 class PipelineManager:
     """Manages DSPy pipeline construction and execution
