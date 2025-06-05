@@ -121,13 +121,15 @@ def test_cli_pipeline(capsys):
             mock_pipeline = MagicMock()
             mock_manager.assemble_pipeline.return_value = mock_pipeline
                 
-            # Create a dummy pipeline result object
+            # Create a proper result object with the expected output field
             output_value = "Pipeline Output"
-            # Create a simple result object that holds the output
-            class SimpleResult:
+            output_name = f"output_{len(args.pipeline)}"
+                
+            class Result(dspy.Prediction):
                 def __init__(self, value):
-                    self.value = value
-            result_obj = SimpleResult(output_value)
+                    setattr(self, output_name, value)
+                
+            result_obj = Result(output_value)
             mock_pipeline.return_value = result_obj
                 
             # Call the main function
