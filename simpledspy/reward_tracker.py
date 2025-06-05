@@ -31,8 +31,8 @@ class RewardTracker:
         if not rewards:
             return 0.0
             
-        # Get episode cutoff if set
-        cutoff = self.episode_cutoffs.get(reward_group, len(rewards))
+        # Get episode cutoff if set, default to 0 meaning entire history
+        cutoff = self.episode_cutoffs.get(reward_group, 0)
         episode_rewards = rewards[cutoff:]
         
         # Sort rewards by timestamp (oldest first)
