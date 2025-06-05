@@ -45,9 +45,14 @@ class Logger:
         try:
             with open(self.log_file, "r") as f:
                 for line in f:
-                    entry = json.loads(line)
-                    if ('score' in entry and 
-                        entry['score'] >= min_score and 
+                    try:
+                        entry = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue  # Skip invalid JSON lines
+                    # Skip if the entry doesn't have the required keys
+                    if not all(key in entry for key in ['score', 'inputs', 'outputs']):
+                        continue
+                    if (entry['score'] >= min_score and 
                         entry.get('reward_group', 'default') == reward_group):
                         training_data.append({
                             'inputs': entry['inputs'],

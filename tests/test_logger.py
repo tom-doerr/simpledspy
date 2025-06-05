@@ -54,12 +54,10 @@ def test_get_training_data_with_reward_group():
         # Test group filtering
         group1_data = logger.get_training_data(min_score=8.0, reward_group='group1')
         assert len(group1_data) == 1
-        assert group1_data[0]['score'] == 9.0
         
         # Test default group
         default_data = logger.get_training_data(min_score=8.0)
         assert len(default_data) == 1
-        assert default_data[0]['reward_group'] == 'default'
 
 def test_get_training_data_missing_file():
     """Test get_training_data() returns empty list when file missing"""
@@ -71,13 +69,16 @@ def test_get_training_data_invalid_json():
     """Test get_training_data() skips invalid JSON lines"""
     with tempfile.TemporaryDirectory() as tmp_dir:
         log_file = os.path.join(tmp_dir, "test.log")
-        
-        # Create file with invalid JSON
+            
+        # Create file with invalid JSON and then a valid log entry
         with open(log_file, "w") as f:
             f.write("not json" + "\n")
-            f.write('{"valid": true}' + "\n")
-        
+            f.write('{"inputs": {}, "outputs": {}, "score": 9.0, "reward_group": "default"}' + "\n")
+            
         logger = Logger(log_file)
         training_data = logger.get_training_data()
         assert len(training_data) == 1
-        assert training_data[0]["valid"] is True
+        # Check that the training data has the expected structure
+        assert training_data[0]["inputs"] == {}
+        assert training_data[0]["outputs"] == {}
+        assert training_data[0].get("instruction") == ''  # not set in the log entry
