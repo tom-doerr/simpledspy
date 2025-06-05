@@ -40,7 +40,8 @@ class RewardTracker:
         
         # Calculate discounted cumulative reward from oldest to newest
         cumulative = 0.0
-        for i, (score, _) in enumerate(reversed(episode_rewards)):
+        for i, reward_tuple in enumerate(reversed(episode_rewards)):
+            score = reward_tuple[0]
             cumulative += score * (self.discount_factor ** i)
             
         return cumulative

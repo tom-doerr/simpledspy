@@ -43,17 +43,17 @@ def test_cumulative_reward_with_episodes():
     # Add rewards to group1
     t1 = time.time()
     t2 = t1 + 1
-    tracker.add_reward("group1", 5.0, t1)
-    tracker.add_reward("group1", 7.0, t2)
-    
+    tracker.add_reward("group1", 5.0, t1, {"input": "test1"}, {"output": "result1"})
+    tracker.add_reward("group1", 7.0, t2, {"input": "test2"}, {"output": "result2"})
+        
     # End episode
     tracker.end_episode("group1")
-    
+        
     # Add more rewards
     t3 = t2 + 1
     t4 = t3 + 1
-    tracker.add_reward("group1", 3.0, t3)
-    tracker.add_reward("group1", 4.0, t4)
+    tracker.add_reward("group1", 3.0, t3, {"input": "test3"}, {"output": "result3"})
+    tracker.add_reward("group1", 4.0, t4, {"input": "test4"}, {"output": "result4"})
     
     # Calculate cumulative reward
     cumulative = tracker.get_cumulative_reward("group1")
