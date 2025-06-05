@@ -8,11 +8,11 @@ def test_add_reward():
     tracker = RewardTracker()
     
     # Add rewards to group1
-    tracker.add_reward("group1", 5.0, time.time())
-    tracker.add_reward("group1", 7.0, time.time())
+    tracker.add_reward("group1", 5.0, time.time(), {"input": "test1"}, {"output": "result1"})
+    tracker.add_reward("group1", 7.0, time.time(), {"input": "test2"}, {"output": "result2"})
     
     # Add rewards to group2
-    tracker.add_reward("group2", 3.0, time.time())
+    tracker.add_reward("group2", 3.0, time.time(), {"input": "test3"}, {"output": "result3"})
     
     # Verify reward counts
     assert len(tracker.reward_history["group1"]) == 2
