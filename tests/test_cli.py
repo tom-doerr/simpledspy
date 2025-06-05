@@ -126,13 +126,13 @@ def test_cli_pipeline(capsys):
             output_value = "Pipeline Output"
             output_name = "output_2"
                 
-            # Create PipelineResult class
-            class PipelineResult:
+            # Create result instance as a simple class
+            class SimpleResult:
                 def __init__(self, value):
+                    self.name = value
                     setattr(self, output_name, value)
                 
-            # Create result instance
-            result_obj = PipelineResult(output_value)
+            result_obj = SimpleResult(output_value)
             mock_pipeline.return_value = result_obj
                 
             # Call the main function
