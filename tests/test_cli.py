@@ -121,12 +121,11 @@ def test_cli_pipeline(capsys):
             mock_pipeline = MagicMock()
             mock_manager.assemble_pipeline.return_value = mock_pipeline
                 
-            # Setup the pipeline result value
+            # Create a dummy pipeline result object
             output_value = "Pipeline Output"
-            # Create a simple result object
-            class Result:
-                output_2 = output_value
-            mock_pipeline.return_value = Result()
+            mock_result = MagicMock()
+            setattr(mock_result, 'output_2', output_value)
+            mock_pipeline.return_value = mock_result
                 
             # Call the main function
             main()
