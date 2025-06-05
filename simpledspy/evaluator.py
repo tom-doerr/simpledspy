@@ -7,6 +7,7 @@ Features:
 - Supports cumulative reward tracking for optimization
 """
 
+import re
 import time
 import dspy
 from typing import Dict, List
@@ -47,12 +48,17 @@ class Evaluator:
             # Take the first completion
             response = completions[0]
             
-            try:
-                # Extract numerical score from response
-                score = int(response.strip().split()[0])
-                scores.append(max(1, min(10, score)))
-            except (ValueError, IndexError):
-                continue
+            # Use regex to find integers in the response
+            numbers = re.findall(r'\b\d+\b', response)
+            for num_str in numbers:
+                try:
+                    num = int(num_str)
+                    # Only consider scores between 1 and 10
+                    if 1 <= num <= 10:
+                        scores.append(num)
+                        break  # take the first valid score
+                except ValueError:
+                    continue
                 
         return sum(scores) / len(scores) if scores else 0.0
 
