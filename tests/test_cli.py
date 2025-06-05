@@ -1,6 +1,7 @@
 import pytest
 import subprocess
 import sys
+import dspy
 from unittest.mock import patch, MagicMock
 from simpledspy.cli import main
 
@@ -123,7 +124,8 @@ def test_cli_pipeline(capsys):
                 
             # Create a proper result object with the expected output field
             output_value = "Pipeline Output"
-            output_name = f"output_{len(args.pipeline)}"
+            # Since we have two pipeline steps, the output will be named "output_2"
+            output_name = "output_2"
                 
             class Result(dspy.Prediction):
                 def __init__(self, value):
