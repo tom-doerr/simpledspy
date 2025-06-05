@@ -58,20 +58,20 @@ class BaseCaller:
         
         input_dict = dict(zip(input_names, args))
         
-        # Save original LM parameters
-        original_params = {}
+        # Save and update LM parameters if needed
         if lm_params:
+            original_params = {}
             for key, value in lm_params.items():
                 if hasattr(self.lm, key):
                     original_params[key] = getattr(self.lm, key)
                     setattr(self.lm, key, value)
-        
-        try:
+            try:
+                prediction_result = module(**input_dict)
+            finally:
+                for key, value in original_params.items():
+                    setattr(self.lm, key, value)
+        else:
             prediction_result = module(**input_dict)
-        finally:
-            # Restore original LM parameters
-            for key, value in original_params.items():
-                setattr(self.lm, key, value)
         
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
