@@ -31,11 +31,12 @@ class Logger:
         with open(self.log_file, "a") as f:
             f.write(json.dumps(data) + "\n")
 
-    def get_training_data(self, min_score: float = 8.0) -> List[Dict[str, Any]]:
+    def get_training_data(self, min_score: float = 8.0, reward_group: str = "default") -> List[Dict[str, Any]]:
         """Extract training data from logs with high scores
         
         Args:
             min_score: Minimum score to include in training data
+            reward_group: Reward group to filter by
             
         Returns:
             List of training examples meeting score threshold
@@ -45,7 +46,9 @@ class Logger:
             with open(self.log_file, "r") as f:
                 for line in f:
                     entry = json.loads(line)
-                    if 'score' in entry and entry['score'] >= min_score:
+                    if ('score' in entry and 
+                        entry['score'] >= min_score and 
+                        entry.get('reward_group', 'default') == reward_group):
                         training_data.append({
                             'inputs': entry['inputs'],
                             'outputs': entry['outputs'],

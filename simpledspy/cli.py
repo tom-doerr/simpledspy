@@ -23,8 +23,8 @@ def main():
     parser.add_argument('-m', '--module', choices=['predict', 'chain_of_thought'], 
                        default='predict', help="DSPy module type to use")
     parser.add_argument('--optimize', action='store_true', help="Enable pipeline optimization")
-    parser.add_argument('--strategy', choices=['bootstrap_few_shot', 'mipro', 'bootstrap_random'], 
-                       default='bootstrap_few_shot', help="Optimization strategy")
+    parser.add_argument('--strategy', choices=['bootstrap_few_shot', 'mipro', 'bootstrap_random', 'simba'], 
+                       default='bootstrap_few_shot', help="DSPy optimization algorithm")
     parser.add_argument('--max-demos', type=int, default=4, help="Maximum demonstrations for optimization")
     parser.add_argument('--trainset', type=str, help="Path to JSON file containing training set")
     parser.add_argument('--json', action='store_true', help="Output in JSON format")

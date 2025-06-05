@@ -30,7 +30,8 @@ class OptimizationManager:
         self._teleprompters = {
             'bootstrap_few_shot': BootstrapFewShot,
             'mipro': MIPROv2,
-            'bootstrap_random': BootstrapFewShotWithRandomSearch
+            'bootstrap_random': BootstrapFewShotWithRandomSearch,
+            'simba': dspy.SIMBA
         }
 
     def configure(self, **kwargs):

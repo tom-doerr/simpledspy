@@ -11,8 +11,9 @@ from typing import Dict, Any
 from .logger import Logger
 
 class Evaluator:
-    def __init__(self, evaluation_instruction: str = "", log_file: str = "dspy_logs.jsonl"):
+    def __init__(self, evaluation_instruction: str = "", reward_group: str = "default", log_file: str = "dspy_logs.jsonl"):
         self.evaluation_instruction = evaluation_instruction
+        self.reward_group = reward_group
         self.logger = Logger(log_file)
         self.evaluator_lm = dspy.LM(model="deepseek/deepseek-reasoner")
         dspy.configure(lm=self.evaluator_lm)
@@ -38,14 +39,16 @@ class Evaluator:
         except (ValueError, IndexError):
             return 0
 
-    def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = ""):
+    def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = "", reward_group: str = None):
         """Log inputs/outputs with evaluation score"""
         score = self.evaluate(inputs, outputs)
+        group = reward_group or self.reward_group
         self.logger.log({
             'module': module,
             'inputs': inputs,
             'outputs': outputs,
             'description': description,
             'instruction': self.evaluation_instruction,
-            'score': score
+            'score': score,
+            'reward_group': group
         })
