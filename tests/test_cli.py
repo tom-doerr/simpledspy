@@ -126,13 +126,9 @@ def test_cli_pipeline(capsys):
             output_value = "Pipeline Output"
             output_name = "output_2"
                 
-            # Create result instance as a simple class
-            class SimpleResult:
-                def __init__(self, value):
-                    self.name = value
-                    setattr(self, output_name, value)
-                
-            result_obj = SimpleResult(output_value)
+            # Create a MagicMock with the output attribute set
+            result_obj = MagicMock()
+            setattr(result_obj, output_name, output_value)
             mock_pipeline.return_value = result_obj
                 
             # Call the main function
