@@ -35,10 +35,6 @@ def main():
                        help="File to store input/output logs")
     args = parser.parse_args()
     
-
-if __name__ == "__main__":
-    main()
-    
     # Use command-line arguments if present, otherwise check stdin
     if args.inputs:
         inputs = args.inputs
