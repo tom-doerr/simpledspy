@@ -26,12 +26,12 @@ class RewardTracker:
         if not rewards:
             return 0.0
             
-        # Sort rewards by timestamp
+        # Sort rewards by timestamp (oldest first)
         rewards.sort(key=lambda x: x[1])
         
-        # Calculate discounted cumulative reward
+        # Calculate discounted cumulative reward from oldest to newest
         cumulative = 0.0
-        for i, (score, _) in enumerate(rewards):
+        for i, (score, _) in enumerate(reversed(rewards)):
             cumulative += score * (self.discount_factor ** i)
             
         return cumulative
@@ -41,21 +41,30 @@ class RewardTracker:
         if reward_group not in self.reward_history:
             return []
             
-        # Sort examples by impact (score * time discount)
-        sorted_examples = sorted(
-            self.reward_history[reward_group],
-            key=lambda x: x[0] * (self.discount_factor ** x[1]),
-            reverse=True
-        )
+        rewards = self.reward_history[reward_group]
+        # Sort by timestamp (oldest first)
+        rewards.sort(key=lambda x: x[1])
+        
+        # Calculate impact as score * discount^(steps from end)
+        n = len(rewards)
+        examples_with_impact = []
+        for i, (score, timestamp) in enumerate(rewards):
+            # i=0 is oldest, i=n-1 is newest
+            steps_from_end = n - 1 - i
+            impact = score * (self.discount_factor ** steps_from_end)
+            examples_with_impact.append((score, timestamp, impact))
+            
+        # Sort by impact descending
+        examples_with_impact.sort(key=lambda x: x[2], reverse=True)
         
         # Get top positive and bottom negative examples
-        positive = sorted_examples[:n_positive]
-        negative = sorted_examples[-n_negative:] if len(sorted_examples) > n_negative else []
+        positive = examples_with_impact[:n_positive]
+        negative = examples_with_impact[-n_negative:] if n_negative > 0 else []
         
         return [
-            {"example": ex, "type": "positive", "impact": ex[0] * (self.discount_factor ** ex[1])}
-            for ex in positive
+            {"example": (score, timestamp), "type": "positive", "impact": impact}
+            for score, timestamp, impact in positive
         ] + [
-            {"example": ex, "type": "negative", "impact": ex[0] * (self.discount_factor ** ex[1])}
-            for ex in negative
+            {"example": (score, timestamp), "type": "negative", "impact": impact}
+            for score, timestamp, impact in negative
         ]

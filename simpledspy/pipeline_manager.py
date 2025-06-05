@@ -41,8 +41,6 @@ class PipelineManager:
     def reset(self) -> None:
         """Reset the pipeline steps and any module state"""
         self._steps = []
-        # Also reset any DSPy module state
-        dspy.settings.configure(reset=True)
 
     def assemble_pipeline(self) -> dspy.Module:
         """Assembles and returns a DSPy pipeline from registered steps
