@@ -9,6 +9,7 @@ Features:
 
 import time
 import dspy
+from typing import Dict, List
 from .logger import Logger
 from .reward_tracker import RewardTracker
 from .advice_generator import AdviceGenerator
