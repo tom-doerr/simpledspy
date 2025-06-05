@@ -4,23 +4,26 @@ from simpledspy.module_caller import Predict
 import dspy
 from unittest.mock import patch, MagicMock
 
-@patch('dspy.settings.configure')
-def test_basic_string_output(mock_configure):
+def test_basic_string_output():
     """Test basic string output"""
-    # Mock LM configuration
-    mock_lm = MagicMock()
-    mock_configure.return_value = None
-    dspy.settings.lm = mock_lm
-    
-    # Mock module response
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
-        mock_module = MagicMock()
-        mock_module.return_value = MagicMock(output="Mocked Hello")
-        mock_create.return_value = mock_module
+    # Save original LM and reset after test
+    original_lm = dspy.settings.lm
+    try:
+        # Mock LM configuration
+        mock_lm = MagicMock()
+        dspy.settings.lm = mock_lm
         
-        text = "Hello, world!"
-        result = predict(text)
-        assert result == "Mocked Hello"
+        # Mock module response
+        with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+            mock_module = MagicMock()
+            mock_module.return_value = MagicMock(output="Mocked Hello")
+            mock_create.return_value = mock_module
+            
+            text = "Hello, world!"
+            result = predict(text)
+            assert result == "Mocked Hello"
+    finally:
+        dspy.settings.lm = original_lm
 
 def test_chain_of_thought():
     """Test chain_of_thought function"""
