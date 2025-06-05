@@ -63,6 +63,12 @@ class OptimizationManager:
                 max_bootstrapped_demos=self._config['max_bootstrapped_demos'],
                 max_labeled_demos=self._config['max_labeled_demos']
             )
+        elif strategy == 'simba':
+            return self._teleprompters[strategy](
+                metric=self._config['metric'],
+                max_steps=self._config['max_steps'],
+                max_demos=self._config['max_demos']
+            )
         else:
             return self._teleprompters[strategy](
                 metric=self._config['metric']
