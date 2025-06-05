@@ -60,22 +60,6 @@ class Evaluator:
         """Mark the end of an episode for a reward group"""
         group = reward_group or self.reward_group
         self.reward_tracker.end_episode(group)
-        
-        # Construct evaluation prompt
-        prompt = f"{self.evaluation_instruction}\n\nInputs: {inputs}\nOutputs: {outputs}"
-        completions = self.evaluator_lm(prompt)
-        if not completions:
-            return 0
-            
-        # Take the first completion
-        response = completions[0]
-        
-        try:
-            # Extract numerical score from response
-            score = int(response.strip().split()[0])
-            return max(1, min(10, score))
-        except (ValueError, IndexError):
-            return 0
 
     def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = "", reward_group: str = None, evaluation_instructions: List[str] = None):
         """Log inputs/outputs with evaluation score from multiple instructions"""

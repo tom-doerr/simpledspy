@@ -10,7 +10,7 @@ from typing import Callable, List, Dict, Any, Union
 
 class ToolUseModule(dspy.Module):
     """DSPy module for using Python functions as tools"""
-    def __init__(self, tools: Union[Callable, List[Callable], max_retries: int = 3, reward_group: str = "tool_use"):
+    def __init__(self, tools: Union[Callable, List[Callable]], max_retries: int = 3, reward_group: str = "tool_use"):
         super().__init__()
         if callable(tools):
             self.tools = [tools]
