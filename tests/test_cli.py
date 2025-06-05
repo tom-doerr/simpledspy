@@ -123,9 +123,12 @@ def test_cli_pipeline(capsys):
                 
             # Create a dummy pipeline result object
             output_value = "Pipeline Output"
-            mock_result = MagicMock()
-            setattr(mock_result, 'output_2', output_value)
-            mock_pipeline.return_value = mock_result
+            # Create a simple result object that holds the output
+            class SimpleResult:
+                def __init__(self, value):
+                    self.value = value
+            result_obj = SimpleResult(output_value)
+            mock_pipeline.return_value = result_obj
                 
             # Call the main function
             main()
@@ -134,6 +137,8 @@ def test_cli_pipeline(capsys):
             captured = capsys.readouterr()
             # The output should contain the expected value
             assert output_value in captured.out
+            # Also check that the mock pipeline was called with the input
+            mock_pipeline.assert_called_once_with(text="Hello, world!")
                 
             # Verify pipeline was created and executed
             mock_manager.register_step.assert_called()
