@@ -27,9 +27,9 @@ def test_cumulative_reward_no_episodes():
     t2 = t1 + 1
     t3 = t2 + 1
     
-    tracker.add_reward("group1", 5.0, t1)
-    tracker.add_reward("group1", 7.0, t2)
-    tracker.add_reward("group1", 3.0, t3)
+    tracker.add_reward("group1", 5.0, t1, {"input": "test1"}, {"output": "result1"})
+    tracker.add_reward("group1", 7.0, t2, {"input": "test2"}, {"output": "result2"})
+    tracker.add_reward("group1", 3.0, t3, {"input": "test3"}, {"output": "result3"})
     
     # Calculate cumulative reward
     cumulative = tracker.get_cumulative_reward("group1")
@@ -69,9 +69,9 @@ def test_get_advice_examples():
     t2 = t1 + 1
     t3 = t2 + 1
     
-    tracker.add_reward("group1", 5.0, t1)
-    tracker.add_reward("group1", 7.0, t2)
-    tracker.add_reward("group1", 3.0, t3)
+    tracker.add_reward("group1", 5.0, t1, {"input": "test1"}, {"output": "result1"})
+    tracker.add_reward("group1", 7.0, t2, {"input": "test2"}, {"output": "result2"})
+    tracker.add_reward("group1", 3.0, t3, {"input": "test3"}, {"output": "result3"})
     
     # Get advice examples
     examples = tracker.get_advice_examples("group1", n_positive=2, n_negative=1)

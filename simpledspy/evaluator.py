@@ -87,8 +87,8 @@ class Evaluator:
             'timestamp': timestamp
         })
         
-        # Track reward
-        self.reward_tracker.add_reward(group, score, timestamp)
+        # Track reward with inputs and outputs
+        self.reward_tracker.add_reward(group, score, timestamp, inputs, outputs)
 
     def get_cumulative_reward(self, reward_group: str = None) -> float:
         """Get cumulative discounted reward for a group"""

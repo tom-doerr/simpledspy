@@ -12,11 +12,11 @@ class RewardTracker:
         self.reward_history = {}
         self.episode_cutoffs = {}
         
-    def add_reward(self, reward_group: str, score: float, timestamp: float):
+    def add_reward(self, reward_group: str, score: float, timestamp: float, inputs: Dict, outputs: Dict):
         """Add a new reward to the history"""
         if reward_group not in self.reward_history:
             self.reward_history[reward_group] = []
-        self.reward_history[reward_group].append((score, timestamp))
+        self.reward_history[reward_group].append((score, timestamp, inputs, outputs))
         
     def end_episode(self, reward_group: str):
         """Mark the end of an episode for a reward group"""
@@ -61,14 +61,14 @@ class RewardTracker:
         # Calculate impact as score * discount^(steps from end)
         n = len(episode_rewards)
         examples_with_impact = []
-        for i, (score, timestamp) in enumerate(episode_rewards):
+        for i, (score, timestamp, inputs, outputs) in enumerate(episode_rewards):
             # i=0 is oldest, i=n-1 is newest
             steps_from_end = n - 1 - i
             impact = score * (self.discount_factor ** steps_from_end)
-            examples_with_impact.append((score, timestamp, impact))
+            examples_with_impact.append((score, timestamp, inputs, outputs, impact))
             
         # Sort by impact descending
-        examples_with_impact.sort(key=lambda x: x[2], reverse=True)
+        examples_with_impact.sort(key=lambda x: x[4], reverse=True)
         
         # Get top positive and bottom negative examples
         positive = examples_with_impact[:n_positive]
@@ -76,16 +76,16 @@ class RewardTracker:
         
         return [
             {
-                "example": f"Inputs: {entry[0]}, Outputs: {entry[1]}",
+                "example": f"Inputs: {inputs}, Outputs: {outputs}",
                 "type": "positive",
                 "impact": impact
             }
-            for (score, timestamp, impact), entry in zip(positive, positive)
+            for (score, timestamp, inputs, outputs, impact) in positive
         ] + [
             {
-                "example": f"Inputs: {entry[0]}, Outputs: {entry[1]}",
+                "example": f"Inputs: {inputs}, Outputs: {outputs}",
                 "type": "negative",
                 "impact": impact
             }
-            for (score, timestamp, impact), entry in zip(negative, negative)
+            for (score, timestamp, inputs, outputs, impact) in negative
         ]
