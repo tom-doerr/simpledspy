@@ -23,10 +23,37 @@ class Evaluator:
         self.evaluator_lm = dspy.LM(model="deepseek/deepseek-reasoner")
         dspy.configure(lm=self.evaluator_lm)
 
-    def evaluate(self, inputs: Dict, outputs: Dict) -> int:
-        """Evaluate outputs on a scale of 1-10"""
-        if not self.evaluation_instruction:
-            return 0  # No evaluation without instruction
+    def evaluate(self, inputs: Dict, outputs: Dict, evaluation_instructions: List[str] = None) -> float:
+        """Evaluate outputs on a scale of 1-10 using multiple instructions"""
+        if evaluation_instructions is None:
+            evaluation_instructions = []
+        
+        if not evaluation_instructions and not self.evaluation_instruction:
+            return 0.0  # No evaluation without instructions
+        
+        # Use instance instruction if no specific instructions provided
+        if not evaluation_instructions:
+            evaluation_instructions = [self.evaluation_instruction]
+            
+        scores = []
+        for instruction in evaluation_instructions:
+            # Construct evaluation prompt
+            prompt = f"{instruction}\n\nInputs: {inputs}\nOutputs: {outputs}"
+            completions = self.evaluator_lm(prompt)
+            if not completions:
+                continue
+                
+            # Take the first completion
+            response = completions[0]
+            
+            try:
+                # Extract numerical score from response
+                score = int(response.strip().split()[0])
+                scores.append(max(1, min(10, score)))
+            except (ValueError, IndexError):
+                continue
+                
+        return sum(scores) / len(scores) if scores else 0.0
         
         # Construct evaluation prompt
         prompt = f"{self.evaluation_instruction}\n\nInputs: {inputs}\nOutputs: {outputs}"
@@ -44,10 +71,16 @@ class Evaluator:
         except (ValueError, IndexError):
             return 0
 
-    def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = "", reward_group: str = None):
-        """Log inputs/outputs with evaluation score"""
-        score = self.evaluate(inputs, outputs)
+    def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = "", reward_group: str = None, evaluation_instructions: List[str] = None):
+        """Log inputs/outputs with evaluation score from multiple instructions"""
+        score = self.evaluate(inputs, outputs, evaluation_instructions)
         group = reward_group or self.reward_group
+        
+        # Store individual instructions if provided
+        if evaluation_instructions:
+            instructions = evaluation_instructions
+        else:
+            instructions = [self.evaluation_instruction] if self.evaluation_instruction else []
         
         # Get current timestamp
         timestamp = time.time()
@@ -58,7 +91,7 @@ class Evaluator:
             'inputs': inputs,
             'outputs': outputs,
             'description': description,
-            'instruction': self.evaluation_instruction,
+            'instructions': instructions,
             'score': score,
             'reward_group': group,
             'timestamp': timestamp

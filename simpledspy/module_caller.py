@@ -38,7 +38,7 @@ class BaseCaller:
             description=description
         )
 
-    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None) -> Any:
+    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None, evaluation_instructions: List[str] = None) -> Any:
         # Use custom input names if provided, otherwise generate meaningful defaults
         if inputs is None:
             input_names = [f"input_{i+1}" for i in range(len(args))]
@@ -83,7 +83,8 @@ class BaseCaller:
             module=self.FUNCTION_NAME,
             inputs=input_dict,
             outputs=output_dict,
-            description=description
+            description=description,
+            evaluation_instructions=evaluation_instructions
         )
         
         if len(output_values) == 1:
