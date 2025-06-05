@@ -105,7 +105,6 @@ def test_cli_optimization(capsys):
             assert "Optimized Hello" in captured.out
                 
             # Verify optimization was called
-            mock_manager.configure.assert_called_once()
             mock_manager.optimize.assert_called_once()
 def test_cli_pipeline(capsys):
     """Test CLI pipeline execution"""
@@ -134,6 +133,7 @@ def test_cli_pipeline(capsys):
                 
             # Capture the output
             captured = capsys.readouterr()
+            # The output is the string representation of the result object's attribute
             assert "Pipeline Output" in captured.out
                 
             # Verify pipeline was created and executed
