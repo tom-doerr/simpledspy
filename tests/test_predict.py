@@ -2,7 +2,7 @@ import pytest
 from simpledspy import predict, chain_of_thought
 from simpledspy.module_caller import Predict
 import dspy
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 @patch('dspy.settings.configure')
 def test_basic_string_output(mock_configure):
