@@ -62,9 +62,17 @@ class RewardTracker:
         negative = examples_with_impact[-n_negative:] if n_negative > 0 else []
         
         return [
-            {"example": (score, timestamp), "type": "positive", "impact": impact}
-            for score, timestamp, impact in positive
+            {
+                "example": f"Inputs: {entry['inputs']}, Outputs: {entry['outputs']}",
+                "type": "positive",
+                "impact": impact
+            }
+            for entry, impact in zip(positive, positive_impacts)
         ] + [
-            {"example": (score, timestamp), "type": "negative", "impact": impact}
-            for score, timestamp, impact in negative
+            {
+                "example": f"Inputs: {entry['inputs']}, Outputs: {entry['outputs']}",
+                "type": "negative",
+                "impact": impact
+            }
+            for entry, impact in zip(negative, negative_impacts)
         ]
