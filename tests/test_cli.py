@@ -126,9 +126,8 @@ def test_cli_pipeline(capsys):
             output_value = "Pipeline Output"
             output_name = "output_2"
                 
-            # Create a MagicMock with the output attribute set
-            result_obj = MagicMock()
-            setattr(result_obj, output_name, output_value)
+            # Create a dspy.Prediction object with the output
+            result_obj = dspy.Prediction(**{output_name: output_value})
             mock_pipeline.return_value = result_obj
                 
             # Call the main function

@@ -3,9 +3,14 @@ import pytest
 from simpledspy.tool_use import ToolUseModule
 import json
 from unittest.mock import MagicMock
+import dspy
 
 def test_tool_use_success():
     """Test successful tool use"""
+    # Configure mock LM
+    mock_lm = MagicMock()
+    dspy.configure(lm=mock_lm)
+    
     def test_tool(arg1):
         return arg1 * 2
         
@@ -15,6 +20,10 @@ def test_tool_use_success():
 
 def test_tool_use_retry():
     """Test tool use with retry"""
+    # Configure mock LM
+    mock_lm = MagicMock()
+    dspy.configure(lm=mock_lm)
+    
     mock_tool = MagicMock()
     mock_tool.side_effect = [ValueError, "success"]
     mock_tool.__name__ = "test_tool"
@@ -26,6 +35,10 @@ def test_tool_use_retry():
 
 def test_tool_not_found():
     """Test handling of unknown tool"""
+    # Configure mock LM
+    mock_lm = MagicMock()
+    dspy.configure(lm=mock_lm)
+    
     module = ToolUseModule([])
     with pytest.raises(ValueError):
         module("Run unknown_tool with some arguments")
