@@ -35,28 +35,9 @@ def main():
                        help="File to store input/output logs")
     args = parser.parse_args()
     
-def main():
-    """Command Line Interface for SimpleDSPy
-    
-    Handles argument parsing and execution of DSPy commands
-    """
-    parser = argparse.ArgumentParser(description="SimpleDSPy command line interface")
-    parser.add_argument('inputs', nargs='*', help="Input strings to process (use - for stdin)")
-    parser.add_argument('-d', '--description', help="Description of the processing task")
-    parser.add_argument('-m', '--module', choices=['predict', 'chain_of_thought'], 
-                       default='predict', help="DSPy module type to use")
-    parser.add_argument('--optimize', action='store_true', help="Enable pipeline optimization")
-    parser.add_argument('--strategy', choices=['bootstrap_few_shot', 'mipro', 'bootstrap_random'], 
-                       default='bootstrap_few_shot', help="Optimization strategy")
-    parser.add_argument('--max-demos', type=int, default=4, help="Maximum demonstrations for optimization")
-    parser.add_argument('--trainset', type=str, help="Path to JSON file containing training set")
-    parser.add_argument('--json', action='store_true', help="Output in JSON format")
-    parser.add_argument('--pipeline', nargs='+', help="Run a pipeline with multiple step descriptions")
-    parser.add_argument('--evaluation-instruction', type=str, default="", 
-                       help="Instruction for evaluating outputs on a 1-10 scale")
-    parser.add_argument('--log-file', type=str, default="dspy_logs.jsonl", 
-                       help="File to store input/output logs")
-    args = parser.parse_args()
+
+if __name__ == "__main__":
+    main()
     
     # Use command-line arguments if present, otherwise check stdin
     if args.inputs:
