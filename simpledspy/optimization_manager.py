@@ -25,7 +25,9 @@ class OptimizationManager:
             'strategy': 'bootstrap_few_shot',
             'metric': dict_exact_match_metric,
             'max_bootstrapped_demos': 4,
-            'max_labeled_demos': 4
+            'max_labeled_demos': 4,
+            'max_steps': 12,
+            'max_demos': 10
         }
         self._teleprompters = {
             'bootstrap_few_shot': BootstrapFewShot,

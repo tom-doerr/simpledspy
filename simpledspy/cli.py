@@ -93,19 +93,24 @@ def main():
         
         # Create steps from descriptions
         for i, desc in enumerate(args.pipeline):
+            # For first step, use the main input names
+            if i == 0:
+                step_inputs = input_names
+            # For subsequent steps, use previous step's output
+            else:
+                step_inputs = [f"output_{i}"]
+                
+            step_outputs = [f"output_{i+1}"]
+            
             step_module = factory.create_module(
-                inputs=[f"input_{i+1}"],
-                outputs=[f"output_{i+1}"],
+                inputs=step_inputs,
+                outputs=step_outputs,
                 description=desc
             )
-            if i == 0:
-                inputs = [f"input_{i+1}"]
-            else:
-                inputs = [f"output_{i}"]
                 
             manager.register_step(
-                inputs=inputs,
-                outputs=[f"output_{i+1}"],
+                inputs=step_inputs,
+                outputs=step_outputs,
                 module=step_module
             )
         
