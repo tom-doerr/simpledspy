@@ -32,6 +32,8 @@
 - **Pipeline Manager**: Create complex pipelines of DSPy modules
 - **Optimization**: Use DSPy teleprompters to optimize your modules
 - **Evaluation**: Evaluate outputs on a scale of 1-10 and log inputs/outputs
+- **Reward Tracking**: Track cumulative discounted rewards over time
+- **Advice Generation**: Generate optimization advice from positive/negative examples
 - **CLI**: Command-line interface for running modules and pipelines
 - **Automatic Module Creation**: Generate DSPy modules from input/output specifications
 - **Type Hinting**: Support for flexible type annotations
@@ -110,6 +112,27 @@ optimized_predict = manager.optimize(predict, trainset)
 # Use optimized module
 result = optimized_predict("4*4")
 print(result)  # "16"
+```
+
+### Reward Tracking and Advice Generation
+```python
+from simpledspy.evaluator import Evaluator
+
+# Create evaluator with reward group
+evaluator = Evaluator("Rate output quality 1-10", reward_group="math")
+score = evaluator.evaluate(
+    {"question": "2+2"},
+    {"answer": "4"}
+)
+print(score)  # 10
+
+# Get cumulative reward
+cumulative = evaluator.get_cumulative_reward()
+print(f"Cumulative reward: {cumulative:.2f}")
+
+# Generate advice from examples
+advice = evaluator.get_advice()
+print(f"Optimization advice: {advice}")
 ```
 
 ### Evaluation
