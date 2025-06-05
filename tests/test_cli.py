@@ -88,20 +88,22 @@ def test_cli_optimization(capsys):
             # Setup mock module
             mock_factory = MockFactory.return_value
             mock_module = MagicMock()
+            mock_module._compiled = False
+            mock_module.reset_copy = lambda: mock_module
             mock_factory.create_module.return_value = mock_module
             mock_module.return_value = MagicMock(output="Optimized Hello")
-            
+                
             # Setup optimization manager
             mock_manager = MockOptManager.return_value
             mock_manager.optimize.return_value = mock_module
-            
+                
             # Call the main function
             main()
-            
+                
             # Capture the output
             captured = capsys.readouterr()
             assert "Optimized Hello" in captured.out
-            
+                
             # Verify optimization was called
             mock_manager.configure.assert_called_once()
             mock_manager.optimize.assert_called_once()
@@ -121,15 +123,19 @@ def test_cli_pipeline(capsys):
             mock_manager = MockPipelineManager.return_value
             mock_pipeline = MagicMock()
             mock_manager.assemble_pipeline.return_value = mock_pipeline
-            mock_pipeline.return_value = MagicMock(output_2="Pipeline Output")
-            
+                
+            # Create a simple result object
+            class Result:
+                output_2 = "Pipeline Output"
+            mock_pipeline.return_value = Result()
+                
             # Call the main function
             main()
-            
+                
             # Capture the output
             captured = capsys.readouterr()
             assert "Pipeline Output" in captured.out
-            
+                
             # Verify pipeline was created and executed
             mock_manager.register_step.assert_called()
             mock_manager.assemble_pipeline.assert_called_once()

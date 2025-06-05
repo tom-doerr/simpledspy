@@ -40,11 +40,13 @@ class ModuleFactory:
         if description:
             instructions = description
         elif inputs and outputs:
-            instructions = f"Given inputs: {', '.join(inputs)}. Produce outputs: {', '.join(outputs)}"
+            instructions = f"Process inputs ({', '.join(inputs)}) to produce outputs ({', '.join(outputs)})"
         elif inputs:
-            instructions = f"Process inputs: {', '.join(inputs)}"
+            instructions = f"Process inputs ({', '.join(inputs)})"
+        elif outputs:
+            instructions = f"Produce outputs ({', '.join(outputs)})"
         else:
-            instructions = f"Produce outputs: {', '.join(outputs)}"
+            instructions = ""
             
         return type(
             'Signature',
