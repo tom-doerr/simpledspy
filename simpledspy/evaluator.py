@@ -7,14 +7,17 @@ Features:
 - Supports cumulative reward tracking for optimization
 """
 import dspy
+import time
 from typing import Dict, Any
 from .logger import Logger
+from .reward_tracker import RewardTracker
 
 class Evaluator:
     def __init__(self, evaluation_instruction: str = "", reward_group: str = "default", log_file: str = "dspy_logs.jsonl"):
         self.evaluation_instruction = evaluation_instruction
         self.reward_group = reward_group
         self.logger = Logger(log_file)
+        self.reward_tracker = RewardTracker()
         self.evaluator_lm = dspy.LM(model="deepseek/deepseek-reasoner")
         dspy.configure(lm=self.evaluator_lm)
 
@@ -43,6 +46,11 @@ class Evaluator:
         """Log inputs/outputs with evaluation score"""
         score = self.evaluate(inputs, outputs)
         group = reward_group or self.reward_group
+        
+        # Get current timestamp
+        timestamp = time.time()
+        
+        # Log to file
         self.logger.log({
             'module': module,
             'inputs': inputs,
@@ -50,5 +58,22 @@ class Evaluator:
             'description': description,
             'instruction': self.evaluation_instruction,
             'score': score,
-            'reward_group': group
+            'reward_group': group,
+            'timestamp': timestamp
         })
+        
+        # Track reward
+        self.reward_tracker.add_reward(group, score, timestamp)
+
+    def get_cumulative_reward(self, reward_group: str = None) -> float:
+        """Get cumulative discounted reward for a group"""
+        group = reward_group or self.reward_group
+        return self.reward_tracker.get_cumulative_reward(group)
+    
+    def get_advice(self, reward_group: str = None) -> str:
+        """Generate advice from reward history"""
+        from .advice_generator import AdviceGenerator
+        group = reward_group or self.reward_group
+        examples = self.reward_tracker.get_advice_examples(group)
+        generator = AdviceGenerator()
+        return generator(examples)

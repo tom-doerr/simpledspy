@@ -62,3 +62,26 @@ class Logger:
         except FileNotFoundError:
             pass
         return training_data
+
+    def get_reward_history(self, reward_group: str = "default") -> List[Dict[str, Any]]:
+        """Get complete reward history for a group
+        
+        Args:
+            reward_group: Reward group to filter by
+            
+        Returns:
+            List of all log entries for the group
+        """
+        history = []
+        try:
+            with open(self.log_file, "r") as f:
+                for line in f:
+                    try:
+                        entry = json.loads(line)
+                        if entry.get('reward_group', 'default') == reward_group:
+                            history.append(entry)
+                    except json.JSONDecodeError:
+                        continue
+        except FileNotFoundError:
+            pass
+        return history
