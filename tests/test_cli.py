@@ -126,9 +126,8 @@ def test_cli_pipeline(capsys):
             output_value = "Pipeline Output"
             output_name = "output_2"
                 
-            # Create a mock that returns our output value
-            mock_instance = mock_pipeline.return_value
-            mock_instance.return_value = dspy.Prediction(**{output_name: output_value})
+            # Set up the mock pipeline to return our Prediction object
+            mock_pipeline.return_value = dspy.Prediction(**{output_name: output_value})
                 
             # Call the main function
             main()

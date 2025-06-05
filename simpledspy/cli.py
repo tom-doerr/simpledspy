@@ -117,7 +117,7 @@ def main():
         pipeline = manager.assemble_pipeline()
         result = pipeline(**input_dict)
         
-        # Get final output
+        # Get final output - use the output name from the pipeline step
         output_name = f"output_{len(args.pipeline)}"
         output_value = getattr(result, output_name)
         output_data = {output_name: output_value}
@@ -126,14 +126,21 @@ def main():
         result = module(**input_dict)
         output_data = {name: getattr(result, name) for name in output_names}
     
-    # Format output
+    # Format output - ensure we extract values from Prediction objects
     if args.json:
         print(json.dumps(output_data))
     else:
         if len(output_data) == 1:
-            print(next(iter(output_data.values())))
+            value = next(iter(output_data.values()))
+            # Handle dspy.Prediction objects
+            if hasattr(value, '__call__'):
+                value = value()
+            print(value)
         else:
             for name, value in output_data.items():
+                # Handle dspy.Prediction objects
+                if hasattr(value, '__call__'):
+                    value = value()
                 print(f"{name}: {value}")
     
     # Log with evaluation if evaluator is set
