@@ -55,6 +55,11 @@ class Evaluator:
                 continue
                 
         return sum(scores) / len(scores) if scores else 0.0
+
+    def end_episode(self, reward_group: str = None):
+        """Mark the end of an episode for a reward group"""
+        group = reward_group or self.reward_group
+        self.reward_tracker.end_episode(group)
         
         # Construct evaluation prompt
         prompt = f"{self.evaluation_instruction}\n\nInputs: {inputs}\nOutputs: {outputs}"

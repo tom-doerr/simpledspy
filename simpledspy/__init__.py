@@ -5,6 +5,7 @@ Provides:
 - chain_of_thought: Function for multi-step reasoning
 - PipelineManager: For building complex pipelines
 - ModuleFactory: For creating custom DSPy modules
+- configure: Function to set global settings
 """
 
 import sys as _sys
@@ -13,6 +14,7 @@ import sys as _sys
 from .module_caller import Predict, ChainOfThought
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
+from .settings import settings as global_settings
 
 # Create the function instances
 predict = Predict()
@@ -27,4 +29,13 @@ if not _sys.modules["simpledspy"].__name__.startswith("simpledspy"):
         ImportWarning
     )
 
-__all__ = ['predict', 'chain_of_thought', 'PipelineManager', 'ModuleFactory']
+def configure(**kwargs):
+    """Set global configuration settings for SimpleDSPy.
+
+    Example:
+        configure(lm=dspy.LM(model="deepseek/deepseek-chat"), temperature=0.7, max_tokens=100)
+    """
+    for key, value in kwargs.items():
+        setattr(global_settings, key, value)
+
+__all__ = ['predict', 'chain_of_thought', 'PipelineManager', 'ModuleFactory', 'configure']
