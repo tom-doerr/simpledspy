@@ -126,22 +126,24 @@ def main():
         result = module(**input_dict)
         output_data = {name: getattr(result, name) for name in output_names}
     
-    # Format output - ensure we extract values from Prediction objects
+    # Format output as string representations
     if args.json:
         print(json.dumps(output_data))
     else:
-        if len(output_data) == 1:
-            value = next(iter(output_data.values()))
-            # Handle dspy.Prediction objects
-            if hasattr(value, '__call__'):
+        # Convert all values to strings by applying str()
+        output_lines = []
+        for name, value in output_data.items():
+            # If value is callable, call it to get the actual value
+            if callable(value):
                 value = value()
-            print(value)
+            output_lines.append(f"{name}: {str(value)}")
+
+        # Print as multiple lines or single value
+        if len(output_lines) == 1:
+            print(output_lines[0].split(": ")[-1])
         else:
-            for name, value in output_data.items():
-                # Handle dspy.Prediction objects
-                if hasattr(value, '__call__'):
-                    value = value()
-                print(f"{name}: {value}")
+            for line in output_lines:
+                print(line)
     
     # Log with evaluation if evaluator is set
     if evaluator:
