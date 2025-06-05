@@ -13,3 +13,6 @@ the readmes should be very comprehensive
 there should be a reward function i can call anywhere 
 the reward feature should enable an additional layer of optimization where i can over time use cummulative discounted rewards to evaluate advice and examples i can give as input to the modules
 the over time weighted few-shot examples (maybe with certainty / error margin) should be usable to generate advice by reflecting on a samples that includes examples that have a positive and examples that have a negative impact on overall reward over time 
+maybe we could also use the reward calls for the dspy optimization but I'm not sure yet
+we do need differente reward groups so we can optimize, e.g. a judge module as well as a modules being judged by the judge 
+if not reward group is specified, rewards should be attributed to the default reward group and modules without reward group should be optimized using the default reward group rewards
