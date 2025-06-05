@@ -60,7 +60,13 @@ dspy.configure(lm=dspy.OpenAI(model='gpt-3.5-turbo'))
 ```python
 from simpledspy import predict
 
+# Basic prediction with default parameters
 result = predict("Hello, world!")
+print(result)
+
+# Set LLM parameters directly in the call
+result = predict("Write a short greeting", 
+                lm_params={"max_tokens": 50, "temperature": 0.7})
 print(result)
 ```
 
@@ -68,9 +74,35 @@ print(result)
 ```python
 from simpledspy import chain_of_thought
 
+# Basic chain of thought with default parameters
 result = chain_of_thought("What is the capital of France?", 
                          description="Reason step by step")
 print(result)
+
+# Set temperature directly in the call
+result = chain_of_thought("Solve this complex math problem", 
+                         description="Show reasoning steps",
+                         lm_params={"temperature": 0.3})
+print(result)
+```
+
+### Setting LLM Parameters
+You can set LLM parameters directly in module calls using the `lm_params` argument. Supported parameters include:
+- `max_tokens`: Maximum number of tokens to generate
+- `temperature`: Sampling temperature (0.0-1.0)
+- `top_p`: Nucleus sampling probability
+- `n`: Number of completions to generate
+- `stop`: Stop sequences
+- ...and other model-specific parameters
+
+Example:
+```python
+result = predict("Generate creative text", 
+                lm_params={
+                    "max_tokens": 100,
+                    "temperature": 0.9,
+                    "top_p": 0.95
+                })
 ```
 
 ### Pipeline Management
