@@ -1,3 +1,12 @@
+"""Pipeline Manager for DSPy modules
+
+Provides:
+- Singleton access to pipeline manager
+- Step registration with input/output specifications
+- Pipeline assembly from registered steps
+- State reset functionality
+"""
+
 from typing import Any, List, Tuple, Dict
 import dspy
 
@@ -52,6 +61,7 @@ class PipelineManager:
             raise ValueError("Cannot assemble an empty pipeline")
         
         class Pipeline(dspy.Module):
+            """DSPy pipeline module"""
             def __init__(self, steps: List[Tuple[List[str], List[str], Any]]) -> None:
                 super().__init__()
                 self.step_tuples = steps  # store the full step tuples
@@ -59,6 +69,7 @@ class PipelineManager:
                     setattr(self, f'step_{i}', module)
             
             def forward(self, **inputs: Dict[str, Any]) -> dspy.Prediction:
+                """Execute the pipeline steps sequentially"""
                 data = inputs.copy()
                 all_outputs = {}
                 

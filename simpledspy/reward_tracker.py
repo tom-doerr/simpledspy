@@ -1,4 +1,8 @@
-import numpy as np
+"""Reward Tracker for DSPy modules
+
+Tracks cumulative discounted rewards over time
+"""
+
 from typing import List, Dict, Any
 
 class RewardTracker:

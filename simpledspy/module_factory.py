@@ -4,14 +4,28 @@ Provides:
 - create_signature: Creates DSPy Signature classes
 - create_module: Creates DSPy Predict/ChainOfThought modules
 """
+
 import dspy
-from typing import List, Dict, Any
+from typing import List, Dict
 
 class ModuleFactory:
+    """Factory for creating DSPy signatures and modules"""
     def create_signature(self, inputs: List[str], outputs: List[str], 
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,
                     description: str = "") -> dspy.Signature:
+        """Create DSPy signature from inputs/outputs
+        
+        Args:
+            inputs: List of input field names
+            outputs: List of output field names
+            input_types: Optional input type hints
+            output_types: Optional output type hints
+            description: Custom description for signature
+            
+        Returns:
+            DSPy Signature class
+        """
         signature_fields = {}
         
         # Create simple descriptions for inputs
@@ -51,8 +65,8 @@ class ModuleFactory:
         Args:
             inputs: List of input field names
             outputs: List of output field names
-            input_types: Optional dictionary mapping input names to types
-            output_types: Optional dictionary mapping output names to types
+            input_types: Optional input type hints
+            output_types: Optional output type hints
             description: Custom description for the module signature
             
         Returns:

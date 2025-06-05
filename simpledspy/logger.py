@@ -43,7 +43,7 @@ class Logger:
         """
         training_data = []
         try:
-            with open(self.log_file, "r") as f:
+            with open(self.log_file, "r", encoding='utf-8') as f:
                 for line in f:
                     try:
                         entry = json.loads(line)
@@ -74,7 +74,7 @@ class Logger:
         """
         history = []
         try:
-            with open(self.log_file, "r") as f:
+            with open(self.log_file, "r", encoding='utf-8') as f:
                 for line in f:
                     try:
                         entry = json.loads(line)

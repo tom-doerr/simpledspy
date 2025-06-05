@@ -1,3 +1,8 @@
+"""Advice Generator for DSPy modules
+
+Generates optimization advice from positive/negative examples
+"""
+
 import dspy
 from typing import List, Dict, Any
 
@@ -8,6 +13,14 @@ class AdviceGenerator(dspy.Module):
         self.generate_advice = dspy.ChainOfThought("examples, example_types, impacts -> advice")
         
     def forward(self, examples: List[Dict[str, Any]]) -> str:
+        """Generate advice from examples
+        
+        Args:
+            examples: List of example dictionaries with 'type', 'impact', and 'example'
+            
+        Returns:
+            Generated advice string
+        """
         # Format examples for the prompt
         formatted_examples = []
         for ex in examples:

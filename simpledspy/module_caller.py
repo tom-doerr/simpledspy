@@ -1,11 +1,16 @@
+"""Module Caller for DSPy modules
+
+Provides base classes for Predict and ChainOfThought function calls
+"""
+
 import dspy
-from typing import Any, Tuple, List, Callable, Dict
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
 from .evaluator import Evaluator
 
 class BaseCaller:
+    """Base class for DSPy module callers"""
     _instances = {}
     
     def __new__(cls, *args, **kwargs):

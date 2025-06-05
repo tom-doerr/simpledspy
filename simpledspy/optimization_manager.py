@@ -1,9 +1,3 @@
-from typing import Dict, Any, Callable, Type, Union
-import dspy
-from dspy.teleprompt import BootstrapFewShot, MIPROv2, BootstrapFewShotWithRandomSearch
-from dspy.evaluate import Evaluate
-from .metrics import dict_exact_match_metric
-
 """Optimization Manager for DSPy modules and pipelines
 
 This module provides the OptimizationManager class which:
@@ -12,6 +6,10 @@ This module provides the OptimizationManager class which:
 3. Creates teleprompter instances
 4. Optimizes DSPy modules/pipelines
 """
+
+import dspy
+from dspy.teleprompt import BootstrapFewShot, MIPROv2, BootstrapFewShotWithRandomSearch
+from .metrics import dict_exact_match_metric
 
 class OptimizationManager:
     """Manages optimization of DSPy modules and pipelines
@@ -53,26 +51,25 @@ class OptimizationManager:
                 max_bootstrapped_demos=self._config['max_bootstrapped_demos'],
                 max_labeled_demos=self._config['max_labeled_demos']
             )
-        elif strategy == 'mipro':
+        if strategy == 'mipro':
             return self._teleprompters[strategy](
                 metric=self._config['metric']
             )
-        elif strategy == 'bootstrap_random':
+        if strategy == 'bootstrap_random':
             return self._teleprompters[strategy](
                 metric=self._config['metric'],
                 max_bootstrapped_demos=self._config['max_bootstrapped_demos'],
                 max_labeled_demos=self._config['max_labeled_demos']
             )
-        elif strategy == 'simba':
+        if strategy == 'simba':
             return self._teleprompters[strategy](
                 metric=self._config['metric'],
                 max_steps=self._config['max_steps'],
                 max_demos=self._config['max_demos']
             )
-        else:
-            return self._teleprompters[strategy](
-                metric=self._config['metric']
-            )
+        return self._teleprompters[strategy](
+            metric=self._config['metric']
+        )
 
     def optimize(self, module: dspy.Module, trainset: list) -> dspy.Module:
         """

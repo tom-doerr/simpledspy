@@ -1,8 +1,10 @@
-from typing import List, Any, Dict, Union, Tuple
+"""Metrics for DSPy modules
 
+Provides evaluation metrics for DSPy pipelines
+"""
 
-def dict_exact_match_metric(example: Dict[str, Any], 
-                           prediction: Union[Dict[str, Any], Tuple, Any], 
+def dict_exact_match_metric(example: dict, 
+                           prediction: dict, 
                            trace: Any = None) -> float:
     """Calculates exact match score between example and prediction
     

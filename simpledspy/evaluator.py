@@ -6,13 +6,15 @@ Features:
 - Provides a reward function that can be called anywhere
 - Supports cumulative reward tracking for optimization
 """
-import dspy
+
 import time
-from typing import Dict, Any
+import dspy
 from .logger import Logger
 from .reward_tracker import RewardTracker
+from .advice_generator import AdviceGenerator
 
 class Evaluator:
+    """Evaluates DSPy module outputs and tracks rewards"""
     def __init__(self, evaluation_instruction: str = "", reward_group: str = "default", log_file: str = "dspy_logs.jsonl"):
         self.evaluation_instruction = evaluation_instruction
         self.reward_group = reward_group
@@ -72,7 +74,6 @@ class Evaluator:
     
     def get_advice(self, reward_group: str = None) -> str:
         """Generate advice from reward history"""
-        from .advice_generator import AdviceGenerator
         group = reward_group or self.reward_group
         examples = self.reward_tracker.get_advice_examples(group)
         generator = AdviceGenerator()
