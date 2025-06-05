@@ -28,13 +28,15 @@ class ModuleFactory:
         """
         signature_fields = {}
         
-        # Create simple descriptions for inputs
+        # Create inputs with type annotations
         for inp in inputs:
-            signature_fields[inp] = dspy.InputField(desc=inp)
+            type_ = input_types.get(inp, str) if input_types else str
+            signature_fields[inp] = dspy.InputField(desc=inp, type=type_)
             
-        # Create simple descriptions for outputs
+        # Create outputs with type annotations
         for outp in outputs:
-            signature_fields[outp] = dspy.OutputField(desc=outp)
+            type_ = output_types.get(outp, str) if output_types else str
+            signature_fields[outp] = dspy.OutputField(desc=outp, type=type_)
 
         # Create better default instructions
         if description:

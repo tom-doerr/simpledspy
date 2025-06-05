@@ -21,11 +21,13 @@ class PipelineManager:
     """
     
     _instance = None
+    _lock = threading.Lock()
 
     def __new__(cls) -> "PipelineManager":
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._steps = []
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance._steps = []
         return cls._instance
 
     def register_step(self, inputs: List[str], outputs: List[str], module: Any) -> None:

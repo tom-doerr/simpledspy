@@ -48,18 +48,17 @@ class Evaluator:
             # Take the first completion
             response = completions[0]
             
-            # Use regex to find integers in the response
-            numbers = re.findall(r'\b\d+\b', response)
-            for num_str in numbers:
+            # Extract scores from response
+            matches = re.findall(r'\b(\d+\.?\d*)\b', response)
+            for match in matches:
                 try:
-                    num = int(num_str)
-                    # Only consider scores between 1 and 10
-                    if 1 <= num <= 10:
-                        scores.append(num)
-                        break  # take the first valid score
+                    score = float(match)
+                    if 1 <= score <= 10:
+                        scores.append(score)
+                        break  # take first valid score
                 except ValueError:
                     continue
-                
+                    
         return sum(scores) / len(scores) if scores else 0.0
 
     def end_episode(self, reward_group: str = None):
