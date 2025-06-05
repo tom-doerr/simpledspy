@@ -37,7 +37,7 @@ class BaseCaller:
             description=description
         )
 
-    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None) -> Any:
+    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None) -> Any:
         # Use custom input names if provided, otherwise generate meaningful defaults
         if inputs is None:
             input_names = [f"input_{i+1}" for i in range(len(args))]
@@ -56,7 +56,22 @@ class BaseCaller:
         )
         
         input_dict = dict(zip(input_names, args))
-        prediction_result = module(**input_dict)
+        
+        # Save original LM parameters
+        original_params = {}
+        if lm_params:
+            for key, value in lm_params.items():
+                if hasattr(self.lm, key):
+                    original_params[key] = getattr(self.lm, key)
+                    setattr(self.lm, key, value)
+        
+        try:
+            prediction_result = module(**input_dict)
+        finally:
+            # Restore original LM parameters
+            for key, value in original_params.items():
+                setattr(self.lm, key, value)
+        
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
         output_values = [getattr(prediction_result, name) for name in output_names]
