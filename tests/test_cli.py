@@ -113,25 +113,28 @@ def test_cli_pipeline(capsys):
         # Mock dependencies
         with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
              patch('simpledspy.pipeline_manager.PipelineManager') as MockPipelineManager:
-            
+    
             # Setup mock module factory
             mock_factory = MockFactory.return_value
-            
+    
             # Setup mock pipeline
             mock_manager = MockPipelineManager.return_value
             mock_pipeline = MagicMock()
             mock_manager.assemble_pipeline.return_value = mock_pipeline
-                
+    
             # Create a proper pipeline output object
             output_value = "Pipeline Output"
             output_name = "output_2"
-                
-            # Set up the mock pipeline to return our Prediction object
-            mock_pipeline.return_value = dspy.Prediction(**{output_name: output_value})
-                
+    
+            # Create a prediction instance to return when pipeline is called
+            prediction = dspy.Prediction(**{output_name: output_value})
+    
+            # Set the pipeline mock to return the prediction object
+            mock_pipeline.return_value = prediction
+    
             # Call the main function
             main()
-                
+    
             # Capture the output
             captured = capsys.readouterr()
             # The output should contain the expected value
