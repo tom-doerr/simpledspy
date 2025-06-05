@@ -12,9 +12,11 @@ See documentation for configuration instructions.
 """
 import sys
 import argparse
-import dspy
 import json
 from .module_factory import ModuleFactory
+from .evaluator import Evaluator
+from .optimization_manager import OptimizationManager
+from .pipeline_manager import PipelineManager
 
 def main():
     parser = argparse.ArgumentParser(description="SimpleDSPy command line interface")
@@ -68,15 +70,14 @@ def main():
     
     # Handle optimization if enabled
     if args.optimize:
-        from .optimization_manager import OptimizationManager
         manager = OptimizationManager()
         manager.configure(strategy=args.strategy, max_bootstrapped_demos=args.max_demos)
         
         if args.trainset:
             try:
-                with open(args.trainset, 'r') as f:
+                with open(args.trainset, 'r', encoding='utf-8') as f:
                     trainset = json.load(f)
-            except Exception as e:
+            except OSError as e:
                 print(f"Error loading trainset: {e}")
                 sys.exit(1)
         else:
@@ -87,7 +88,6 @@ def main():
     
     # Handle pipeline execution if enabled
     if args.pipeline:
-        from .pipeline_manager import PipelineManager
         manager = PipelineManager()
         manager.reset()
         
