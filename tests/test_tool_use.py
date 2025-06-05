@@ -2,14 +2,17 @@
 import pytest
 from simpledspy.tool_use import ToolUseModule
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, ANY
 import dspy
 
-def test_tool_use_success():
+@patch('simpledspy.tool_use.dspy.Predict')
+def test_tool_use_success(mock_predict):
     """Test successful tool use"""
-    # Configure mock LM
-    mock_lm = MagicMock()
-    dspy.configure(lm=mock_lm)
+    # Mock DSPy Predict call
+    mock_predict().return_value = MagicMock(
+        tool_name='test_tool',
+        arguments='{"arg1":5}'
+    )
     
     def test_tool(arg1):
         return arg1 * 2
@@ -18,11 +21,14 @@ def test_tool_use_success():
     result = module("Run test_tool with arg1=5")
     assert result.result == 10
 
-def test_tool_use_retry():
+@patch('simpledspy.tool_use.dspy.Predict')
+def test_tool_use_retry(mock_predict):
     """Test tool use with retry"""
-    # Configure mock LM
-    mock_lm = MagicMock()
-    dspy.configure(lm=mock_lm)
+    # Mock DSPy Predict call
+    mock_predict().return_value = MagicMock(
+        tool_name='test_tool',
+        arguments='{"arg1":5}'
+    )
     
     mock_tool = MagicMock()
     mock_tool.side_effect = [ValueError, "success"]
@@ -33,11 +39,14 @@ def test_tool_use_retry():
     assert result.result == "success"
     assert mock_tool.call_count == 2
 
-def test_tool_not_found():
+@patch('simpledspy.tool_use.dspy.Predict')
+def test_tool_not_found(mock_predict):
     """Test handling of unknown tool"""
-    # Configure mock LM
-    mock_lm = MagicMock()
-    dspy.configure(lm=mock_lm)
+    # Mock DSPy Predict call
+    mock_predict().return_value = MagicMock(
+        tool_name='unknown_tool',
+        arguments='{}'
+    )
     
     module = ToolUseModule([])
     with pytest.raises(ValueError):
