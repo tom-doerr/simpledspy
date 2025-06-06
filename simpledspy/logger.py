@@ -1,17 +1,16 @@
-"""Logging system for DSPy inputs, outputs and evaluations
+"""Logging system for DSPy inputs and outputs
 
 Features:
-- Logs inputs, outputs, and evaluations to JSONL files
-- Extracts high-scoring examples for training data
+- Logs inputs and outputs to JSONL files
 - Supports easy data collection for optimization datasets
 """
 import json
 import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 class Logger:
-    """Handles logging of DSPy inputs, outputs, and evaluations"""
+    """Handles logging of DSPy inputs and outputs"""
     
     def __init__(self, log_file: str = "dspy_logs.jsonl") -> None:
         self.log_file = Path(log_file)
@@ -30,58 +29,3 @@ class Logger:
         data['timestamp'] = time.time()
         with open(self.log_file, "a") as f:
             f.write(json.dumps(data) + "\n")
-
-    def get_training_data(self, min_score: float = 8.0, reward_group: str = "default") -> List[Dict[str, Any]]:
-        """Extract training data from logs with high scores
-        
-        Args:
-            min_score: Minimum score to include in training data
-            reward_group: Reward group to filter by
-            
-        Returns:
-            List of training examples meeting score threshold
-        """
-        training_data = []
-        try:
-            with open(self.log_file, "r", encoding='utf-8') as f:
-                for line in f:
-                    try:
-                        entry = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue  # Skip invalid JSON lines
-                    # Skip if the entry doesn't have the required keys
-                    if not all(key in entry for key in ['score', 'inputs', 'outputs']):
-                        continue
-                    if (entry['score'] >= min_score and 
-                        entry.get('reward_group', 'default') == reward_group):
-                        training_data.append({
-                            'inputs': entry['inputs'],
-                            'outputs': entry['outputs'],
-                            'instruction': entry.get('instruction', '')
-                        })
-        except FileNotFoundError:
-            pass
-        return training_data
-
-    def get_reward_history(self, reward_group: str = "default") -> List[Dict[str, Any]]:
-        """Get complete reward history for a group
-        
-        Args:
-            reward_group: Reward group to filter by
-            
-        Returns:
-            List of all log entries for the group
-        """
-        history = []
-        try:
-            with open(self.log_file, "r", encoding='utf-8') as f:
-                for line in f:
-                    try:
-                        entry = json.loads(line)
-                        if entry.get('reward_group', 'default') == reward_group:
-                            history.append(entry)
-                    except json.JSONDecodeError:
-                        continue
-        except FileNotFoundError:
-            pass
-        return history

@@ -9,7 +9,7 @@ from typing import List, Dict, Any
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
-from .evaluator import Evaluator
+from .logger import Logger
 
 class BaseCaller:
     """Base class for DSPy module callers"""
@@ -23,7 +23,7 @@ class BaseCaller:
             instance.module_factory = ModuleFactory()
             instance.optimization_manager = OptimizationManager()
             instance.lm = dspy.LM(model="deepseek/deepseek-chat")
-            instance.evaluator = Evaluator()
+            instance.logger = Logger()
             dspy.configure(lm=instance.lm, cache=False)
         return cls._instances[cls]
     
@@ -39,7 +39,7 @@ class BaseCaller:
             description=description
         )
 
-    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None, evaluation_instructions: List[str] = None) -> Any:
+    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None) -> Any:
         if not hasattr(self, 'FUNCTION_NAME'):
             self.FUNCTION_NAME = 'base_caller'
         # Use custom input names if provided, otherwise generate meaningful defaults
@@ -180,15 +180,13 @@ class BaseCaller:
                 
         output_values = [getattr(prediction_result, name) for name in output_names]
         
-        # Log with evaluation
-        output_dict = dict(zip(output_names, output_values))
-        self.evaluator.log_with_evaluation(
-            module=self.FUNCTION_NAME,
-            inputs=input_dict,
-            outputs=output_dict,
-            description=description,
-            evaluation_instructions=evaluation_instructions
-        )
+        # Log inputs and outputs
+        self.logger.log({
+            'module': self.FUNCTION_NAME,
+            'inputs': input_dict,
+            'outputs': dict(zip(output_names, output_values)),
+            'description': description
+        })
         
         # Return single value for one output, tuple for multiple
         if len(output_values) == 1:
