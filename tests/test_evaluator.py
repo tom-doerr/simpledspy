@@ -9,12 +9,10 @@ def test_evaluator_init(mock_lm):
     """Test Evaluator initializes correctly"""
     evaluator = Evaluator(
         evaluation_instruction="Test instruction",
-        reward_group="test_group",
         log_file="test.log"
     )
-    
+        
     assert evaluator.evaluation_instruction == "Test instruction"
-    assert evaluator.reward_group == "test_group"
     assert mock_lm.called
 
 def test_evaluate_no_instruction():

@@ -131,10 +131,10 @@ def test_cli_pipeline(capsys):
                 
             # Assign the mock pipeline to the manager
             mock_manager.assemble_pipeline.return_value = mock_pipeline
-    
+        
             # Call the main function
             main()
-    
+        
             # Capture the output
             captured = capsys.readouterr()
             # The output should contain the expected value

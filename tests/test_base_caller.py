@@ -14,10 +14,10 @@ def test_base_caller_module_creation():
     """Test module creation with type hints"""
     caller = BaseCaller()
     mock_factory = MagicMock()
-    mock_module = MagicMock()
+    mock_module = MagicMock(spec=dspy.Module)
     mock_factory.create_module.return_value = mock_module
     caller.module_factory = mock_factory
-    
+        
     # Create module with type hints
     module = caller._create_module(
         inputs=["text"],
@@ -26,7 +26,7 @@ def test_base_caller_module_creation():
         output_types={"result": int},
         description="Test module"
     )
-    
+        
     assert isinstance(module, dspy.Module)
     mock_factory.create_module.assert_called_once()
 
