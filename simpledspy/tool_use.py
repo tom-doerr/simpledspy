@@ -22,6 +22,7 @@ class ToolUseModule(dspy.Module):
 
     def _create_signature(self):
         """Create a DSPy signature for the tool use"""
+        from typing import ClassVar
         # Describe the tools for the prompt
         tool_descs = []
         for i, tool in enumerate(self.tools):
@@ -29,7 +30,7 @@ class ToolUseModule(dspy.Module):
         tool_desc = "\n".join(tool_descs)
 
         class ToolSignature(dspy.Signature):
-            instructions = f"Use one of the available tools to solve the problem. Available tools:\n{tool_desc}"
+            instructions: ClassVar[str] = f"Use one of the available tools to solve the problem. Available tools:\n{tool_desc}"
             problem = dspy.InputField(desc="The problem to solve")
             tool_name = dspy.OutputField(desc="The name of the tool to use")
             arguments = dspy.OutputField(desc="Arguments as a JSON string")

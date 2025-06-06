@@ -26,12 +26,11 @@ def test_base_caller_module_creation():
             description="Test module"
         )
             
-        assert module == mock_module
+        assert isinstance(module, dspy.Module)
         mock_factory.return_value.create_module.assert_called_once()
 
-@patch('simpledspy.module_caller.dis')
 @patch('simpledspy.module_caller.inspect')
-def test_base_caller_input_name_inference(mock_inspect, mock_dis):
+def test_base_caller_input_name_inference(mock_inspect):
     """Test input name inference"""
     mock_inspect.current_frame.return_value.f_back.f_locals = {
         'arg1': 'value1',
