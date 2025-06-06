@@ -123,25 +123,14 @@ def test_cli_pipeline(capsys):
             # Setup mock pipeline and manager
             mock_manager = MockPipelineManager.return_value
             mock_manager._steps = []   # reset steps
-            mock_manager.assemble_pipeline.return_value = MagicMock()
-            mock_pipeline = mock_manager.assemble_pipeline.return_value
-                
-            # Create a proper pipeline output object
+            # Create a MagicMock that directly returns a SimplePrediction with the output value
             output_value = "Pipeline Output"
             output_name = "output_2"
-    
-            # Create a simple object to simulate the prediction
-            class SimplePrediction:
-                def __init__(self, **kwargs):
-                    for key, value in kwargs.items():
-                        setattr(self, key, value)
-            prediction = SimplePrediction(**{output_name: output_value})
-    
-            # Set the pipeline mock to return the prediction
-            mock_pipeline.return_value = prediction
-
-            # Also set the __str__ method for the mock to return the output_value
-            type(mock_pipeline.return_value).__str__ = lambda self: output_value
+            mock_pipeline = MagicMock()
+            mock_pipeline.return_value = type("SimplePrediction", (object,), {output_name: output_value})()
+                
+            # Assign the mock pipeline to the manager
+            mock_manager.assemble_pipeline.return_value = mock_pipeline
     
             # Call the main function
             main()

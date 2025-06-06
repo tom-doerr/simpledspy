@@ -16,7 +16,7 @@ def test_base_caller_module_creation():
         caller = BaseCaller()
         mock_module = MagicMock()
         mock_factory.return_value.create_module.return_value = mock_module
-        
+            
         # Create module with type hints
         module = caller._create_module(
             inputs=["text"],
@@ -25,12 +25,13 @@ def test_base_caller_module_creation():
             output_types={"result": int},
             description="Test module"
         )
-        
-        assert module is mock_module
+            
+        assert module == mock_module
         mock_factory.return_value.create_module.assert_called_once()
 
+@patch('simpledspy.module_caller.dis')
 @patch('simpledspy.module_caller.inspect')
-def test_base_caller_input_name_inference(mock_inspect):
+def test_base_caller_input_name_inference(mock_inspect, mock_dis):
     """Test input name inference"""
     mock_inspect.current_frame.return_value.f_back.f_locals = {
         'arg1': 'value1',

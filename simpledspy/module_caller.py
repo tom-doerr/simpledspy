@@ -40,6 +40,8 @@ class BaseCaller:
         )
 
     def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None, evaluation_instructions: List[str] = None) -> Any:
+        if not hasattr(self, 'FUNCTION_NAME'):
+            self.FUNCTION_NAME = 'base_caller'
         # Use custom input names if provided, otherwise generate meaningful defaults
         if inputs is None:
             # Try to get the names of the variables passed as arguments
