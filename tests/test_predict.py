@@ -12,13 +12,16 @@ def test_basic_string_output():
         # Mock LM configuration
         mock_lm = MagicMock()
         dspy.settings.lm = mock_lm
-        
+            
         # Mock module response
         with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
-            mock_module = MagicMock()
-            mock_module.return_value = MagicMock(output="Mocked Hello")
-            mock_create.return_value = mock_module
-            
+            # Create a mock module that returns a simple string
+            class MockModule(dspy.Module):
+                def forward(self, **kwargs):
+                    return dspy.Prediction(output0="Mocked Hello")
+                
+            mock_create.return_value = MockModule()
+                
             text = "Hello, world!"
             result = predict(text)
             assert result == "Mocked Hello"
@@ -31,7 +34,7 @@ def test_chain_of_thought():
         # Create a mock module that properly handles forward calls
         class MockModule(dspy.Module):
             def forward(self, **kwargs):
-                return dspy.Prediction(output="result")
+                return dspy.Prediction(output0="result")
             
         mock_create.return_value = MockModule()
             
@@ -92,15 +95,15 @@ def test_predict_unpack_error():
         # Create mock module that returns single output
         class MockModule(dspy.Module):
             def forward(self, **kwargs):
-                return dspy.Prediction(output="single value")
-        
+                return dspy.Prediction(output0="single value")
+            
         mock_create.return_value = MockModule()
-        
+            
         # Use without specifying outputs (default is single output)
         # But try to unpack to two variables
         with pytest.raises(ValueError) as exc_info:
             a, b = predict("input1", "input2")
-        
+            
         assert "not enough values to unpack" in str(exc_info.value) or "too many values to unpack" in str(exc_info.value)
 
 def test_input_variable_names_inference():
@@ -134,16 +137,16 @@ def test_input_variable_names_fallback():
             # Create mock module
             class MockModule(dspy.Module):
                 def forward(self, **kwargs):
-                    return dspy.Prediction(output="result")
-            
+                    return dspy.Prediction(output0="result")
+                
             mock_create.return_value = MockModule()
-            
+                
             # Call predict with values
             result = predict("John", "Doe")
-            
+                
             # Get the input names passed to create_module
             call_args = mock_create.call_args
             input_names = call_args[1]['inputs']
-            
+                
             # Verify fallback names are used
             assert input_names == ['arg0', 'arg1']
