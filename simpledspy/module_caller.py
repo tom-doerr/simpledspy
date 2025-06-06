@@ -75,6 +75,11 @@ class BaseCaller:
         
         self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
         
+        # Check that the module returned the expected outputs
+        for name in output_names:
+            if not hasattr(prediction_result, name):
+                raise AttributeError(f"Output field '{name}' not found in prediction result")
+                
         output_values = [getattr(prediction_result, name) for name in output_names]
         
         # Log with evaluation
@@ -87,6 +92,7 @@ class BaseCaller:
             evaluation_instructions=evaluation_instructions
         )
         
+        # Return single value for one output, tuple for multiple
         if len(output_values) == 1:
             return output_values[0]
         return tuple(output_values)
