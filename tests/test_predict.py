@@ -102,3 +102,48 @@ def test_predict_unpack_error():
             a, b = predict("input1", "input2")
         
         assert "not enough values to unpack" in str(exc_info.value) or "too many values to unpack" in str(exc_info.value)
+
+def test_input_variable_names_inference():
+    """Test that input variable names are correctly inferred"""
+    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        # Create mock module
+        class MockModule(dspy.Module):
+            def forward(self, **kwargs):
+                return dspy.Prediction(output="result")
+        
+        mock_create.return_value = MockModule()
+        
+        # Define variables with specific names
+        first_name = "John"
+        last_name = "Doe"
+        
+        # Call predict with variables
+        result = predict(first_name, last_name)
+        
+        # Get the input names passed to create_module
+        call_args = mock_create.call_args
+        input_names = call_args[1]['inputs']
+        
+        # Verify names match variable names
+        assert input_names == ['first_name', 'last_name']
+
+def test_input_variable_names_fallback():
+    """Test fallback to generated names when inference fails"""
+    with patch('simpledspy.module_caller.dis.get_instructions', side_effect=Exception("mocked error")):
+        with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+            # Create mock module
+            class MockModule(dspy.Module):
+                def forward(self, **kwargs):
+                    return dspy.Prediction(output="result")
+            
+            mock_create.return_value = MockModule()
+            
+            # Call predict with values
+            result = predict("John", "Doe")
+            
+            # Get the input names passed to create_module
+            call_args = mock_create.call_args
+            input_names = call_args[1]['inputs']
+            
+            # Verify fallback names are used
+            assert input_names == ['arg0', 'arg1']
