@@ -41,6 +41,10 @@ def test_base_caller_input_name_inference(mock_inspect):
     
     with patch('simpledspy.module_caller.BaseCaller._create_module') as mock_create:
         caller = BaseCaller()
+        mock_factory = MagicMock()
+        mock_module = MagicMock()
+        mock_factory.create_module.return_value = mock_module
+        caller.module_factory = mock_factory
         
         # Mock function signature
         class MockSignature:
@@ -52,9 +56,7 @@ def test_base_caller_input_name_inference(mock_inspect):
         
         mock_inspect.signature.return_value = MockSignature()
         
-        mock_module = MagicMock()
         mock_module.return_value = MagicMock(output0="result")
-        mock_create.return_value = mock_module
         
         # Call predict with variables
         arg1 = "test1"
@@ -62,7 +64,7 @@ def test_base_caller_input_name_inference(mock_inspect):
         result = caller(arg1, arg2)
         
         # Check input names used
-        call_args = mock_create.call_args[1]
+        call_args = mock_factory.create_module.call_args[1]
         assert call_args['inputs'] == ['arg1', 'arg2']
         assert call_args['input_types'] == {'arg1': str, 'arg2': int}
         assert call_args['output_types'] == {'output0': str}
