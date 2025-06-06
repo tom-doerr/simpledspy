@@ -139,6 +139,9 @@ def test_cli_pipeline(capsys):
     
             # Set the pipeline mock to return the prediction
             mock_pipeline.return_value = prediction
+
+            # Also set the __str__ method for the mock to return the output_value
+            type(mock_pipeline.return_value).__str__ = lambda self: output_value
     
             # Call the main function
             main()
