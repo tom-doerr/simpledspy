@@ -13,7 +13,7 @@ from .logger import Logger
 
 class Evaluator:
     """Evaluates DSPy module outputs"""
-    def __init__(self, evaluation_instruction: str = "", log_file: str = "dspy_logs.json极狐
+    def __init__(self, evaluation_instruction: str = "", log极狐_file: str = "dspy_logs.jsonl"):
         self.evaluation_instruction = evaluation_instruction
         self.logger = Logger(log_file)
         self.evaluator_lm = dspy.LM(model="deepseek/deepseek-reasoner")
