@@ -85,3 +85,20 @@ def test_predict_multiple_outputs():
         )
         assert a_reversed == 'lkj'
         assert b_repeated == 'abcabc'
+        
+def test_predict_unpack_error():
+    """Test error when unpacking wrong number of outputs"""
+    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        # Create mock module that returns single output
+        class MockModule(dspy.Module):
+            def forward(self, **kwargs):
+                return dspy.Prediction(output="single value")
+        
+        mock_create.return_value = MockModule()
+        
+        # Use without specifying outputs (default is single output)
+        # But try to unpack to two variables
+        with pytest.raises(ValueError) as exc_info:
+            a, b = predict("input1", "input2")
+        
+        assert "not enough values to unpack" in str(exc_info.value) or "too many values to unpack" in str(exc_info.value)
