@@ -30,7 +30,7 @@ class ToolUseModule(dspy.Module):
         tool_desc = "\n".join(tool_descs)
 
         class ToolSignature(dspy.Signature):
-            instructions: ClassVar[str] = f"Use one of the available tools to solve the problem. Available tools:\n{tool_desc}"
+            __doc__ = f"Use one of the available tools to solve the problem. Available tools:\n{tool_desc}"
             problem = dspy.InputField(desc="The problem to solve")
             tool_name = dspy.OutputField(desc="The name of the tool to use")
             arguments = dspy.OutputField(desc="Arguments as a JSON string")

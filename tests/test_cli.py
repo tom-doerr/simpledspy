@@ -126,7 +126,8 @@ def test_cli_pipeline(capsys):
             # Create a MagicMock that returns the output value directly
             output_value = "Pipeline Output"
             mock_pipeline = MagicMock()
-            mock_pipeline.return_value.output_2 = output_value
+            # Instead of setting an attribute, we set the return value of the pipeline call
+            mock_pipeline.return_value = MagicMock(**{'output_2': output_value})
                 
             # Assign the mock pipeline to the manager
             mock_manager.assemble_pipeline.return_value = mock_pipeline

@@ -12,22 +12,23 @@ def test_base_caller_singleton():
 
 def test_base_caller_module_creation():
     """Test module creation with type hints"""
-    with patch('simpledspy.module_caller.ModuleFactory') as mock_factory:
-        caller = BaseCaller()
-        mock_module = MagicMock()
-        mock_factory.return_value.create_module.return_value = mock_module
-            
-        # Create module with type hints
-        module = caller._create_module(
-            inputs=["text"],
-            outputs=["result"],
-            input_types={"text": str},
-            output_types={"result": int},
-            description="Test module"
-        )
-            
-        assert isinstance(module, dspy.Module)
-        mock_factory.return_value.create_module.assert_called_once()
+    caller = BaseCaller()
+    mock_factory = MagicMock()
+    mock_module = MagicMock()
+    mock_factory.create_module.return_value = mock_module
+    caller.module_factory = mock_factory
+    
+    # Create module with type hints
+    module = caller._create_module(
+        inputs=["text"],
+        outputs=["result"],
+        input_types={"text": str},
+        output_types={"result": int},
+        description="Test module"
+    )
+    
+    assert isinstance(module, dspy.Module)
+    mock_factory.create_module.assert_called_once()
 
 @patch('simpledspy.module_caller.inspect')
 def test_base_caller_input_name_inference(mock_inspect):
