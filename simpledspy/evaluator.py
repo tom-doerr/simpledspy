@@ -3,8 +3,6 @@
 Features:
 - Scores outputs using LLM evaluation with custom instructions
 - Logs inputs/outputs with scores
-- Provides a reward function that can be called anywhere
-- Supports cumulative reward tracking for optimization
 """
 
 import re
@@ -12,16 +10,12 @@ import time
 import dspy
 from typing import Dict, List
 from .logger import Logger
-from .reward_tracker import RewardTracker
-from .advice_generator import AdviceGenerator
 
 class Evaluator:
-    """Evaluates DSPy module outputs and tracks rewards"""
-    def __init__(self, evaluation_instruction: str = "", reward_group: str = "default", log_file: str = "dspy_logs.jsonl"):
+    """Evaluates DSPy module outputs"""
+    def __init__(self, evaluation_instruction: str = "", log_file: str = "dspy_logs.jsonl"):
         self.evaluation_instruction = evaluation_instruction
-        self.reward_group = reward_group
         self.logger = Logger(log_file)
-        self.reward_tracker = RewardTracker()
         self.evaluator_lm = dspy.LM(model="deepseek/deepseek-reasoner")
         dspy.configure(lm=self.evaluator_lm)
 
@@ -61,15 +55,9 @@ class Evaluator:
                     
         return sum(scores) / len(scores) if scores else 0.0
 
-    def end_episode(self, reward_group: str = None):
-        """Mark the end of an episode for a reward group"""
-        group = reward_group or self.reward_group
-        self.reward_tracker.end_episode(group)
-
-    def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = "", reward_group: str = None, evaluation_instructions: List[str] = None):
-        """Log inputs/outputs with evaluation score from multiple instructions"""
+    def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = "", evaluation_instructions: List[str] = None):
+        """Log inputs/outputs with evaluation score"""
         score = self.evaluate(inputs, outputs, evaluation_instructions)
-        group = reward_group or self.reward_group
         
         # Store individual instructions if provided
         if evaluation_instructions:
@@ -88,21 +76,5 @@ class Evaluator:
             'description': description,
             'instructions': instructions,
             'score': score,
-            'reward_group': group,
             'timestamp': timestamp
         })
-        
-        # Track reward with inputs and outputs
-        self.reward_tracker.add_reward(group, score, timestamp, inputs, outputs)
-
-    def get_cumulative_reward(self, reward_group: str = None) -> float:
-        """Get cumulative discounted reward for a group"""
-        group = reward_group or self.reward_group
-        return self.reward_tracker.get_cumulative_reward(group)
-    
-    def get_advice(self, reward_group: str = None) -> str:
-        """Generate advice from reward history"""
-        group = reward_group or self.reward_group
-        examples = self.reward_tracker.get_advice_examples(group)
-        generator = AdviceGenerator()
-        return generator(examples)
