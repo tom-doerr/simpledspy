@@ -133,14 +133,11 @@ def main():
         # Convert all values to strings by applying str()
         output_lines = []
         for name, value in output_data.items():
-            # If value is callable, call it to get the actual value
-            if callable(value):
-                value = value()
             output_lines.append(f"{name}: {str(value)}")
 
-        # Print as multiple lines or single value
+        # If there's only one output, print just the value without the key
         if len(output_lines) == 1:
-            print(output_lines[0].split(": ")[-1])
+            print(str(list(output_data.values())[0]))
         else:
             for line in output_lines:
                 print(line)
