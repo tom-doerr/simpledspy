@@ -116,12 +116,15 @@ def test_cli_pipeline(capsys):
     
             # Setup mock module factory
             mock_factory = MockFactory.return_value
-    
+            # Create a mock module that returns a SimplePrediction object
+            mock_module = MagicMock()
+            mock_factory.create_module.return_value = mock_module
+
             # Setup mock pipeline
             mock_manager = MockPipelineManager.return_value
             mock_pipeline = MagicMock()
             mock_manager.assemble_pipeline.return_value = mock_pipeline
-    
+
             # Create a proper pipeline output object
             output_value = "Pipeline Output"
             output_name = "output_2"
