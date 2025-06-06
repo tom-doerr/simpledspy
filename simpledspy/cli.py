@@ -135,8 +135,10 @@ def main():
         output_lines = []
         output_values = []
         for name, value in output_data.items():
-            output_lines.append(f"{name}: {str(value)}")
-            output_values.append(str(value))
+            # Extract actual value from MagicMock if needed
+            actual_value = getattr(value, 'output', value) if hasattr(value, 'output') else value
+            output_lines.append(f"{name}: {str(actual_value)}")
+            output_values.append(str(actual_value))
 
         # For single output: print the value directly
         if len(output_values) == 1:
