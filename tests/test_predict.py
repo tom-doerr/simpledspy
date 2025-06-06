@@ -61,4 +61,27 @@ def test_custom_input_output_names():
         assert full_name == "John Doe"
         assert age == 30
 
-# ... (rest of the tests remain unchanged) ...
+def test_predict_multiple_outputs():
+    """Test predict function with multiple outputs"""
+    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        # Create a mock module that returns multiple outputs
+        class MockModule(dspy.Module):
+            def forward(self, **kwargs):
+                return dspy.Prediction(
+                    a_reversed='lkj', 
+                    b_repeated='abcabc'
+                )
+            
+        mock_create.return_value = MockModule()
+            
+        a = 'jkl'
+        b = 'abc'
+        a_reversed, b_repeated = predict(
+            b, 
+            a,
+            inputs=["b", "a"],
+            outputs=["a_reversed", "b_repeated"],
+            description="Reverse a and repeat b"
+        )
+        assert a_reversed == 'lkj'
+        assert b_repeated == 'abcabc'
