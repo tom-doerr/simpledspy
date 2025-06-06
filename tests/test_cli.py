@@ -148,9 +148,7 @@ def test_cli_pipeline(capsys):
             # The output should contain the expected value
             assert output_value in captured.out
             # Also check that the mock pipeline was called with the input
-            mock_pipeline.assert_called_once_with(text="Hello, world!")
-            # Also check that the mock pipeline was called with the input
-            mock_pipeline.assert_called_once_with(text="Hello, world!")
+            mock_pipeline.assert_called_once_with(input_1="Hello, world!")
                 
             # Verify pipeline was created and executed
             mock_manager.register_step.assert_called()
