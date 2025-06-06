@@ -3,6 +3,7 @@
 Provides base classes for Predict and ChainOfThought function calls
 """
 
+import dis
 import dspy
 from typing import List, Dict, Any
 from .pipeline_manager import PipelineManager
