@@ -130,14 +130,17 @@ def main():
     if args.json:
         print(json.dumps(output_data))
     else:
+        # For pipelines we get a dictionary of outputs - we want just the values
         # Convert all values to strings by applying str()
         output_lines = []
+        output_values = []
         for name, value in output_data.items():
             output_lines.append(f"{name}: {str(value)}")
+            output_values.append(str(value))
 
-        # If there's only one output, print just the value without the key
-        if len(output_lines) == 1:
-            print(str(list(output_data.values())[0]))
+        # For single output: print the value directly
+        if len(output_values) == 1:
+            print(output_values[0])
         else:
             for line in output_lines:
                 print(line)
