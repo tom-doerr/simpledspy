@@ -147,6 +147,11 @@ def test_cli_pipeline(capsys):
                 
             # Assign the mock pipeline to the manager
             # Create a function that returns the SimpleResult directly
+            class SimpleResult:
+                def __init__(self, **kwargs):
+                    for key, value in kwargs.items():
+                        setattr(self, key, value)
+                            
             def pipeline_function(**kwargs):
                 return SimpleResult(output_2=output_value)
             mock_manager.assemble_pipeline.return_value = pipeline_function
