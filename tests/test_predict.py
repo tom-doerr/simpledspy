@@ -151,3 +151,61 @@ def test_input_variable_names_fallback():
                 
             # Verify fallback names are used
             assert input_names == ['arg0', 'arg1']
+
+
+def test_input_output_type_hints():
+    """Test that type hints are properly propagated to module signatures"""
+    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        # Create mock module
+        mock_module = MagicMock()
+        mock_module.forward.return_value = dspy.Prediction(output0="result")
+        mock_create.return_value = mock_module
+        
+        # Define function with type hints
+        def test_func(input1: str, input2: int, input3) -> Tuple[int, str]:
+            return predict(input1, input2, input3, outputs=["out1", "out2"])
+            
+        # Call the function
+        test_func("text", 123, "text")
+        
+        # Check module creation call
+        call_args = mock_create.call_args[1]
+        input_names = call_args['inputs']
+        output_names = call_args['outputs']
+        input_types = call_args['input_types']
+        output_types = call_args['output_types']
+        
+        # Input type checks
+        assert input_types['input1'] == str
+        assert input_types['input2'] == int
+        assert 'input3' not in input_types  # No type hint
+        
+        # Output type checks
+        assert output_types['out1'] == int
+        assert output_types['out2'] == str
+
+
+def test_complex_type_hints():
+    """Test complex type hints like List and Optional"""
+    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        # Create mock module
+        mock_module = MagicMock()
+        mock_module.forward.return_value = dspy.Prediction(output0="result")
+        mock_create.return_value = mock_module
+        
+        # Define function with complex type hints
+        def test_func(input1: List[str], input2: Dict[str, int]) -> Optional[float]:
+            return predict(input1, input2, outputs=["result"])
+            
+        # Call the function
+        test_func(["a","b"], {"a":1})
+        
+        # Check module creation call
+        call_args = mock_create.call_args[1]
+        input_types = call_args['input_types']
+        output_types = call_args['output_types']
+        
+        # Type checks
+        assert input_types['input1'] == List[str]
+        assert input_types['input2'] == Dict[str, int]
+        assert output_types['result'] == Optional[float]
