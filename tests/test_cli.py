@@ -152,7 +152,10 @@ def test_cli_pipeline(capsys):
             mock_pipeline = MagicMock(return_value=SimpleResult(output_2=output_value))
                 
             # Assign the mock pipeline to the manager
-            mock_manager.assemble_pipeline.return_value = mock_pipeline
+            # Create a function that returns the SimpleResult directly
+            def pipeline_function(**kwargs):
+                return SimpleResult(output_2=output_value)
+            mock_manager.assemble_pipeline.return_value = pipeline_function
         
             # Call the main function
             main()
