@@ -122,6 +122,10 @@ def test_cli_pipeline(capsys):
                     for key, value in result_dict.items():
                         setattr(self, key, value)
                 
+            # Define outputs for the pipeline steps
+            step0_output = "step0 output"
+            step1_output = "Pipeline Output"
+                
             def mock_step_module_forward(*args, **kwargs):
                 # For step0: returns output_1; step1: returns output_2
                 if hasattr(kwargs.get('input_1', None), '__len__'):
