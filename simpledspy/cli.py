@@ -130,26 +130,21 @@ def main():
     if args.json:
         print(json.dumps(output_data))
     else:
-        # For pipelines we get a dictionary of outputs - we want just the values
-        # Convert all values to strings by applying str()
-        output_lines = []
+        # For pipelines we get a dictionary of outputs - convert all values to strings
+        # New output handling: direct values without attribute extraction
         output_values = []
+        output_lines = []
         for name, value in output_data.items():
-            # Handle objects that have the expected attribute
-            if hasattr(value, name):
-                actual_value = getattr(value, name)
-            else:
-                actual_value = value
-                    
-            # Get the string representation
-            str_value = str(actual_value)
-            output_lines.append(f"{name}: {str_value}")
+            # Directly use str(value) without extra attribute handling
+            str_value = str(value)
             output_values.append(str_value)
+            output_lines.append(f"{name}: {str_value}")
 
-        # For single output: print the value directly
+        # For single output: print the value string
         if len(output_values) == 1:
             print(output_values[0])
         else:
+            # For multiple outputs, print as key: value
             for line in output_lines:
                 print(line)
     
