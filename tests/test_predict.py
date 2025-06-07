@@ -3,6 +3,7 @@ from simpledspy import predict, chain_of_thought
 from simpledspy.module_caller import Predict
 import dspy
 from unittest.mock import patch, MagicMock
+from typing import Tuple, List, Dict, Optional
 
 def test_basic_string_output():
     """Test basic string output"""

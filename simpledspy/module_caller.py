@@ -39,6 +39,88 @@ class BaseCaller:
             description=description
         )
 
+    def _infer_output_names(self, frame: Any) -> List[str]:
+        """Infer output names based on assignment context"""
+        import inspect
+        
+        if frame is None:
+            return ["output"]
+        
+        # Remove parentheses from the line
+        try:
+            lines = inspect.getframeinfo(frame).code_context
+            if not lines:
+                return ["output"]
+            line = lines[0].strip().replace('(', ' ').replace(')', ' ')
+        except Exception:
+            return ["output"]
+        
+        # Handle single assignment without commas: names = predict(...)
+        if '=' in line:
+            lhs = line.split('=')[0].strip()
+            # Handle multi-assignment: name, another = predict(...)
+            if ',' in lhs:
+                output_names = [name.strip() for name in lhs.split(',')]
+            # Handle single assignment: result = predict(...)
+            else:
+                output_names = [lhs]
+        # Handle no assignment: predict(...)
+        else:
+            output_names = ["output"]
+            
+        return output_names
+
+    def _get_call_types_from_signature(self, frame: Any, input_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
+        """Get input/output types from function signature"""
+        import inspect
+        
+        input_types = {}
+        output_types = {}
+        if frame is None:
+            return input_types, output_types
+
+        caller_frame = frame
+        caller_locals = caller_frame.f_locals
+        caller_globals = caller_frame.f_globals
+        # Get the function where the call happened
+        func_name = caller_frame.f_code.co_name
+        try:
+            if func_name in caller_globals and isinstance(caller_globals[func_name], type):
+                # It's a class, get the method
+                if func_name in caller_locals:
+                    func = caller_locals[func_name]
+                else:
+                    func = caller_globals[func_name]
+            else:
+                func = caller_globals.get(func_name, None)
+            if not (callable(func) or (isinstance(func, type) and hasattr(func, func_name))):
+                func = None
+        except (AttributeError, KeyError, TypeError):
+            func = None
+            
+        if func:
+            signature = inspect.signature(func, follow_wrapped=True)
+            # Get the type hints for parameters in the calling function
+            for param_name in signature.parameters:
+                if param_name in input_names:
+                    param = signature.parameters[param_name]
+                    if param.annotation != inspect.Parameter.empty:
+                        input_types[param_name] = param.annotation
+            # Get the type hints for return value
+            return_ann = signature.return_annotation
+            if return_ann != inspect.Signature.empty:
+                # For single output, set type for output0
+                if len(input_names) == 1:
+                    output_types[input_names[0]] = return_ann
+                # For multiple outputs with Tuple type hints
+                elif hasattr(return_ann, '__tuple_params__'):
+                    tuple_types = return_ann.__tuple_params__
+                    for i, t in enumerate(tuple_types):
+                        if i < len(input_names):
+                            output_types[input_names[i]] = t
+                # For multiple outputs without hint - ignore
+        return input_types, output_types
+
     def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None) -> Any:
         if not hasattr(self, 'FUNCTION_NAME'):
             self.FUNCTION_NAME = 'base_caller'
@@ -88,23 +170,7 @@ class BaseCaller:
             try:
                 import inspect
                 frame = inspect.currentframe().f_back
-                # Get the line of code that called this function
-                lines = inspect.getframeinfo(frame).code_context
-                if lines:
-                    line = lines[0].strip()
-                    # Check if it's an assignment
-                    if '=' in line:
-                        lhs = line.split('=')[0].strip()
-                        # Count the number of variables on the left-hand side
-                        if ',' in lhs:
-                            count = len(lhs.split(','))
-                        else:
-                            count = 1
-                        output_names = [f"output{i}" for i in range(count)]
-                    else:
-                        output_names = ["output"]
-                else:
-                    output_names = ["output"]
+                output_names = self._infer_output_names(frame)
             except Exception:
                 output_names = ["output"]
         else:
@@ -113,49 +179,13 @@ class BaseCaller:
         # Get type hints from the caller's function if available
         input_types = {}
         output_types = {}
+        frame = None
         try:
             import inspect
-            caller_frame = inspect.currentframe().f_back
-            caller_locals = caller_frame.f_locals
-            caller_globals = caller_frame.f_globals
-            # Get the function where the call happened
-            func_name = caller_frame.f_code.co_name
-            if func_name in caller_globals and isinstance(caller_globals[func_name], type):
-                # It's a class, get the method
-                if func_name in caller_locals:
-                    func = caller_locals[func_name]
-                else:
-                    func = caller_globals[func_name]
-            else:
-                func = caller_globals.get(func_name, None)
-            if not (callable(func) or (isinstance(func, type) and hasattr(func, func_name))):
-                func = None
-        except (AttributeError, KeyError, TypeError):
-            func = None
-            
-        if func:
-            signature = inspect.signature(func, follow_wrapped=True)
-            # Get the type hints for parameters in the calling function
-            for param_name in signature.parameters:
-                if param_name in input_names:
-                    param = signature.parameters[param_name]
-                    if param.annotation != inspect.Parameter.empty:
-                        input_types[param_name] = param.annotation
-            # Get the type hints for return value
-            return_ann = signature.return_annotation
-            if return_ann != inspect.Signature.empty:
-                # For single output, set type for output0
-                if len(output_names) == 1:
-                    output_types[output_names[0]] = return_ann
-                # For multiple outputs with Tuple type hints
-                elif hasattr(return_ann, '__tuple_params__'):
-                    tuple_types = return_ann.__tuple_params__
-                    for i, t in enumerate(tuple_types):
-                        if i < len(output_names):
-                            output_types[output_names[i]] = t
-                # For multiple outputs without hint - ignore
+            frame = inspect.currentframe().f_back
         except Exception:
             pass
+        input_types, output_types = self._get_call_types_from_signature(frame, input_names)
 
         module = self._create_module(
             inputs=input_names, 
