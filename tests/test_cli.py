@@ -141,11 +141,13 @@ def test_cli_pipeline(capsys):
         
             # Capture the output
             captured = capsys.readouterr()
-            # The output should contain the expected value
-            # Use the actual string value instead of MagicMock representation
-            assert output_value in captured.out
+            # Strip newlines for exact matching
+            output_lines = captured.out.strip().split('\n')
+            # For single output, the output should be exactly the string
+            assert output_value in output_lines
             # Also check it didn't output MagicMock representation
-            assert "MagicMock" not in captured.out
+            for line in output_lines:
+                assert "MagicMock" not in line
             # Also check that the mock pipeline was called with the input
             mock_pipeline.assert_called_once_with(input_1="Hello, world!")
                 

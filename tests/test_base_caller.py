@@ -70,11 +70,11 @@ def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_curr
         arg2 = "test2"
         result = caller(arg1, arg2)
         
-        # Check input names used
-        call_args = mock_factory.create_module.call_args[1]
-        assert call_args['inputs'] == ['arg1', 'arg2']
-        assert call_args['input_types'] == {'arg1': str, 'arg2': int}
-        assert call_args['output_types'] == {'output0': str}
+        # Get the call arguments
+        call_args, call_kwargs = mock_factory.create_module.call_args
+        assert call_kwargs['inputs'] == ['arg1', 'arg2']
+        assert call_kwargs['input_types'] == {'arg1': str, 'arg2': int}
+        assert call_kwargs['output_types'] == {'output0': str}
 
 def test_base_caller_module_execution():
     """Test module execution with inputs/outputs"""

@@ -1,7 +1,7 @@
 import pytest
 from simpledspy.pipeline_manager import PipelineManager
 import dspy
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 class MockModule(dspy.Module):
     def __init__(self, output_value=None, **outputs):
