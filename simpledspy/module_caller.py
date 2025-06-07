@@ -128,24 +128,35 @@ class BaseCaller:
                     func = caller_globals[func_name]
             else:
                 func = caller_globals.get(func_name, None)
-            if func and callable(func):
-                signature = inspect.signature(func)
-                # Get the type hints for the parameters
-                for param_name, param in signature.parameters.items():
+            if not (callable(func) or (isinstance(func, type) and hasattr(func, func_name))):
+                func = None
+        except (AttributeError, KeyError, TypeError):
+            func = None
+            
+        if func:
+            signature = inspect.signature(func, follow_wrapped=True)
+            # Get the type hints for parameters in the calling function
+            for param_name in signature.parameters:
+                if param_name in input_names:
+                    param = signature.parameters[param_name]
                     if param.annotation != inspect.Parameter.empty:
                         input_types[param_name] = param.annotation
-                # Get the return type
-                if signature.return_annotation != inspect.Signature.empty:
-                    if signature.return_annotation in (tuple, list):
-                        # We don't know the types of the elements, so skip
-                        pass
-                    else:
-                        # For single return, we set the type for the first output
-                        if output_names:
-                            output_types[output_names[0]] = signature.return_annotation
+            # Get the type hints for return value
+            return_ann = signature.return_annotation
+            if return_ann != inspect.Signature.empty:
+                # For single output, set type for output0
+                if len(output_names) == 1:
+                    output_types[output_names[0]] = return_ann
+                # For multiple outputs with Tuple type hints
+                elif hasattr(return_ann, '__tuple_params__'):
+                    tuple_types = return_ann.__tuple_params__
+                    for i, t in enumerate(tuple_types):
+                        if i < len(output_names):
+                            output_types[output_names[i]] = t
+                # For multiple outputs without hint - ignore
         except Exception:
             pass
-        
+
         module = self._create_module(
             inputs=input_names, 
             outputs=output_names,
@@ -153,7 +164,6 @@ class BaseCaller:
             output_types=output_types,
             description=description
         )
-        
         input_dict = dict(zip(input_names, args))
         
         # Save and update LM parameters if needed
