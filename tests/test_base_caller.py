@@ -30,14 +30,18 @@ def test_base_caller_module_creation():
     assert isinstance(module, dspy.Module)
     mock_factory.create_module.assert_called_once()
 
-@patch('simpledspy.module_caller.inspect')
-def test_base_caller_input_name_inference(mock_inspect):
+@patch('inspect.currentframe')
+@patch('inspect.signature')
+def test_base_caller_input_name_inference(mock_signature, mock_current_frame):
     """Test input name inference"""
-    mock_inspect.current_frame.return_value.f_back.f_locals = {
+    # Create a mock frame
+    mock_frame = MagicMock()
+    mock_frame.f_back.f_locals = {
         'arg1': 'value1',
         'arg2': 'value2'
     }
-    mock_inspect.current_frame.return_value.f_back.f_code.co_name = 'test_func'
+    mock_frame.f_back.f_code.co_name = 'test_func'
+    mock_current_frame.return_value = mock_frame
     
     with patch('simpledspy.module_caller.BaseCaller._create_module') as mock_create:
         caller = BaseCaller()
@@ -54,7 +58,7 @@ def test_base_caller_input_name_inference(mock_inspect):
             }
             return_annotation = str
         
-        mock_inspect.signature.return_value = MockSignature()
+        mock_signature.return_value = MockSignature()
         
         mock_module.return_value = MagicMock(output0="result")
         

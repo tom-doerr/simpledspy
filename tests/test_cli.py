@@ -144,6 +144,8 @@ def test_cli_pipeline(capsys):
             # The output should contain the expected value
             # Use the actual string value instead of MagicMock representation
             assert output_value in captured.out
+            # Also check it didn't output MagicMock representation
+            assert not "MagicMock" in captured.out
             # Also check that the mock pipeline was called with the input
             mock_pipeline.assert_called_once_with(input_1="Hello, world!")
                 

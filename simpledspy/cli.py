@@ -135,10 +135,17 @@ def main():
         output_lines = []
         output_values = []
         for name, value in output_data.items():
-            # Extract actual value from MagicMock if needed
-            actual_value = getattr(value, 'output', value) if hasattr(value, 'output') else value
-            output_lines.append(f"{name}: {str(actual_value)}")
-            output_values.append(str(actual_value))
+            # Handle DSPy Prediction objects
+            if hasattr(value, '__class__') and value.__class__.__name__ == 'Prediction':
+                # Extract the attribute that matches the output name
+                actual_value = getattr(value, name, value)
+            else:
+                actual_value = value
+
+            # Get the string representation of the actual value
+            str_value = str(actual_value)
+            output_lines.append(f"{name}: {str_value}")
+            output_values.append(str_value)
 
         # For single output: print the value directly
         if len(output_values) == 1:
