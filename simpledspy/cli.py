@@ -130,23 +130,18 @@ def main():
     if args.json:
         print(json.dumps(output_data))
     else:
-        # For pipelines we get a dictionary of outputs - convert all values to strings
-        # New output handling: direct values without attribute extraction
-        output_values = []
-        output_lines = []
-        for name, value in output_data.items():
-            # Directly use str(value) without extra attribute handling
-            str_value = str(value)
-            output_values.append(str_value)
-            output_lines.append(f"{name}: {str_value}")
-
-        # For single output: print the value string
-        if len(output_values) == 1:
-            print(output_values[0])
+        # New output handling: directly print the values without module attribution
+        if not output_data:
+            # Print nothing when there are no outputs
+            print("")
+        elif len(output_data) == 1:
+            # For single output, just print the value
+            value = list(output_data.values())[0]
+            print(str(value))
         else:
             # For multiple outputs, print as key: value
-            for line in output_lines:
-                print(line)
+            for name, value in output_data.items():
+                print(f"{name}: {value}")
     
     # Log with evaluation if evaluator is set
     if evaluator:
