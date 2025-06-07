@@ -44,37 +44,39 @@ def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_curr
     mock_frame.f_back.f_code.co_name = 'test_func'
     mock_current_frame.return_value = mock_frame
     
-    with patch('simpledspy.module_caller.BaseCaller._create_module') as mock_create:
-        caller = BaseCaller()
-        mock_factory = MagicMock()
-        mock_module = MagicMock()
-        mock_factory.create_module.return_value = mock_module
-        caller.module_factory = mock_factory
-        # Mock the logger to prevent serialization issues
-        caller.logger = mock_logger
+    caller = BaseCaller()
+    mock_factory = MagicMock()
+    mock_module = MagicMock()
+    mock_factory.create_module.return_value = mock_module
+    caller.module_factory = mock_factory
+    # Mock the logger to prevent serialization issues
+    caller.logger = mock_logger
         
-        # Mock function signature
-        class MockSignature:
-            parameters = {
-                'arg1': MagicMock(annotation=str),
-                'arg2': MagicMock(annotation=int)
-            }
-            return_annotation = str
+    # Mock function signature
+    class MockSignature:
+        parameters = {
+            'arg1': MagicMock(annotation=str),
+            'arg2': MagicMock(annotation=int)
+        }
+        return_annotation = str
         
-        mock_signature.return_value = MockSignature()
+    mock_signature.return_value = MockSignature()
         
-        mock_module.return_value = MagicMock(output0="result")
+    mock_module.return_value = MagicMock(output0="result")
         
-        # Call predict with variables
-        arg1 = "test1"
-        arg2 = "test2"
-        result = caller(arg1, arg2)
+    # Call predict with variables
+    arg1 = "test1"
+    arg2 = "test2"
+    result = caller(arg1, arg2)
         
-        # Get the call arguments
-        call_args, call_kwargs = mock_factory.create_module.call_args
-        assert call_kwargs['inputs'] == ['arg1', 'arg2']
-        assert call_kwargs['input_types'] == {'arg1': str, 'arg2': int}
-        assert call_kwargs['output_types'] == {'output0': str}
+    # Verify create_module was called
+    assert mock_factory.create_module.call_args is not None
+        
+    # Get the call arguments
+    call_kwargs = mock_factory.create_module.call_args[1]
+    assert call_kwargs['inputs'] == ['arg1', 'arg2']
+    assert call_kwargs['input_types'] == {'arg1': str, 'arg2': int}
+    assert call_kwargs['output_types'] == {'output0': str}
 
 def test_base_caller_module_execution():
     """Test module execution with inputs/outputs"""
