@@ -129,9 +129,9 @@ def test_cli_pipeline(capsys):
             def mock_step_module_forward(*args, **kwargs):
                 # For step0: returns output_1; step1: returns output_2
                 if hasattr(kwargs.get('input_1', None), '__len__'):
-                    return MockPrediction({'output1': step0_output})
-                elif hasattr(kwargs.get('output1', None), '__len__'):
-                    return MockPrediction({'output2': step1_output})
+                    return MockPrediction({'output_1': step0_output})
+                elif hasattr(kwargs.get('output_1', None), '__len__'):
+                    return MockPrediction({'output_2': step1_output})
                 return MockPrediction({})
                 
             # Create a mock module with proper forward behavior
@@ -144,18 +144,12 @@ def test_cli_pipeline(capsys):
             mock_manager._steps = []   # reset steps
             # Create a MagicMock that returns the output value directly
             output_value = "Pipeline Output"
-            # Create a simple class to hold the result
-            class SimpleResult:
-                def __init__(self, **kwargs):
-                    for key, value in kwargs.items():
-                        setattr(self, key, value)
-            mock_pipeline = MagicMock(return_value=SimpleResult(output_2=output_value))
                 
             # Assign the mock pipeline to the manager
-            # Create a function that returns the SimpleResult directly
-            def pipeline_function(**kwargs):
-                return SimpleResult(output_2=output_value)
-            mock_manager.assemble_pipeline.return_value = pipeline_function
+            # Instead, create a real Pipeline instance with the steps
+            from simpledspy.pipeline_manager import Pipeline
+            pipeline = Pipeline(mock_manager._steps)
+            mock_manager.assemble_pipeline.return_value = pipeline
         
             # Call the main function
             main()
