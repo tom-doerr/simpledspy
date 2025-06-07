@@ -62,7 +62,7 @@ def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_curr
         
     mock_signature.return_value = MockSignature()
         
-    mock_module.return_value = MagicMock(output0="result")
+    mock_module.return_value = MagicMock(output="result")
         
     # Call predict with variables
     arg1 = "test1"
@@ -81,7 +81,7 @@ def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_curr
     assert call_kwargs['inputs'] in (expected_names1, expected_names2)
     # The types should be as expected
     assert call_kwargs['input_types'] == {'arg1': str, 'arg2': int}
-    assert call_kwargs['output_types'] == {'output0': str}
+    assert call_kwargs['output_types'] == {'output': str}
 
 def test_base_caller_module_execution():
     """Test module execution with inputs/outputs"""

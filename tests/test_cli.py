@@ -116,8 +116,23 @@ def test_cli_pipeline(capsys):
     
             # Setup mock module factory
             mock_factory = MockFactory.return_value
-            # Create a mock module 
+            # Create mock modules that return actual Prediction objects
+            class MockPrediction:
+                def __init__(self, result_dict):
+                    for key, value in result_dict.items():
+                        setattr(self, key, value)
+                
+            def mock_step_module_forward(*args, **kwargs):
+                # For step0: returns output_1; step1: returns output_2
+                if hasattr(kwargs.get('input_1', None), '__len__'):
+                    return MockPrediction({'output1': step0_output})
+                elif hasattr(kwargs.get('output1', None), '__len__'):
+                    return MockPrediction({'output2': step1_output})
+                return MockPrediction({})
+                
+            # Create a mock module with proper forward behavior
             mock_module = MagicMock()
+            mock_module.forward.side_effect = mock_step_module_forward
             mock_factory.create_module.return_value = mock_module
     
             # Setup mock pipeline and manager
@@ -125,13 +140,12 @@ def test_cli_pipeline(capsys):
             mock_manager._steps = []   # reset steps
             # Create a MagicMock that returns the output value directly
             output_value = "Pipeline Output"
-            mock_pipeline = MagicMock()
             # Create a simple class to hold the result
             class SimpleResult:
                 def __init__(self, **kwargs):
                     for key, value in kwargs.items():
                         setattr(self, key, value)
-            mock_pipeline.return_value = SimpleResult(output_2=output_value)
+            mock_pipeline = MagicMock(return_value=SimpleResult(output_2=output_value))
                 
             # Assign the mock pipeline to the manager
             mock_manager.assemble_pipeline.return_value = mock_pipeline
