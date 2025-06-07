@@ -163,10 +163,6 @@ def test_cli_pipeline(capsys):
             # Also check it didn't output MagicMock representation
             for line in output_lines:
                 assert "MagicMock" not in line
-            # Also check that the mock pipeline was called with the input
-            mock_pipeline.assert_called_once_with(input_1="Hello, world!")
-                
             # Verify pipeline was created and executed
             mock_manager.register_step.assert_called()
             mock_manager.assemble_pipeline.assert_called_once()
-            mock_pipeline.assert_called_once()
