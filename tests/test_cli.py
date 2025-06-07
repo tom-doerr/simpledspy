@@ -146,10 +146,10 @@ def test_cli_pipeline(capsys):
             output_value = "Pipeline Output"
                 
             # Assign the mock pipeline to the manager
-            # Instead, create a real Pipeline instance with the steps
-            from simpledspy.pipeline_manager import Pipeline
-            pipeline = Pipeline(mock_manager._steps)
-            mock_manager.assemble_pipeline.return_value = pipeline
+            # Create a function that returns the SimpleResult directly
+            def pipeline_function(**kwargs):
+                return SimpleResult(output_2=output_value)
+            mock_manager.assemble_pipeline.return_value = pipeline_function
         
             # Call the main function
             main()

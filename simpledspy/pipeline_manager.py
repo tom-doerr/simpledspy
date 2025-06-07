@@ -45,6 +45,44 @@ class PipelineManager:
         """Reset the pipeline steps and any module state"""
         self._steps = []
 
+class Pipeline(dspy.Module):
+    """DSPy pipeline module"""
+    def __init__(self, steps: List[Tuple[List[str], List[str], Any]]) -> None:
+        super().__init__()
+        self.step_tuples = steps  # store the full step tuples
+        for i, (_, _, module) in enumerate(steps):
+            setattr(self, f'step_{i}', module)
+    
+    def forward(self, **inputs: Dict[str, Any]) -> dspy.Prediction:
+        """Execute the pipeline steps sequentially"""
+        data = inputs.copy()
+        all_outputs = {}
+        
+        for i, (input_names, output_names, _) in enumerate(self.step_tuples):
+            # Prepare step inputs
+            step_inputs = {}
+            for name in input_names:
+                if name in data:
+                    step_inputs[name] = data[name]
+                else:
+                    raise ValueError(f"Pipeline Step {i}: Missing input '{name}'")
+            
+            # Execute step
+            module = getattr(self, f'step_{i}')
+            prediction = module(**step_inputs)
+            
+            # Collect outputs
+            for name in output_names:
+                if hasattr(prediction, name):
+                    value = getattr(prediction, name)
+                else:
+                    raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
+                
+                data[name] = value
+                all_outputs[name] = value
+        
+        return dspy.Prediction(**all_outputs)
+
     def assemble_pipeline(self) -> dspy.Module:
         """Assembles and returns a DSPy pipeline from registered steps
         
@@ -60,43 +98,4 @@ class PipelineManager:
         """
         if not self._steps:
             raise ValueError("Cannot assemble an empty pipeline")
-        
-        class Pipeline(dspy.Module):
-            """DSPy pipeline module"""
-            def __init__(self, steps: List[Tuple[List[str], List[str], Any]]) -> None:
-                super().__init__()
-                self.step_tuples = steps  # store the full step tuples
-                for i, (_, _, module) in enumerate(steps):
-                    setattr(self, f'step_{i}', module)
-            
-            def forward(self, **inputs: Dict[str, Any]) -> dspy.Prediction:
-                """Execute the pipeline steps sequentially"""
-                data = inputs.copy()
-                all_outputs = {}
-                
-                for i, (input_names, output_names, _) in enumerate(self.step_tuples):
-                    # Prepare step inputs
-                    step_inputs = {}
-                    for name in input_names:
-                        if name in data:
-                            step_inputs[name] = data[name]
-                        else:
-                            raise ValueError(f"Pipeline Step {i}: Missing input '{name}'")
-                    
-                    # Execute step
-                    module = getattr(self, f'step_{i}')
-                    prediction = module(**step_inputs)
-                    
-                    # Collect outputs
-                    for name in output_names:
-                        if hasattr(prediction, name):
-                            value = getattr(prediction, name)
-                        else:
-                            raise ValueError(f"Pipeline Step {i}: Output field '{name}' not found")
-                        
-                        data[name] = value
-                        all_outputs[name] = value
-                
-                return dspy.Prediction(**all_outputs)
-        
         return Pipeline(self._steps)
