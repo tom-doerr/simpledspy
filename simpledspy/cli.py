@@ -135,14 +135,13 @@ def main():
         output_lines = []
         output_values = []
         for name, value in output_data.items():
-            # Handle DSPy Prediction objects
-            if hasattr(value, '__class__') and value.__class__.__name__ == 'Prediction':
-                # Extract the attribute that matches the output name
-                actual_value = getattr(value, name, value)
+            # Handle objects that have the expected attribute
+            if hasattr(value, name):
+                actual_value = getattr(value, name)
             else:
                 actual_value = value
-
-            # Get the string representation of the actual value
+                    
+            # Get the string representation
             str_value = str(actual_value)
             output_lines.append(f"{name}: {str_value}")
             output_values.append(str_value)
