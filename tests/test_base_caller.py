@@ -32,7 +32,8 @@ def test_base_caller_module_creation():
 
 @patch('inspect.currentframe')
 @patch('inspect.signature')
-def test_base_caller_input_name_inference(mock_signature, mock_current_frame):
+@patch('simpledspy.module_caller.Logger')
+def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_current_frame):
     """Test input name inference"""
     # Create a mock frame
     mock_frame = MagicMock()
@@ -49,6 +50,8 @@ def test_base_caller_input_name_inference(mock_signature, mock_current_frame):
         mock_module = MagicMock()
         mock_factory.create_module.return_value = mock_module
         caller.module_factory = mock_factory
+        # Mock the logger to prevent serialization issues
+        caller.logger = mock_logger
         
         # Mock function signature
         class MockSignature:
