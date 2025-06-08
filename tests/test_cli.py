@@ -84,7 +84,7 @@ def test_cli_optimization(capsys):
     # Mock the arguments
     with patch('sys.argv', ['cli.py', 'Hello, world!', '-d', 'extract the greeting', '--optimize']):
         # Mock dependencies
-        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \  # pylint: disable=invalid-name
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
              patch('simpledspy.optimization_manager.OptimizationManager') as MockOptManager:  # pylint: disable=invalid-name
             
             # Setup mock module
@@ -112,7 +112,7 @@ def test_cli_pipeline(capsys):
     with patch('sys.argv', ['cli.py', 'Hello, world!', '--pipeline', 
                            'Step 1 description', 'Step 2 description']):
         # Mock dependencies
-        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \  # pylint: disable=invalid-name
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
              patch('simpledspy.cli.PipelineManager') as MockPipelineManager:  # pylint: disable=invalid-name
     
             # Setup mock module factory
