@@ -197,12 +197,29 @@ class BaseCaller:
         else:
             return module(**input_dict)
     
-    def _log_results(self, input_dict, output_names, output_values, description):
-        """Log module inputs and outputs"""
+    def _log_results(self, input_dict, input_names, output_names, output_values, description):
+        """Log module inputs and outputs with meaningful names"""
+        # Create input structure with both names and values
+        inputs_data = []
+        for name in input_names:
+            if name in input_dict:
+                inputs_data.append({
+                    'name': name,
+                    'value': input_dict[name]
+                })
+        
+        # Create output structure with both names and values
+        outputs_data = []
+        for i, name in enumerate(output_names):
+            outputs_data.append({
+                'name': name,
+                'value': output_values[i]
+            })
+        
         self.logger.log({
             'module': self.__class__.__name__.lower(),
-            'inputs': input_dict,
-            'outputs': dict(zip(output_names, output_values)),
+            'inputs': inputs_data,
+            'outputs': outputs_data,
             'description': description
         })
     
@@ -257,8 +274,8 @@ class BaseCaller:
                 raise AttributeError(f"Output field '{name}' not found in prediction result")
         output_values = [getattr(prediction_result, name) for name in output_names]
         
-        # Log results
-        self._log_results(input_dict, output_names, output_values, description)
+        # Log results with meaningful names
+        self._log_results(input_dict, input_names, output_names, output_values, description)
         
         # Return single value or tuple
         return output_values[0] if len(output_values) == 1 else tuple(output_values)

@@ -27,5 +27,5 @@ class Logger:
             data: Dictionary of data to log
         """
         data['timestamp'] = time.time()
-        with open(self.log_file, "a") as f:
+        with open(self.log_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(data) + "\n")
