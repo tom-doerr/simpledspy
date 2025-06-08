@@ -124,30 +124,38 @@ class BaseCaller:
 
     def _infer_input_names(self, args) -> List[str]:
         """Infer input variable names using bytecode analysis"""
-        frame = inspect.currentframe().f_back
-        code = frame.f_code
-        call_index = frame.f_lasti
-        instructions = list(dis.get_instructions(code))
-        current_instruction = None
-        for i, inst in enumerate(instructions):
-            if inst.offset == call_index:
-                current_instruction = inst
-                break
-        if current_instruction and current_instruction.opname == 'CALL_FUNCTION':
-            arg_names = []
-            for i in range(len(args)):
-                # Look for LOAD_NAME or LOAD_FAST instructions before the call
-                # We go backwards from the current instruction
-                for j in range(i+1):
-                    prev_inst = instructions[i - j]
-                    if prev_inst.opname in ['LOAD_NAME', 'LOAD_FAST', 
-                            'LOAD_GLOBAL', 'LOAD_DEREF']:
-                        arg_names.append(prev_inst.argval)
-                        break
-                else:
-                    arg_names.append(f"arg{i}")
-            return arg_names
-        return [f"arg{i}" for i in range(len(args))]
+        try:
+            frame = inspect.currentframe()
+            if frame is None:
+                return [f"arg{i}" for i in range(len(args))]
+            frame = frame.f_back
+            if frame is None:
+                return [f"arg{i}" for i in range(len(args))]
+            code = frame.f_code
+            call_index = frame.f_lasti
+            instructions = list(dis.get_instructions(code))
+            current_instruction = None
+            for i, inst in enumerate(instructions):
+                if inst.offset == call_index:
+                    current_instruction = inst
+                    break
+            if current_instruction and current_instruction.opname == 'CALL_FUNCTION':
+                arg_names = []
+                for i in range(len(args)):
+                    # Look for LOAD_NAME or LOAD_FAST instructions before the call
+                    # We go backwards from the current instruction
+                    for j in range(i+1):
+                        prev_inst = instructions[i - j]
+                        if prev_inst.opname in ['LOAD_NAME', 'LOAD_FAST', 
+                                'LOAD_GLOBAL', 'LOAD_DEREF']:
+                            arg_names.append(prev_inst.argval)
+                            break
+                    else:
+                        arg_names.append(f"arg{i}")
+                return arg_names
+            return [f"arg{i}" for i in range(len(args))]
+        except (AttributeError, ValueError, IndexError, TypeError):
+            return [f"arg{i}" for i in range(len(args))]
     
     def _run_module(self, module, input_dict, lm_params):
         """Run the module with optional LM parameter overrides"""
