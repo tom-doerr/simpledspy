@@ -2,13 +2,11 @@
 import os
 import json
 import tempfile
-import time
-import pytest
 from simpledspy.logger import Logger
 
 def test_logger_init_creates_file():
     """Test that Logger creates the log file on init"""
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory():
         module_name = "test_module"
         logger = Logger(module_name)
         assert os.path.exists(logger.logged_file)
@@ -16,7 +14,7 @@ def test_logger_init_creates_file():
 
 def test_logger_appends_data():
     """Test that log() appends JSON lines to file"""
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory():
         module_name = "test_module"
         logger = Logger(module_name)
         
@@ -29,7 +27,7 @@ def test_logger_appends_data():
         logger.log(data2)
         
         # Read log file
-        with open(logger.logged_file, "r") as f:
+        with open(logger.logged_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
             assert len(lines) == 2
             

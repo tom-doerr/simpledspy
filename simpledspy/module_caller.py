@@ -9,6 +9,7 @@ import dspy
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
 from .logger import Logger
+from .settings import settings as global_settings
 
 class BaseCaller:
     """Base class for DSPy module callers"""
@@ -101,7 +102,8 @@ class BaseCaller:
                     
                     # Get input parameter types
                     for param_name, param in signature.parameters.items():
-                        if param_name in input_names and param.annotation != inspect.Parameter.empty:
+                        if (param_name in input_names 
+                                and param.annotation != inspect.Parameter.empty):
                             input_types[param_name] = param.annotation
                     
                     # Get return type hints
@@ -173,7 +175,15 @@ class BaseCaller:
         else:
             return module(**input_dict)
     
-    def _log_results(self, module_name, input_dict, input_names, output_names, output_values, description):
+    def _log_results(
+            self, 
+            module_name, 
+            input_dict, 
+            input_names, 
+            output_names, 
+            output_values, 
+            description
+    ):
         """Log module inputs and outputs with meaningful names"""
         # Create input structure with both names and values
         inputs_data = []
@@ -277,9 +287,8 @@ class BaseCaller:
             input_part = '_'.join(input_names)
             name = f"{output_part}__{module_type}__{input_part}"
         
-        from .settings import settings
         # Check if logging is enabled globally or via lm_params
-        logging_enabled = settings.logging_enabled
+        logging_enabled = global_settings.logging_enabled
         if lm_params and 'logging_enabled' in lm_params:
             logging_enabled = lm_params['logging_enabled']
         
