@@ -192,15 +192,10 @@ class BaseCaller:
             for arg in args:
                 vid = id(arg)
                 candidate_names = value_to_names.get(vid, [])
+                # Convert any variable name starting with 'self.' to just the attribute name
+                candidate_names = [name.split('.', 1)[1] if name.startswith('self.') else name for name in candidate_names]
                 # Filter out reserved names
-                candidate_names = [
-                    name for name in candidate_names 
-                    if name not in ['args', 'kwargs', 'self']
-                ]
-                # Filter out reserved names and see if any remain
-                filtered_names = [name for name in candidate_names 
-                    if name not in ['args', 'kwargs', 'self']]
-                
+                filtered_names = [name for name in candidate_names if name not in ['args', 'kwargs', 'self']]
                 # Only use the variable name if there's exactly one candidate
                 if len(filtered_names) == 1:
                     arg_names.append(filtered_names[0])
