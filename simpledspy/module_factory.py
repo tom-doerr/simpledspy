@@ -1,31 +1,15 @@
-"""Factory for creating DSPy signatures and modules
+"""Factory for creating DSPy signatures and modules"""
 
-Provides:
-- create_signature: Creates DSPy Signature classes
-- create_module: Creates DSPy Predict/ChainOfThought modules
-"""
-
-import dspy
 from typing import List, Dict
+import dspy
 
 class ModuleFactory:
     """Factory for creating DSPy signatures and modules"""
     def create_signature(self, inputs: List[str], outputs: List[str], 
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,
-                    description: str = "") -> dspy.Signature:
-        """Create DSPy signature from inputs/outputs
-        
-        Args:
-            inputs: List of input field names
-            outputs: List of output field names
-            input_types: Optional input type hints
-            output_types: Optional output type hints
-            description: Custom description for signature
-            
-        Returns:
-            DSPy Signature class
-        """
+                    description: str = "") -> d极spy.Signature:
+        """Create DSPy signature from inputs/outputs"""
         signature_fields = {}
         
         # Create inputs with type annotations
@@ -42,7 +26,8 @@ class ModuleFactory:
         if description:
             instructions = description
         elif inputs and outputs:
-            instructions = f"Process inputs ({', '.join(inputs)}) to produce outputs ({', '.join(outputs)})"
+            instructions = (f"Process inputs ({', '.join(inputs)}) to "
+                            f"produce outputs ({', '.join(outputs)})")
         elif inputs:
             instructions = f"Process inputs ({', '.join(inputs)})"
         elif outputs:
@@ -63,19 +48,7 @@ class ModuleFactory:
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,
                     description: str = "") -> dspy.Module:
-        """
-        Creates a DSPy module with the specified signature
-        
-        Args:
-            inputs: List of input field names
-            outputs: List of output field names
-            input_types: Optional input type hints
-            output_types: Optional output type hints
-            description: Custom description for the module signature
-            
-        Returns:
-            DSPy Predict module with the configured signature
-        """
+        """Create DSPy module with specified signature"""
         signature_class = self.create_signature(
             inputs=inputs,
             outputs=outputs,

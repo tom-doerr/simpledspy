@@ -1,7 +1,4 @@
-"""Global settings for SimpleDSPy
-
-This module holds global configuration settings for the SimpleDSPy library.
-"""
+"""Global settings for SimpleDSPy"""
 
 class Settings:
     """Holds global settings for SimpleDSPy"""
@@ -9,8 +6,7 @@ class Settings:
         self.lm = None
         self.temperature = None
         self.max_tokens = None
-        self.logging_enabled = False  # Disabled by default
-        # Add other settings as needed
+        self.logging_enabled = False
         
     def __str__(self):
         return (f"Settings(lm={self.lm}, temperature={self.temperature}, "
