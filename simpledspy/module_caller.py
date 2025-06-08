@@ -121,43 +121,75 @@ class BaseCaller:
                 # For multiple outputs without hint - ignore
         return input_types, output_types
 
+    def _infer_input_names(self, args) -> List[str]:
+        """Infer input variable names using bytecode analysis"""
+        frame = inspect.currentframe().f_back
+        code = frame.f_code
+        call_index = frame.f_lasti
+        instructions = list(dis.get_instructions(code))
+        current_instruction = None
+        for i, inst in enumerate(instructions):
+            if inst.offset == call_index:
+                current_instruction = inst
+                break
+        if current_instruction and current_instruction.opname == 'CALL_FUNCTION':
+            arg_names = []
+            for i in range(len(args)):
+                # Look for LOAD_NAME or LOAD_FAST instructions before the call
+                # We go backwards from the current instruction
+                for j in range(i+1):
+                    prev_inst = instructions[i - j]
+                    if prev_inst.opname in ['LOAD_NAME', 'LOAD_FAST', 
+                            'LOAD_GLOBAL', 'LOAD_DEREF']:
+                        arg_names.append(prev_inst.argval)
+                        break
+                else:
+                    arg_names.append(f"arg{i}")
+            return arg_names
+        else:
+            return [f"arg{i}" for i in range(len(args))]
+    
+    def _run_module(self, module, input_dict, lm_params):
+        """Run the module with optional LM parameter overrides"""
+        if lm_params:
+            original_params = {}
+            for key, value in lm_params.items():
+                if hasattr(self.lm, key):
+                    original_params[key] = getattr(self.lm, key)
+                    setattr(self.lm, key, value)
+            try:
+                return module(**input_dict)
+            finally:
+                for key, value in original_params.items():
+                    setattr(self.lm, key, value)
+        else:
+            return module(**input_dict)
+    
+    def _process_results(self, prediction_result, output_names, module, input_names):
+        """Process and validate module results"""
+        # Check that the module returned the expected outputs
+        for name in output_names:
+            if not hasattr(prediction_result, name):
+                raise AttributeError(f"Output field '{name}' not found in prediction result")
+        self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
+        return [getattr(prediction_result, name) for name in output_names]
+    
+    def _log_results(self, input_dict, output_names, output_values, description):
+        """Log module inputs and outputs"""
+        self.logger.log({
+            'module': self.__class__.__name__.lower(),
+            'inputs': input_dict,
+            'outputs': dict(zip(output_names, output_values)),
+            'description': description
+        })
+    
     def __call__(self, *args, inputs: List[str] = None, 
             outputs: List[str] = None, description: str = None, 
             lm_params: dict = None) -> Any:
-        # Use custom input names if provided, otherwise generate meaningful defaults
+        # Infer input names if not provided
         if inputs is None:
-            # Try to get the names of the variables passed as arguments
             try:
-                frame = inspect.currentframe().f_back
-                code = frame.f_code
-                call_index = frame.f_lasti
-                instructions = list(dis.get_instructions(code))
-                current_instruction = None
-                for i, inst in enumerate(instructions):
-                    if inst.offset == call_index:
-                        current_instruction = inst
-                        break
-                if current_instruction and current_instruction.opname == 'CALL_FUNCTION':
-                    # The names are the variable names in the stack
-                    # This is a simplified approach: we use the names from the locals
-                    # that were used in the call
-                    # We get the names from the bytecode
-                    # This might not work in all cases, but it's a best effort
-                    arg_names = []
-                    for i in range(len(args)):
-                        # Look for LOAD_NAME or LOAD_FAST instructions before the call
-                        # We go backwards from the current instruction
-                        for j in range(i+1):
-                            prev_inst = instructions[i - j]
-                            if prev_inst.opname in ['LOAD_NAME', 'LOAD_FAST', 
-                                    'LOAD_GLOBAL', 'LOAD_DEREF']:
-                                arg_names.append(prev_inst.argval)
-                                break
-                        else:
-                            arg_names.append(f"arg{i}")
-                    input_names = arg_names
-                else:
-                    input_names = [f"arg{i}" for i in range(len(args))]
+                input_names = self._infer_input_names(args)
             except (AttributeError, ValueError, IndexError, TypeError):
                 input_names = [f"arg{i}" for i in range(len(args))]
         else:
@@ -165,7 +197,7 @@ class BaseCaller:
                 raise ValueError(f"Expected {len(args)} input names, got {len(inputs)}")
             input_names = inputs
         
-        # Use custom output names if provided, otherwise try to infer from the assignment
+        # Infer output names if not provided
         if outputs is None:
             try:
                 frame = inspect.currentframe().f_back
@@ -175,16 +207,16 @@ class BaseCaller:
         else:
             output_names = outputs
         
-        # Get type hints from the caller's function if available
+        # Get type hints from caller context
         input_types = {}
         output_types = {}
-        frame = None
         try:
             frame = inspect.currentframe().f_back
         except (AttributeError, ValueError, IndexError, TypeError):
-            pass
+            frame = None
         input_types, output_types = self._get_call_types_from_signature(frame, input_names)
 
+        # Create and run the module
         module = self._create_module(
             inputs=input_names, 
             outputs=output_names,
@@ -193,43 +225,16 @@ class BaseCaller:
             description=description
         )
         input_dict = dict(zip(input_names, args))
+        prediction_result = self._run_module(module, input_dict, lm_params)
         
-        # Save and update LM parameters if needed
-        if lm_params:
-            original_params = {}
-            for key, value in lm_params.items():
-                if hasattr(self.lm, key):
-                    original_params[key] = getattr(self.lm, key)
-                    setattr(self.lm, key, value)
-            try:
-                prediction_result = module(**input_dict)
-            finally:
-                for key, value in original_params.items():
-                    setattr(self.lm, key, value)
-        else:
-            prediction_result = module(**input_dict)
+        # Process and validate results
+        output_values = self._process_results(prediction_result, output_names, module, input_names)
         
-        self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
+        # Log results
+        self._log_results(input_dict, output_names, output_values, description)
         
-        # Check that the module returned the expected outputs
-        for name in output_names:
-            if not hasattr(prediction_result, name):
-                raise AttributeError(f"Output field '{name}' not found in prediction result")
-                
-        output_values = [getattr(prediction_result, name) for name in output_names]
-        
-        # Log inputs and outputs
-        self.logger.log({
-            'module': self.__class__.__name__.lower(),
-            'inputs': input_dict,
-            'outputs': dict(zip(output_names, output_values)),
-            'description': description
-        })
-        
-        # Return single value for one output, tuple for multiple
-        if len(output_values) == 1:
-            return output_values[0]
-        return tuple(output_values)
+        # Return single value or tuple
+        return output_values[0] if len(output_values) == 1 else tuple(output_values)
 
 class Predict(BaseCaller):
     """Predict module caller - replaces pipe() function"""
