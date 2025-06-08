@@ -19,7 +19,7 @@ def test_basic_string_output():
             # Create a mock module that returns a simple string
             class MockModule(dspy.Module):
                 def forward(self, **kwargs):
-                    return dspy.Prediction(output0="Mocked Hello")
+                    return dspy.Prediction(result="Mocked Hello")
                 
             mock_create.return_value = MockModule()
                 
@@ -35,7 +35,7 @@ def test_chain_of_thought():
         # Create a mock module that properly handles forward calls
         class MockModule(dspy.Module):
             def forward(self, **kwargs):
-                return dspy.Prediction(output0="result")
+                return dspy.Prediction(result="result")
             
         mock_create.return_value = MockModule()
             
@@ -138,7 +138,7 @@ def test_input_variable_names_fallback():
             # Create mock module
             class MockModule(dspy.Module):
                 def forward(self, **kwargs):
-                    return dspy.Prediction(output0="result")
+                    return dspy.Prediction(result="result")
                 
             mock_create.return_value = MockModule()
                 
@@ -153,18 +153,19 @@ def test_input_variable_names_fallback():
             assert input_names == ['arg0', 'arg1']
 
 
-def test_input_output_type_hints():
+@patch('simpledspy.module_caller.Logger.log')
+def test_input_output_type_hints(self, mock_log):
     """Test that type hints are properly propagated to module signatures"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module
         mock_module = MagicMock()
-        mock_module.forward.return_value = dspy.Prediction(output0="result")
+        mock_module.forward.return_value = dspy.Prediction(out1=1, out2="text")
         mock_create.return_value = mock_module
-        
+    
         # Define function with type hints
         def test_func(input1: str, input2: int, input3) -> Tuple[int, str]:
             return predict(input1, input2, input3, outputs=["out1", "out2"])
-            
+    
         # Call the function
         test_func("text", 123, "text")
         
@@ -185,18 +186,19 @@ def test_input_output_type_hints():
         assert output_types['out2'] == str
 
 
-def test_complex_type_hints():
+@patch('simpledspy.module_caller.Logger.log')
+def test_complex_type_hints(self, mock_log):
     """Test complex type hints like List and Optional"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module
         mock_module = MagicMock()
-        mock_module.forward.return_value = dspy.Prediction(output0="result")
+        mock_module.forward.return_value = dspy.Prediction(result=1.0)
         mock_create.return_value = mock_module
-        
+    
         # Define function with complex type hints
         def test_func(input1: List[str], input2: Dict[str, int]) -> Optional[float]:
             return predict(input1, input2, outputs=["result"])
-            
+    
         # Call the function
         test_func(["a","b"], {"a":1})
         
