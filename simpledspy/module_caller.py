@@ -291,9 +291,9 @@ class BaseCaller:
             input_part = '_'.join(input_names)
             name = f"{output_part}__{module_type}__{input_part}"
         
-        from .settings import global_settings
+        from .settings import settings
         # Check if logging is enabled globally or via lm_params
-        logging_enabled = global_settings.logging_enabled
+        logging_enabled = settings.logging_enabled
         if lm_params and 'logging_enabled' in lm_params:
             logging_enabled = lm_params['logging_enabled']
         
