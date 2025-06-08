@@ -11,6 +11,10 @@ class Settings:
         self.max_tokens = None
         self.logging_enabled = False  # Disabled by default
         # Add other settings as needed
+        
+    def __str__(self):
+        return (f"Settings(lm={self.lm}, temperature={self.temperature}, "
+                f"max_tokens={self.max_tokens}, logging_enabled={self.logging_enabled})")
 
 # Global settings instance
 settings = Settings()

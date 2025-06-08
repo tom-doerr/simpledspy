@@ -21,7 +21,6 @@ class BaseCaller:
             instance.module_factory = ModuleFactory()
             instance.optimization_manager = OptimizationManager()
             instance.lm = dspy.LM(model="deepseek/deepseek-chat")
-            instance.logger = Logger()
             dspy.configure(lm=instance.lm, cache=False)
         return cls._instances[cls]
     
@@ -280,10 +279,10 @@ class BaseCaller:
         prediction_result = self._run_module(module, input_dict, lm_params)
         
         # Process and validate results
-        for name in output_names:
-            if not hasattr(prediction_result, name):
-                raise AttributeError(f"Output field '{name}' not found in prediction result")
-        output_values = [getattr(prediction_result, name) for name in output_names]
+        for output_name in output_names:
+            if not hasattr(prediction_result, output_name):
+                raise AttributeError(f"Output field '{output_name}' not found in prediction result")
+        output_values = [getattr(prediction_result, output_name) for output_name in output_names]
         
         # Generate module name if not provided
         if name is None:
@@ -292,6 +291,7 @@ class BaseCaller:
             input_part = '_'.join(input_names)
             name = f"{output_part}__{module_type}__{input_part}"
         
+        from .settings import global_settings
         # Check if logging is enabled globally or via lm_params
         logging_enabled = global_settings.logging_enabled
         if lm_params and 'logging_enabled' in lm_params:
@@ -299,7 +299,14 @@ class BaseCaller:
         
         # Log results if enabled
         if logging_enabled:
-            self._log_results(name, input_dict, input_names, output_names, output_values, description)
+            self._log_results(
+                name, 
+                input_dict, 
+                input_names, 
+                output_names, 
+                output_values, 
+                description
+            )
         
         # Return single value or tuple
         return output_values[0] if len(output_values) == 1 else tuple(output_values)

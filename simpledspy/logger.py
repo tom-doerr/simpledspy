@@ -11,11 +11,11 @@ from typing import Dict, Any
 
 class CustomJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder that converts non-serializable objects to strings"""
-    def default(self, obj):
+    def default(self, o):
         try:
-            return super().default(obj)
+            return super().default(o)
         except TypeError:
-            return str(obj)
+            return str(o)
 
 class Logger:
     """Handles logging of DSPy inputs and outputs per module"""
