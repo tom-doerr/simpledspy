@@ -136,48 +136,28 @@ class BaseCaller:
         return input_types, output_types
 
     def _infer_input_names(self, args) -> List[str]:
-        """Infer input variable names using bytecode analysis"""
+        """Infer input variable names using frame inspection"""
         try:
-            frame = inspect.currentframe()
+            frame = inspect.currentframe().f_back.f_back
             if frame is None:
                 return [f"arg{i}" for i in range(len(args))]
-            frame = frame.f_back
-            if frame is None:
-                return [f"arg{i}" for i in range(len(args))]
-            code = frame.f_code
-            call_index = frame.f_lasti
-            instructions = list(dis.get_instructions(code))
-            current_instruction = None
-            i = None
-            for idx, inst in enumerate(instructions):
-                if inst.offset == call_index:
-                    current_instruction = inst
-                    i = idx
-                    break
-            if current_instruction and current_instruction.opname == 'CALL_FUNCTION':
-                arg_names = []
-                # Start from the instruction before the call and go backwards
-                if i is not None:
-                    start_index = i - 1
-                else:
-                    start_index = -1
-                # We'll collect the argument instructions in reverse order
-                for j in range(len(args)):
-                    idx = start_index - j
-                    if idx < 0:
+            
+            # Get all local and global variables from the calling frame
+            all_vars = {**frame.f_globals, **frame.f_locals}
+            
+            # Map each argument to its name by matching id
+            arg_names = []
+            for arg in args:
+                found = False
+                for name, value in all_vars.items():
+                    if id(value) == id(arg):
+                        arg_names.append(name)
+                        found = True
                         break
-                    inst = instructions[idx]
-                    if inst.opname in ['LOAD_NAME', 'LOAD_FAST', 'LOAD_GLOBAL', 'LOAD_DEREF']:
-                        arg_names.append(inst.argval)
-                    else:
-                        break
-                # Reverse to get the correct left-to-right order
-                arg_names.reverse()
-                if len(arg_names) < len(args):
-                    # If we didn't get enough names, fill the rest with fallbacks
-                    arg_names += [f"arg{k}" for k in range(len(arg_names), len(args))]
-                return arg_names
-            return [f"arg{i}" for i in range(len(args))]
+                if not found:
+                    arg_names.append(f"arg{len(arg_names)}")
+            
+            return arg_names
         except (AttributeError, ValueError, IndexError, TypeError):
             return [f"arg{i}" for i in range(len(args))]
     

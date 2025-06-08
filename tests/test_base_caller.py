@@ -32,62 +32,25 @@ def test_base_caller_module_creation():
 @patch('inspect.currentframe')
 @patch('inspect.signature')
 @patch('simpledspy.module_caller.Logger')
-def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_current_frame):
-    """Test input name inference"""
-    # Create a mock frame
-    mock_frame = MagicMock()
-    mock_frame.f_back.f_locals = {
-        'arg1': 'value1',
-        'arg2': 'value2'
-    }
-    mock_frame.f_back.f_code.co_name = 'test_func'
-    mock_current_frame.return_value = mock_frame
-    
+def test_input_name_inference_in_function_scope():
+    """Test input name inference in function scope"""
     caller = BaseCaller()
     mock_factory = MagicMock()
     mock_module = MagicMock()
     mock_factory.create_module.return_value = mock_module
     caller.module_factory = mock_factory
-    # Mock the logger to prevent serialization issues
-    caller.logger = mock_logger
         
-    # Mock function signature
-    class MockSignature:  # pylint: disable=missing-docstring
-        parameters = {
-            'arg1': MagicMock(annotation=str),
-            'arg2': MagicMock(annotation=int)
-        }
-        return_annotation = str
+    # Define a function to test variable capture
+    def test_function():
+        local_var1 = "value1"
+        local_var2 = "value2"
+        caller(local_var1, local_var2)
         
-    mock_signature.return_value = MockSignature()
+    test_function()
         
-    mock_module.return_value = MagicMock(output="result")
-        
-    # Call predict with variables
-    arg1 = "test1"
-    arg2 = "test2"
-    caller(arg1, arg2)
-        
-    # Verify create_module was called
-    assert mock_factory.create_module.call_args is not None
-        
-    # Get the call arguments
+    # Verify create_module was called with correct names
     call_kwargs = mock_factory.create_module.call_args[1]
-    # The base caller may not infer exact variable names, expect fallback names
-    # We accept either the expected names or fallback names since it's context-dependent
-    expected_names1 = ['arg0', 'arg1']
-    expected_names2 = ['arg1', 'arg2']
-    assert call_kwargs['inputs'] in (expected_names1, expected_names2)
-    # The types should be as expected
-    input_types = call_kwargs['input_types']
-    # Depending on the input names, we expect different type annotations
-    if 'arg1' in input_types and 'arg2' in input_types:
-        assert input_types == {'arg1': str, 'arg2': int}
-    elif 'arg1' in input_types:
-        assert input_types == {'arg1': str}
-    else:
-        assert False, f"Unexpected input_types: {input_types}"
-    assert call_kwargs['output_types'] == {'output': str}
+    assert call_kwargs['inputs'] == ['local_var1', 'local_var2']
 
 def test_base_caller_module_execution():
     """Test module execution with inputs/outputs"""

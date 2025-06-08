@@ -145,29 +145,51 @@ def test_variable_name_preservation():
             assert inputs_data[1]['name'] == 'flag'
             assert inputs_data[1]['value'] is True
 
-def test_input_variable_names_fallback():
-    """Test fallback for input variable names"""
-    with patch('simpledspy.module_caller.dis.get_instructions', 
-               side_effect=AttributeError("mocked error")):
-        with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
-            # Create mock module
-            class MockModule(dspy.Module):
-                """Mock module for testing"""
-                def forward(self, **_):
-                    """Mock forward method"""
-                    return dspy.Prediction(output="result")
-                
-            mock_create.return_value = MockModule()
-                
-            # Call predict with values
-            predict("John", "Doe")
-                
-            # Get the input names passed to create_module
-            call_args = mock_create.call_args
-            input_names = call_args[1]['inputs']
-                
-            # Verify fallback names are used
-            assert input_names == ['arg0', 'arg1']
+def test_input_variable_name_inference():
+    """Test input variable name inference in different scopes"""
+    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        # Create mock module
+        class MockModule(dspy.Module):
+            """Mock module for testing"""
+            def forward(self, **_):
+                """Mock forward method"""
+                return dspy.Prediction(output="result")
+        
+        mock_create.return_value = MockModule()
+        
+        # Test in global scope
+        global_var1 = "global1"
+        global_var2 = "global2"
+        predict(global_var1, global_var2)
+        call_args = mock_create.call_args
+        input_names = call_args[1]['inputs']
+        assert input_names == ['global_var1', 'global_var2']
+        
+        # Test in function scope
+        def test_function():
+            local1 = "local1"
+            local2 = "local2"
+            predict(local1, local2)
+            return mock_create.call_args[1]['inputs']
+        
+        input_names = test_function()
+        assert input_names == ['local1', 'local2']
+        
+        # Test with duplicate values
+        same_value = "shared"
+        var_a = same_value
+        var_b = same_value
+        predict(var_a, var_b)
+        call_args = mock_create.call_args
+        input_names = call_args[1]['inputs']
+        # Should get first matching name for each value
+        assert input_names == ['var_a', 'var_b']
+        
+        # Test with unnamed values
+        predict("literal", 42)
+        call_args = mock_create.call_args
+        input_names = call_args[1]['inputs']
+        assert input_names == ['arg0', 'arg1']
 
 
 @patch('simpledspy.module_caller.Logger.log')
