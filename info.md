@@ -27,6 +27,11 @@ it should be easy for the user to adapt training samples by modifying input and 
 the train data section should be abouve the log data section, which should be at the bottom since it likely will contain the most data
 there should be the possibility to set custom names for modules when called
 when no custom name for a module is set, the name consists out of ouputs, module type, and inputs: <ouput_0>_<ouput_1>__<moduletype>__<input_0>_<input_1>, e.g. finished__predict__context_steps
+we do need to save the datetime together with inputs and outputs 
+the datetime should be in human readable format, so maybe the T notation is best
+the description should not be saved in those datapoints
+if no other optimized model is saved/available, the trainset/optimization set should be used for the fewshot optimizer when the module is initilized so it has the trainset as few-shot examples
+
 
 # optimization
 when no evaluation criteria is provided, optimization should just work with DSPy's FewShot optimizer (assuming there are any samples in the training data)
@@ -45,6 +50,7 @@ if python type hints are used, those types should be set in the dspy signature
 it should not be necessary to set inputs or ouputs labels when calling a module
 please make sure we have tests for mapping input variable names to the signature input variable names
 we should use the actual assign output names even when we have multiple outputs and shouldn't just use e.g. output0, output1 
+reflection should also work when the variable(s) are self.<var>
 
 
 # usage examples 
