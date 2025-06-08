@@ -13,7 +13,13 @@ import dspy
 from .logger import Logger
 
 class Evaluator:
-    """Evaluates DSPy module outputs"""
+    """Evaluates DSPy module outputs
+    
+    Attributes:
+        evaluation_instruction: Instruction for evaluation
+        logger: Logger instance for recording evaluations
+        evaluator_lm: Language model for evaluation
+    """
     def __init__(self, evaluation_instruction: str = "", log_file: str = "dspy_logs.jsonl"):
         self.evaluation_instruction = evaluation_instruction
         self.logger = Logger(log_file)

@@ -1,9 +1,9 @@
 """Tests for logger.py"""
-import pytest
 import os
 import json
 import tempfile
 import time
+import pytest
 from simpledspy.logger import Logger
 
 def test_logger_init_creates_file():
