@@ -5,7 +5,7 @@ Provides base classes for Predict and ChainOfThought function calls
 
 import dis
 import dspy
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
