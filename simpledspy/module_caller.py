@@ -144,16 +144,32 @@ class BaseCaller:
             # Get all local and global variables from the calling frame
             all_vars = {**frame.f_globals, **frame.f_locals}
             
-            # Map each argument to its name by matching id
+            # Build a mapping from value id to list of variable names
+            value_to_names = {}
+            for name, value in all_vars.items():
+                vid = id(value)
+                if vid not in value_to_names:
+                    value_to_names[vid] = []
+                value_to_names[vid].append(name)
+            
+            # Map each argument to a unique variable name
+            used_names = set()
             arg_names = []
             for arg in args:
-                found = False
-                for name, value in all_vars.items():
-                    if id(value) == id(arg):
-                        arg_names.append(name)
-                        found = True
-                        break
-                if not found:
+                vid = id(arg)
+                candidate_names = value_to_names.get(vid, [])
+                # Filter out reserved names and names we've already used
+                candidate_names = [
+                    name for name in candidate_names 
+                    if name not in ['args', 'kwargs', 'self'] and name not in used_names
+                ]
+                if candidate_names:
+                    # Sort to ensure deterministic order
+                    candidate_names.sort()
+                    chosen_name = candidate_names[0]
+                    arg_names.append(chosen_name)
+                    used_names.add(chosen_name)
+                else:
                     arg_names.append(f"arg{len(arg_names)}")
             
             return arg_names

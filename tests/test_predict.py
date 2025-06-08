@@ -124,9 +124,10 @@ def test_variable_name_preservation():
             """Mock module for testing"""
             def forward(self, **_):
                 """Mock forward method"""
-                return dspy.Prediction(result="test")
+                return dspy.Prediction(output="test")
             
-        with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()):
+        with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()), \
+             patch('simpledspy.module_caller.Logger.log'):
             # Define variables
             poem_text = "Roses are red"
             flag = True

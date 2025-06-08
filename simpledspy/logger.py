@@ -9,6 +9,14 @@ import time
 from pathlib import Path
 from typing import Dict, Any
 
+class CustomJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder that converts non-serializable objects to strings"""
+    def default(self, obj):
+        try:
+            return super().default(obj)
+        except TypeError:
+            return str(obj)
+
 class Logger:
     """Handles logging of DSPy inputs and outputs"""
     
@@ -28,4 +36,4 @@ class Logger:
         """
         data['timestamp'] = time.time()
         with open(self.log_file, "a", encoding="utf-8") as f:
-            f.write(json.dumps(data) + "\n")
+            f.write(json.dumps(data, cls=CustomJSONEncoder) + "\n")

@@ -37,6 +37,7 @@ def test_input_name_inference_in_function_scope(_mock_logger, _mock_signature, _
     caller = BaseCaller()
     mock_factory = MagicMock()
     mock_module = MagicMock()
+    mock_module.return_value = dspy.Prediction(output="test output")
     mock_factory.create_module.return_value = mock_module
     caller.module_factory = mock_factory
         
