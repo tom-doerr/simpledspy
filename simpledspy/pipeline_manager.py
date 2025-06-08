@@ -46,6 +46,12 @@ class PipelineManager:
         """
         self._steps.append((inputs, outputs, module))
 
+    def assemble_pipeline(self) -> "Pipeline":
+        """Assemble the pipeline from registered steps"""
+        if not self._steps:
+            raise ValueError("No steps in pipeline")
+        return Pipeline(self._steps)
+        
     def reset(self) -> None:
         """Reset the pipeline steps and any module state"""
         self._steps = []

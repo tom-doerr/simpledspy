@@ -124,21 +124,21 @@ def test_input_variable_names_inference():
             """Mock module for testing"""
             def forward(self, **_):
                 """Mock forward method"""
-                return dspy.Prediction(output0="result")
-        
+                return dspy.Prediction(result="result")
+            
         mock_create.return_value = MockModule()
-        
+            
         # Define variables with specific names
         first_name = "John"
         last_name = "Doe"
-        
+            
         # Call predict with variables
-        _result = predict(first_name, last_name)
-        
+        result = predict(first_name, last_name)
+            
         # Get the input names passed to create_module
         call_args = mock_create.call_args
         input_names = call_args[1]['inputs']
-        
+            
         # In test environments, variable names may not be inferable
         # Accept either the expected names or fallback names
         assert input_names in (['first_name', 'last_name'], ['arg0', 'arg1'])
@@ -158,7 +158,7 @@ def test_input_variable_names_fallback():
             mock_create.return_value = MockModule()
                 
             # Call predict with values
-            _result = predict("John", "Doe")
+            result = predict("John", "Doe")
                 
             # Get the input names passed to create_module
             call_args = mock_create.call_args
