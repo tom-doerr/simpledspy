@@ -214,7 +214,8 @@ class BaseCaller:
     
     def __call__(self, *args, inputs: List[str] = None, 
             outputs: List[str] = None, description: str = None, 
-            lm_params: dict = None, name: str = None) -> Any:
+            lm_params: dict = None, name: str = None, 
+            trainset: list = None) -> Any:
         # Inspect variables if names needed
         captured_vars = {}
         if inputs is None:
@@ -272,6 +273,18 @@ class BaseCaller:
             output_types=output_types,
             description=description
         )
+        
+        # If a trainset is provided, set it as few-shot examples
+        if trainset is not None:
+            # Convert the trainset to dspy.Example objects if they are dicts
+            demos = []
+            for example in trainset:
+                if isinstance(example, dict):
+                    demos.append(dspy.Example(**example))
+                else:
+                    demos.append(example)
+            module.demos = demos
+        
         input_dict = dict(zip(input_names, args))
         prediction_result = self._run_module(module, input_dict, lm_params)
         
