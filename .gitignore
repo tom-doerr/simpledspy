@@ -170,3 +170,14 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .aider*
+
+# User-requested ignores
+context.txt
+context.txt.tmp
+dspy_logs.jsonl
+exec_control.toml
+log_iotc.txt
+mock_stdin.txt
+plex.md
+plex_mds_archive/
+poetry.lock
