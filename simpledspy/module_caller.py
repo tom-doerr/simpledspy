@@ -145,7 +145,7 @@ class BaseCaller:
                 
             call_line = context_lines[0].strip()
             
-            # Parse the call expression to get the argument expressions
+            # Try the AST method
             try:
                 tree = ast.parse(call_line)
                 call_node = None
@@ -156,53 +156,30 @@ class BaseCaller:
                 if call_node is None:
                     return [f"arg{i}" for i in range(len(args))]
                     
-                arg_exprs = []
-                for arg in call_node.args:
-                    # Convert the AST node back to source
-                    arg_src = ast.unparse(arg).strip()
-                    arg_exprs.append(arg_src)
-            except (SyntaxError, ImportError, TypeError):
-                arg_exprs = []
-                
-            # If we have the same number of argument expressions as args, use them
-            if len(arg_exprs) == len(args):
                 arg_names = []
-                for expr in arg_exprs:
-                    # Handle instance variables: self.var -> var
-                    if expr.startswith('self.'):
-                        arg_names.append(expr.split('.', 1)[1])
+                for arg in call_node.args:
+                    if isinstance(arg, ast.Name):
+                        name = arg.id
+                        arg_names.append(name)
+                    elif (isinstance(arg, ast.Attribute) and 
+                          isinstance(arg.value, ast.Name) and 
+                          arg.value.id == 'self'):
+                        name = arg.attr
+                        arg_names.append(name)
                     else:
-                        arg_names.append(expr)
-                return arg_names
+                        # For any other type of node, assign argX name
+                        arg_names.append(f"arg{len(arg_names)}")
                 
-            # Fallback to the old method
-            # Get all local and global variables from the calling frame
-            all_vars = {**frame.f_globals, **frame.f_locals}
-            
-            # Build a mapping from value id to list of variable names
-            value_to_names = {}
-            for name, value in all_vars.items():
-                vid = id(value)
-                if vid not in value_to_names:
-                    value_to_names[vid] = []
-                value_to_names[vid].append(name)
-            
-            # Map each argument to a variable name
-            arg_names = []
-            for arg in args:
-                vid = id(arg)
-                candidate_names = value_to_names.get(vid, [])
-                # Convert any variable name starting with 'self.' to just the attribute name
-                candidate_names = [name.split('.', 1)[1] if name.startswith('self.') else name for name in candidate_names]
-                # Filter out reserved names
-                filtered_names = [name for name in candidate_names if name not in ['args', 'kwargs', 'self']]
-                # Only use the variable name if there's exactly one candidate
-                if len(filtered_names) == 1:
-                    arg_names.append(filtered_names[0])
-                else:
-                    arg_names.append(f"arg{len(arg_names)}")
-            
-            return arg_names
+                # Sanitize reserved words
+                reserved = ['args', 'kwargs', 'self']
+                for i, name in enumerate(arg_names):
+                    if name in reserved:
+                        arg_names[i] = f'arg{i}'
+                
+                return arg_names
+            except (SyntaxError, TypeError, ValueError):
+                # If AST method fails, fall back to arg0, arg1, ...
+                return [f"arg{i}" for i in range(len(args))]
         except (AttributeError, ValueError, IndexError, TypeError):
             return [f"arg{i}" for i in range(len(args))]
     
