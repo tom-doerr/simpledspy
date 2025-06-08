@@ -213,6 +213,33 @@ SimpleDSPy provides:
 
 Contributions are welcome! Please open an issue or pull request on GitHub.
 
+## Publishing the Package
+
+To publish a new version of SimpleDSPy:
+
+1. Update the version in `pyproject.toml` and `simpledspy/__init__.py`
+2. Build the package:
+   ```bash
+   poetry build
+   ```
+3. Publish using Poetry's built-in command:
+   ```bash
+   poetry publish
+   ```
+   Poetry will prompt you for your PyPI credentials
+
+4. Verify the published package:
+   ```bash
+   pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple simpledspy==0.3.0
+   ```
+   Replace 0.3.0 with your actual version number
+
+For API token authentication:
+```bash
+poetry config pypi-token.pypi your-api-token
+```
+Then run `poetry publish` without credentials prompt
+
 ## License
 
 MIT License
