@@ -3,7 +3,6 @@
 Provides base classes for Predict and ChainOfThought function calls
 """
 
-import dis
 import inspect
 from typing import List, Dict, Any, Tuple
 import dspy
@@ -213,7 +212,7 @@ class BaseCaller:
                 # Capture possible local/global variables
                 frame = inspect.currentframe().f_back
                 captured_vars = {**frame.f_locals, **frame.f_globals} if frame else {}
-            except Exception:
+            except (AttributeError, ValueError, IndexError, TypeError):
                 captured_vars = {}
         
         # Infer input names if not provided

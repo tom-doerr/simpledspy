@@ -125,15 +125,15 @@ def test_variable_name_preservation():
             def forward(self, **_):
                 """Mock forward method"""
                 return dspy.Prediction(result="test")
-        
+            
         with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()):
             # Define variables
             poem_text = "Roses are red"
             flag = True
-            
+                
             # Call predict
-            result = predict(poem_text, flag, description="Process poem")
-            
+            predict(poem_text, flag, description="Process poem")
+                
             # Verify captured names
             args, _ = mock_log.call_args
             log_data = args[0]

@@ -1,6 +1,6 @@
 """Tests for base_caller.py"""
-import dspy
 from unittest.mock import patch, MagicMock
+import dspy
 from simpledspy.module_caller import BaseCaller
 
 def test_base_caller_singleton():
