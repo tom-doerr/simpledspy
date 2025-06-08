@@ -1,14 +1,17 @@
 """Tests for optimization_manager.py"""
+"""Tests for optimization_manager.py"""
 import pytest
-from simpledspy.optimization_manager import OptimizationManager
-from dspy.teleprompt import BootstrapFewShot, MIPROv2
 import dspy
+from dspy.teleprompt import BootstrapFewShot, MIPROv2
+from simpledspy.optimization_manager import OptimizationManager
+from simpledspy.metrics import dict_exact_match_metric
 
 def test_default_config() -> None:
     """Test default configuration"""
     manager = OptimizationManager()
-    
+        
     # Check default values
+    # pylint: disable=protected-access
     assert manager._config['strategy'] == 'bootstrap_few_shot'
     assert manager._config['max_bootstrapped_demos'] == 4
     assert manager._config['max_labeled_demos'] == 4
@@ -17,39 +20,38 @@ def test_default_config() -> None:
 def test_configure() -> None:
     """Test configuration update"""
     manager = OptimizationManager()
-    
+        
     # Update configuration
     manager.configure(
         strategy='mipro',
         max_bootstrapped_demos=6,
         max_labeled_demos=8
     )
-    
+        
     # Check updated values
+    # pylint: disable=protected-access
     assert manager._config['strategy'] == 'mipro'
     assert manager._config['max_bootstrapped_demos'] == 6
     assert manager._config['max_labeled_demos'] == 8
 
 def test_dict_exact_match_metric() -> None:
     """Test the dict_exact_match_metric function"""
-    from simpledspy.metrics import dict_exact_match_metric
-    
     # Test with exact match
     example = {'name': 'John', 'age': 30}
     prediction = {'name': 'John', 'age': 30}
     score = dict_exact_match_metric(example, prediction)
     assert score == 1.0
-    
+        
     # Test with partial match
     prediction = {'name': 'John', 'age': 25}
     score = dict_exact_match_metric(example, prediction)
     assert score == 0.5
-    
+        
     # Test with no match
     prediction = {'name': 'Jane', 'age': 25}
     score = dict_exact_match_metric(example, prediction)
     assert score == 0.0
-    
+        
     # Test with missing keys
     prediction = {'name': 'John'}
     score = dict_exact_match_metric(example, prediction)
@@ -71,16 +73,14 @@ def test_get_teleprompter() -> None:
 
 def test_dict_exact_match_metric_empty() -> None:
     """Test the dict_exact_match_metric function with empty inputs"""
-    from simpledspy.metrics import dict_exact_match_metric
-    
     # Test with empty example and prediction
     example = {}
     prediction = {}
-    
+        
     # Should return 1.0 for empty example and empty prediction
     score = dict_exact_match_metric(example, prediction)
     assert score == 1.0
-    
+        
     # Test with empty example and non-empty prediction
     prediction = {'name': 'John'}
     score = dict_exact_match_metric(example, prediction)
@@ -88,14 +88,12 @@ def test_dict_exact_match_metric_empty() -> None:
 
 def test_dict_exact_match_metric_none_values() -> None:
     """Test the dict_exact_match_metric function with None values"""
-    from simpledspy.metrics import dict_exact_match_metric
-    
     # Test with None values
     example = {'name': None, 'age': 30}
     prediction = {'name': None, 'age': 30}
     score = dict_exact_match_metric(example, prediction)
     assert score == 1.0
-    
+        
     # Test with mismatched None values
     prediction = {'name': 'John', 'age': None}
     score = dict_exact_match_metric(example, prediction)
@@ -118,10 +116,12 @@ def test_optimize_module() -> None:
     
     # Create a simple module
     class TestModule(dspy.Module):
+        """Test module for optimization"""
         def __init__(self):
             super().__init__()
         
         def forward(self, x):
+            """Mock forward method"""
             return {'y': x['x'] * 2}
     
     module = TestModule()
@@ -133,7 +133,8 @@ def test_optimize_module() -> None:
     original_get_teleprompter = manager.get_teleprompter
     
     class MockTeleprompter:
-        def compile(self, module, trainset):
+        """Mock teleprompter for testing"""
+        def compile(self, module, trainset):  # pylint: disable=unused-argument
             return module
     
     manager.get_teleprompter = lambda: MockTeleprompter()
@@ -162,26 +163,25 @@ def test_configure_multiple_times() -> None:
 def test_configure_with_invalid_values() -> None:
     """Test configuration with invalid values"""
     manager = OptimizationManager()
-    
+        
     # Update with invalid values
     manager.configure(
         unknown_param='value',
         another_unknown=123
     )
-    
+        
     # Unknown parameters should be added to config
+    # pylint: disable=protected-access
     assert manager._config['unknown_param'] == 'value'
     assert manager._config['another_unknown'] == 123
 
 def test_dict_exact_match_metric_with_trace() -> None:
     """Test dict_exact_match_metric function with trace parameter"""
-    from simpledspy.metrics import dict_exact_match_metric
-    
     # Create example, prediction and trace
     example = {'name': 'John'}
     prediction = {'name': 'John'}
     trace = {'some': 'trace', 'data': 123}
-    
+        
     # Metric should work with trace
     score = dict_exact_match_metric(example, prediction, trace)
     assert score == 1.0

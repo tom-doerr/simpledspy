@@ -8,6 +8,7 @@ class TestImport(unittest.TestCase):
     """Test cases for import warnings"""
     
     def test_correct_import_no_warning(self):
+        """Test no warning is raised for correct import"""
         # Create a mock module
         mock_module = types.ModuleType("simpledspy")
         mock_module.__name__ = "simpledspy"
@@ -24,6 +25,7 @@ class TestImport(unittest.TestCase):
                 warnings.simplefilter("always")
                 
                 # Execute the warning check code directly
+                # pylint: disable=no-member
                 if not mock_module.__name__.startswith("simpledspy"):
                     warnings.warn(
                         "It looks like you might be importing 'simpledspy' incorrectly. "
@@ -41,6 +43,7 @@ class TestImport(unittest.TestCase):
                 del sys.modules["simpledspy"]
 
     def test_incorrect_import_warning(self):
+        """Test warning is raised for incorrect import"""
         # Create a mock module
         mock_module = types.ModuleType("incorrect")
         mock_module.__name__ = "incorrect"
@@ -57,6 +60,7 @@ class TestImport(unittest.TestCase):
                 warnings.simplefilter("always")
                 
                 # Execute the warning check code directly
+                # pylint: disable=no-member
                 if not mock_module.__name__.startswith("simpledspy"):
                     warnings.warn(
                         "It looks like you might be importing 'simpledspy' incorrectly. "

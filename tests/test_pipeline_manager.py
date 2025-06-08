@@ -1,17 +1,19 @@
 """Tests for pipeline_manager.py"""
+"""Tests for pipeline_manager.py"""
 import pytest
-from simpledspy.pipeline_manager import PipelineManager
 import dspy
 from unittest.mock import MagicMock, patch
+from simpledspy.pipeline_manager import PipelineManager
 
 class MockModule(dspy.Module):
+    """Mock module for pipeline testing"""
     def __init__(self, output_value=None, **outputs):
         super().__init__()
         if output_value:
             outputs['output'] = output_value
         self.outputs = outputs
     
-    def forward(self, **kwargs):
+    def forward(self, **kwargs):  # pylint: disable=unused-argument
         return dspy.Prediction(**self.outputs)
 
 def test_singleton_pattern():
@@ -20,14 +22,15 @@ def test_singleton_pattern():
     manager2 = PipelineManager()
     assert manager1 is manager2
     manager1.reset()
-    assert manager2._steps == []
+    # pylint: disable=protected-access
+    assert not manager2._steps  # Check empty list using boolean context
 
 def test_empty_pipeline():
     """Test assembling an empty pipeline"""
     manager = PipelineManager()
     manager.reset()
     with pytest.raises(ValueError):
-        pipeline = manager.assemble_pipeline()
+        _ = manager.assemble_pipeline()  # unused variable
 
 def test_pipeline_reset():
     """Test resetting the pipeline"""
@@ -97,7 +100,8 @@ def test_missing_output():
     manager.reset()
     
     class BadModule(dspy.Module):
-        def forward(self, **kwargs):
+        """Bad module that returns no output"""
+        def forward(self, **kwargs):  # pylint: disable=unused-argument
             return {}  # No output
     
     module = BadModule()
@@ -110,4 +114,4 @@ def test_missing_output():
     pipeline = manager.assemble_pipeline()
     
     with pytest.raises(ValueError):
-        result = pipeline(input1="test input")
+        _ = pipeline(input1="test input")  # unused variable

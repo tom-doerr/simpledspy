@@ -1,8 +1,8 @@
 """Tests for module_factory.py"""
-import pytest
-from simpledspy.module_factory import ModuleFactory
-import dspy
 from typing import List, Dict, Any, Optional, Union
+import pytest
+import dspy
+from simpledspy.module_factory import ModuleFactory
 
 def test_create_module_basic():
     """Test basic module creation without type hints"""
