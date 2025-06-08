@@ -35,6 +35,7 @@ it should be possible to use an arbitrary number of outputs on the left side
 if python type hints are used, those types should be set in the dspy signature
 it should not be necessary to set inputs or ouputs labels when calling a module
 please make sure we have tests for mapping input variable names to the signature input variable names
+we should use the actual assign output names even when we have multiple outputs and shouldn't just use e.g. output0, output1 
 
 
 # usage examples 
