@@ -248,17 +248,19 @@ class Predict(BaseCaller):
 class ChainOfThought(BaseCaller):
     """ChainOfThought module caller"""
     
-    # pylint: disable=too-many-arguments,too-many-positional-arguments
+    # pylint: disable=too-many-arguments
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,
                      description: str = "") -> dspy.Module:
-        signature_class = self.module极gpt
-# Fix the incomplete return type
-
-**Velocity (Assistant)**:
-We need to complete the implementation that was cut off
-        The issue is that we have incomplete method implementation and broken comments</source>
+        signature_class = self.module_factory.create_signature(
+            inputs=inputs,
+            outputs=outputs,
+            input_types=input_types,
+            output_types=output_types,
+            description=description
+        )
+        return dspy.ChainOfThought(signature_class)
 ```
 
 The changes:
