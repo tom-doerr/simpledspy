@@ -21,7 +21,7 @@ def test_basic_string_output():
                 """Mock module for testing"""
                 def forward(self, **_):
                     """Mock forward method"""
-                    return dspy.Prediction(output="Mocked Hello")
+                    return dspy.Prediction(result="Mocked Hello")
                 
             mock_create.return_value = MockModule()
                 
