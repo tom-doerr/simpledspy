@@ -39,7 +39,7 @@ def test_chain_of_thought():
             """Mock module for testing"""
             def forward(self, **_):
                 """Mock forward method"""
-                return dspy.Prediction(result="result")
+                return dspy.Prediction(output="result")
             
         mock_create.return_value = MockModule()
             
@@ -153,7 +153,7 @@ def test_input_variable_names_fallback():
                 """Mock module for testing"""
                 def forward(self, **_):
                     """Mock forward method"""
-                    return dspy.Prediction(result="result")
+                    return dspy.Prediction(output="result")
                 
             mock_create.return_value = MockModule()
                 

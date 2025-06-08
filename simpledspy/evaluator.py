@@ -81,13 +81,13 @@ class Evaluator:
         # Get current timestamp
         timestamp = time.time()
         
-        # Log to file - convert complex fields to JSON strings
+        # Log to file - store as is (the logger will handle serialization)
         log_data = {
             'module': module,
-            'inputs': json.dumps(inputs) if isinstance(inputs, dict) else str(inputs),
-            'outputs': json.dumps(outputs) if isinstance(outputs, dict) else str(outputs),
+            'inputs': inputs,
+            'outputs': outputs,
             'description': description,
-            'instructions': json.dumps(instructions) if isinstance(instructions, list) else str(instructions),
+            'instructions': instructions,
             'score': score,
             'timestamp': timestamp
         }

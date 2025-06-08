@@ -71,7 +71,7 @@ class BaseCaller:
 
     # pylint: disable=too-many-locals,too-many-branches
     def _get_call_types_from_signature(self, frame: Any, 
-            input_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
+            input_names: List[str], output_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
         """Get input/output types from function signature"""
         input_types = {}
         output_types = {}
@@ -110,16 +110,15 @@ class BaseCaller:
             # Get the type hints for return value
             return_ann = signature.return_annotation
             if return_ann != inspect.Signature.empty:
-                # For single output, set type for output0
-                if len(input_names) == 1:
-                    output_types[input_names[0]] = return_ann
+                # For single output, set type for the output name
+                if len(output_names) == 1:
+                    output_types[output_names[0]] = return_ann
                 # For multiple outputs with Tuple type hints
-                elif hasattr(return_ann, '__tuple_params__'):
-                    tuple_types = return_ann.__tuple_params__
+                elif hasattr(return_ann, '__args__') and len(return_ann.__args__) == len(output_names):
+                    tuple_types = return_ann.__args__
                     for i, t in enumerate(tuple_types):
-                        if i < len(input_names):
-                            output_types[input_names[i]] = t
-                # For multiple outputs without hint - ignore
+                        if i < len(output_names):
+                            output_types[output_names[i]] = t
         return input_types, output_types
 
     def _infer_input_names(self, args) -> List[str]:
@@ -213,7 +212,7 @@ class BaseCaller:
             frame = inspect.currentframe().f_back
         except (AttributeError, ValueError, IndexError, TypeError):
             frame = None
-        input_types, output_types = self._get_call_types_from_signature(frame, input_names)
+        input_types, output_types = self._get_call_types_from_signature(frame, input_names, output_names)
 
         # Create and run the module
         module = self._create_module(
