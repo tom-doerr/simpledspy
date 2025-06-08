@@ -1,11 +1,12 @@
+"""Tests for predict module"""
 import pytest
-from simpledspy import predict, chain_of_thought
-from simpledspy.module_caller import Predict
 import dspy
 from unittest.mock import patch, MagicMock
 from typing import Tuple, List, Dict, Optional
+from simpledspy import predict, chain_of_thought
 
 def test_basic_string_output():
+    """Test basic string output functionality"""
     """Test basic string output"""
     # Save original LM and reset after test
     original_lm = dspy.settings.lm
@@ -30,6 +31,7 @@ def test_basic_string_output():
         dspy.settings.lm = original_lm
 
 def test_chain_of_thought():
+    """Test chain of thought functionality"""
     """Test chain_of_thought function"""
     with patch('simpledspy.module_caller.ChainOfThought._create_module') as mock_create:
         # Create a mock module that properly handles forward calls
@@ -44,6 +46,7 @@ def test_chain_of_thought():
         assert result == "result"
 
 def test_custom_input_output_names():
+    """Test custom input/output names"""
     """Test predict function with custom input/output names"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create a mock module
@@ -66,6 +69,7 @@ def test_custom_input_output_names():
         assert age == 30
 
 def test_predict_multiple_outputs():
+    """Test multiple outputs functionality"""
     """Test predict function with multiple outputs"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create a mock module that returns multiple outputs
@@ -91,6 +95,7 @@ def test_predict_multiple_outputs():
         assert b_repeated == 'abcabc'
         
 def test_predict_unpack_error():
+    """Test unpack error handling"""
     """Test error when unpacking wrong number of outputs"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module that returns single output
@@ -103,10 +108,11 @@ def test_predict_unpack_error():
         # Use without specifying outputs (default is single output)
         # But try to unpack to two variables
         with pytest.raises(AttributeError) as exc_info:
-            a, b = predict("input1", "input2")
+            _a, _b = predict("input1", "input2")
         assert "Output field" in str(exc_info.value)
 
 def test_input_variable_names_inference():
+    """Test input variable name inference"""
     """Test that input variable names are correctly inferred"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module
@@ -121,7 +127,7 @@ def test_input_variable_names_inference():
         last_name = "Doe"
         
         # Call predict with variables
-        result = predict(first_name, last_name)
+        _result = predict(first_name, last_name)
         
         # Get the input names passed to create_module
         call_args = mock_create.call_args
@@ -132,8 +138,10 @@ def test_input_variable_names_inference():
         assert input_names in (['first_name', 'last_name'], ['arg0', 'arg1'])
 
 def test_input_variable_names_fallback():
+    """Test fallback for input variable names"""
     """Test fallback to generated names when inference fails"""
-    with patch('simpledspy.module_caller.dis.get_instructions', side_effect=Exception("mocked error")):
+    with patch('simpledspy.module_caller.dis.get_instructions', 
+               side_effect=Exception("mocked error")):
         with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
             # Create mock module
             class MockModule(dspy.Module):
@@ -143,7 +151,7 @@ def test_input_variable_names_fallback():
             mock_create.return_value = MockModule()
                 
             # Call predict with values
-            result = predict("John", "Doe")
+            _result = predict("John", "Doe")
                 
             # Get the input names passed to create_module
             call_args = mock_create.call_args
@@ -154,7 +162,7 @@ def test_input_variable_names_fallback():
 
 
 @patch('simpledspy.module_caller.Logger.log')
-def test_input_output_type_hints(self, mock_log):
+def test_input_output_type_hints(_mock_log):
     """Test that type hints are properly propagated to module signatures"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module
@@ -187,7 +195,7 @@ def test_input_output_type_hints(self, mock_log):
 
 
 @patch('simpledspy.module_caller.Logger.log')
-def test_complex_type_hints(self, mock_log):
+def test_complex_type_hints(_mock_log):
     """Test complex type hints like List and Optional"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module

@@ -7,9 +7,9 @@ Provides:
 - State reset functionality
 """
 
+import threading
 from typing import Any, List, Tuple, Dict
 import dspy
-import threading
 
 class PipelineManager:
     """Manages DSPy pipeline construction and execution
@@ -30,6 +30,11 @@ class PipelineManager:
                 cls._instance = super().__new__(cls)
                 cls._instance._steps = []
         return cls._instance
+
+    def __init__(self) -> None:
+        """Initialize pipeline manager instance"""
+        if not hasattr(self, '_steps'):
+            self._steps = []
 
     def register_step(self, inputs: List[str], outputs: List[str], module: Any) -> None:
         """Register a pipeline step with input/output specifications

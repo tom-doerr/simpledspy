@@ -248,7 +248,7 @@ class Predict(BaseCaller):
 class ChainOfThought(BaseCaller):
     """ChainOfThought module caller"""
     
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments, R0917
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,
