@@ -4,8 +4,9 @@ Provides base classes for Predict and ChainOfThought function calls
 """
 
 import dis
-import dspy
+import inspect
 from typing import List, Dict, Any, Tuple
+import dspy
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
@@ -15,7 +16,7 @@ class BaseCaller:
     """Base class for DSPy module callers"""
     _instances = {}
     
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls):
         if cls not in cls._instances:
             instance = super().__new__(cls)
             cls._instances[cls] = instance
@@ -41,8 +42,6 @@ class BaseCaller:
 
     def _infer_output_names(self, frame: Any) -> List[str]:
         """Infer output names based on assignment context"""
-        import inspect
-        
         if frame is None:
             return ["output"]
         
@@ -52,7 +51,7 @@ class BaseCaller:
             if not lines:
                 return ["output"]
             line = lines[0].strip().replace('(', ' ').replace(')', ' ')
-        except Exception:
+        except (AttributeError, IndexError, TypeError):
             return ["output"]
         
         # Handle single assignment without commas: names = predict(...)
@@ -70,10 +69,9 @@ class BaseCaller:
             
         return output_names
 
-    def _get_call_types_from_signature(self, frame: Any, input_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
+    def _get_call_types_from_signature(self, frame: Any, 
+            input_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
         """Get input/output types from function signature"""
-        import inspect
-        
         input_types = {}
         output_types = {}
         if frame is None:
@@ -85,7 +83,8 @@ class BaseCaller:
         # Get the function where the call happened
         func_name = caller_frame.f_code.co_name
         try:
-            if func_name in caller_globals and isinstance(caller_globals[func_name], type):
+            if func_name in caller_globals and isinstance(
+                    caller_globals[func_name], type):
                 # It's a class, get the method
                 if func_name in caller_locals:
                     func = caller_locals[func_name]
@@ -93,7 +92,8 @@ class BaseCaller:
                     func = caller_globals[func_name]
             else:
                 func = caller_globals.get(func_name, None)
-            if not (callable(func) or (isinstance(func, type) and hasattr(func, func_name))):
+            if not (callable(func) or (isinstance(func, type) and 
+                    hasattr(func, func_name))):
                 func = None
         except (AttributeError, KeyError, TypeError):
             func = None
@@ -121,14 +121,13 @@ class BaseCaller:
                 # For multiple outputs without hint - ignore
         return input_types, output_types
 
-    def __call__(self, *args, inputs: List[str] = None, outputs: List[str] = None, description: str = None, lm_params: dict = None) -> Any:
-        if not hasattr(self, 'FUNCTION_NAME'):
-            self.FUNCTION_NAME = 'base_caller'
+    def __call__(self, *args, inputs: List[str] = None, 
+            outputs: List[str] = None, description: str = None, 
+            lm_params: dict = None) -> Any:
         # Use custom input names if provided, otherwise generate meaningful defaults
         if inputs is None:
             # Try to get the names of the variables passed as arguments
             try:
-                import inspect
                 frame = inspect.currentframe().f_back
                 code = frame.f_code
                 call_index = frame.f_lasti
@@ -150,7 +149,8 @@ class BaseCaller:
                         # We go backwards from the current instruction
                         for j in range(i+1):
                             prev_inst = instructions[i - j]
-                            if prev_inst.opname in ['LOAD_NAME', 'LOAD_FAST', 'LOAD_GLOBAL', 'LOAD_DEREF']:
+                            if prev_inst.opname in ['LOAD_NAME', 'LOAD_FAST', 
+                                    'LOAD_GLOBAL', 'LOAD_DEREF']:
                                 arg_names.append(prev_inst.argval)
                                 break
                         else:
@@ -158,7 +158,7 @@ class BaseCaller:
                     input_names = arg_names
                 else:
                     input_names = [f"arg{i}" for i in range(len(args))]
-            except Exception:
+            except (AttributeError, ValueError, IndexError, TypeError):
                 input_names = [f"arg{i}" for i in range(len(args))]
         else:
             if len(inputs) != len(args):
@@ -168,10 +168,9 @@ class BaseCaller:
         # Use custom output names if provided, otherwise try to infer from the assignment
         if outputs is None:
             try:
-                import inspect
                 frame = inspect.currentframe().f_back
                 output_names = self._infer_output_names(frame)
-            except Exception:
+            except (AttributeError, ValueError, IndexError, TypeError):
                 output_names = ["output"]
         else:
             output_names = outputs
@@ -181,9 +180,8 @@ class BaseCaller:
         output_types = {}
         frame = None
         try:
-            import inspect
             frame = inspect.currentframe().f_back
-        except Exception:
+        except (AttributeError, ValueError, IndexError, TypeError):
             pass
         input_types, output_types = self._get_call_types_from_signature(frame, input_names)
 
@@ -222,7 +220,7 @@ class BaseCaller:
         
         # Log inputs and outputs
         self.logger.log({
-            'module': self.FUNCTION_NAME,
+            'module': self.__class__.__name__.lower(),
             'inputs': input_dict,
             'outputs': dict(zip(output_names, output_values)),
             'description': description
@@ -235,11 +233,10 @@ class BaseCaller:
 
 class Predict(BaseCaller):
     """Predict module caller - replaces pipe() function"""
-    FUNCTION_NAME = 'predict'
+    pass
 
 class ChainOfThought(BaseCaller):
     """ChainOfThought module caller"""
-    FUNCTION_NAME = 'chain_of_thought'
     
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
