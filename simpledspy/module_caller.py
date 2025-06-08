@@ -20,7 +20,6 @@ class BaseCaller:
         if cls not in cls._instances:
             instance = super().__new__(cls)
             cls._instances[cls] = instance
-            instance.pipeline_manager = PipelineManager()
             instance.module_factory = ModuleFactory()
             instance.optimization_manager = OptimizationManager()
             instance.lm = dspy.LM(model="deepseek/deepseek-chat")
@@ -166,15 +165,6 @@ class BaseCaller:
         else:
             return module(**input_dict)
     
-    def _process_results(self, prediction_result, output_names, module, input_names):
-        """Process and validate module results"""
-        # Check that the module returned the expected outputs
-        for name in output_names:
-            if not hasattr(prediction_result, name):
-                raise AttributeError(f"Output field '{name}' not found in prediction result")
-        self.pipeline_manager.register_step(inputs=input_names, outputs=output_names, module=module)
-        return [getattr(prediction_result, name) for name in output_names]
-    
     def _log_results(self, input_dict, output_names, output_values, description):
         """Log module inputs and outputs"""
         self.logger.log({
@@ -229,7 +219,10 @@ class BaseCaller:
         prediction_result = self._run_module(module, input_dict, lm_params)
         
         # Process and validate results
-        output_values = self._process_results(prediction_result, output_names, module, input_names)
+        for name in output_names:
+            if not hasattr(prediction_result, name):
+                raise AttributeError(f"Output field '{name}' not found in prediction result")
+        output_values = [getattr(prediction_result, name) for name in output_names]
         
         # Log results
         self._log_results(input_dict, output_names, output_values, description)
