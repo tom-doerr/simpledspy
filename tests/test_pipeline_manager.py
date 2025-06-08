@@ -48,7 +48,7 @@ def test_pipeline_reset():
     manager.reset()
     assert len(manager._steps) == 0
     with pytest.raises(ValueError):
-        pipeline = manager.assemble_pipeline()
+        _ = manager.assemble_pipeline()  # unused variable
 
 def test_pipeline_assembly():
     """Test assembling a pipeline with multiple steps"""
@@ -92,7 +92,7 @@ def test_missing_input():
     pipeline = manager.assemble_pipeline()
     
     with pytest.raises(ValueError):
-        result = pipeline()  # Missing input
+        _ = pipeline()  # Missing input (unused variable)
 
 def test_missing_output():
     """Test missing output in pipeline execution"""
