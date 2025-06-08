@@ -8,7 +8,7 @@ class ModuleFactory:
     def create_signature(self, inputs: List[str], outputs: List[str], 
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,
-                    description: str = "") -> d极spy.Signature:
+                    description: str = "") -> dspy.Signature:
         """Create DSPy signature from inputs/outputs"""
         signature_fields = {}
         
