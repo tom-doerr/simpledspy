@@ -89,19 +89,3 @@ class Pipeline(dspy.Module):
         
         return dspy.Prediction(**all_outputs)
 
-    def assemble_pipeline(self) -> dspy.Module:
-        """Assembles and returns a DSPy pipeline from registered steps
-        
-        The pipeline is constructed as a DSPy Module that chains together
-        the registered steps. Each step's output becomes available for
-        subsequent steps as inputs.
-        
-        Returns:
-            dspy.Module: The assembled pipeline module
-            
-        Raises:
-            ValueError: If no steps are registered
-        """
-        if not self._steps:
-            raise ValueError("Cannot assemble an empty pipeline")
-        return Pipeline(self._steps)
