@@ -28,6 +28,7 @@ class BaseCaller:
             dspy.configure(lm=instance.lm, cache=False)
         return cls._instances[cls]
     
+    # pylint: disable=too-many-arguments
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,
@@ -69,6 +70,7 @@ class BaseCaller:
             
         return output_names
 
+    # pylint: disable=too-many-locals,too-many-branches
     def _get_call_types_from_signature(self, frame: Any, 
             input_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
         """Get input/output types from function signature"""
@@ -235,12 +237,15 @@ class BaseCaller:
         # Return single value or tuple
         return output_values[0] if len(output_values) == 1 else tuple(output_values)
 
+# pylint: disable=too-few-public-methods
 class Predict(BaseCaller):
     """Predict module caller - replaces pipe() function"""
 
+# pylint: disable=too-few-public-methods
 class ChainOfThought(BaseCaller):
     """ChainOfThought module caller"""
     
+    # pylint: disable=too-many-arguments
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,
