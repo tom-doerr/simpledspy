@@ -100,25 +100,29 @@ class BaseCaller:
             func = None
             
         if func:
-            signature = inspect.signature(func, follow_wrapped=True)
-            # Get the type hints for parameters in the calling function
-            for param_name in signature.parameters:
-                if param_name in input_names:
-                    param = signature.parameters[param_name]
-                    if param.annotation != inspect.Parameter.empty:
-                        input_types[param_name] = param.annotation
-            # Get the type hints for return value
-            return_ann = signature.return_annotation
-            if return_ann != inspect.Signature.empty:
-                # For single output, set type for the output name
-                if len(output_names) == 1:
-                    output_types[output_names[0]] = return_ann
-                # For multiple outputs with Tuple type hints
-                elif hasattr(return_ann, '__args__') and len(return_ann.__args__) == len(output_names):
-                    tuple_types = return_ann.__args__
-                    for i, t in enumerate(tuple_types):
-                        if i < len(output_names):
-                            output_types[output_names[i]] = t
+            try:
+                signature = inspect.signature(func, follow_wrapped=True)
+                # Get the type hints for parameters in the calling function
+                for param_name in signature.parameters:
+                    if param_name in input_names:
+                        param = signature.parameters[param_name]
+                        if param.annotation != inspect.Parameter.empty:
+                            input_types[param_name] = param.annotation
+                # Get the type hints for return value
+                return_ann = signature.return_annotation
+                if return_ann != inspect.Signature.empty:
+                    # For single output, set type for the output name
+                    if len(output_names) == 1:
+                        output_types[output_names[0]] = return_ann
+                    # For multiple outputs with Tuple type hints
+                    elif hasattr(return_ann, '__args__') and len(return_ann.__args__) == len(output_names):
+                        tuple_types = return_ann.__args__
+                        for i, t in enumerate(tuple_types):
+                            if i < len(output_names):
+                                output_types[output_names[i]] = t
+            except (ValueError, TypeError):
+                # Skip signature issues in nested functions
+                pass
         return input_types, output_types
 
     def _infer_input_names(self, args) -> List[str]:
