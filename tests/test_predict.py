@@ -1,13 +1,12 @@
 """Tests for predict module"""
-import pytest
-import dspy
 from unittest.mock import patch, MagicMock
 from typing import Tuple, List, Dict, Optional
+import pytest
+import dspy
 from simpledspy import predict, chain_of_thought
 
 def test_basic_string_output():
     """Test basic string output functionality"""
-    """Test basic string output"""
     # Save original LM and reset after test
     original_lm = dspy.settings.lm
     try:
@@ -19,7 +18,9 @@ def test_basic_string_output():
         with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
             # Create a mock module that returns a simple string
             class MockModule(dspy.Module):
-                def forward(self, **kwargs):
+                """Mock module for testing"""
+                def forward(self, **_):
+                    """Mock forward method"""
                     return dspy.Prediction(result="Mocked Hello")
                 
             mock_create.return_value = MockModule()
@@ -32,11 +33,12 @@ def test_basic_string_output():
 
 def test_chain_of_thought():
     """Test chain of thought functionality"""
-    """Test chain_of_thought function"""
     with patch('simpledspy.module_caller.ChainOfThought._create_module') as mock_create:
         # Create a mock module that properly handles forward calls
         class MockModule(dspy.Module):
-            def forward(self, **kwargs):
+            """Mock module for testing"""
+            def forward(self, **_):
+                """Mock forward method"""
                 return dspy.Prediction(result="result")
             
         mock_create.return_value = MockModule()
@@ -47,11 +49,12 @@ def test_chain_of_thought():
 
 def test_custom_input_output_names():
     """Test custom input/output names"""
-    """Test predict function with custom input/output names"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create a mock module
         class MockModule(dspy.Module):
-            def forward(self, **kwargs):
+            """Mock module for testing"""
+            def forward(self, **_):
+                """Mock forward method"""
                 return dspy.Prediction(full_name="John Doe", age=30)
             
         mock_create.return_value = MockModule()
@@ -70,11 +73,12 @@ def test_custom_input_output_names():
 
 def test_predict_multiple_outputs():
     """Test multiple outputs functionality"""
-    """Test predict function with multiple outputs"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create a mock module that returns multiple outputs
         class MockModule(dspy.Module):
-            def forward(self, **kwargs):
+            """Mock module for testing"""
+            def forward(self, **_):
+                """Mock forward method"""
                 return dspy.Prediction(
                     a_reversed='lkj', 
                     b_repeated='abcabc'
@@ -96,11 +100,12 @@ def test_predict_multiple_outputs():
         
 def test_predict_unpack_error():
     """Test unpack error handling"""
-    """Test error when unpacking wrong number of outputs"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module that returns single output
         class MockModule(dspy.Module):
-            def forward(self, **kwargs):
+            """Mock module for testing"""
+            def forward(self, **_):
+                """Mock forward method"""
                 return dspy.Prediction(output0="single value")
             
         mock_create.return_value = MockModule()
@@ -113,11 +118,12 @@ def test_predict_unpack_error():
 
 def test_input_variable_names_inference():
     """Test input variable name inference"""
-    """Test that input variable names are correctly inferred"""
     with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
         # Create mock module
         class MockModule(dspy.Module):
-            def forward(self, **kwargs):
+            """Mock module for testing"""
+            def forward(self, **_):
+                """Mock forward method"""
                 return dspy.Prediction(output0="result")
         
         mock_create.return_value = MockModule()
@@ -139,13 +145,14 @@ def test_input_variable_names_inference():
 
 def test_input_variable_names_fallback():
     """Test fallback for input variable names"""
-    """Test fallback to generated names when inference fails"""
     with patch('simpledspy.module_caller.dis.get_instructions', 
                side_effect=Exception("mocked error")):
         with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
             # Create mock module
             class MockModule(dspy.Module):
-                def forward(self, **kwargs):
+                """Mock module for testing"""
+                def forward(self, **_):
+                    """Mock forward method"""
                     return dspy.Prediction(result="result")
                 
             mock_create.return_value = MockModule()
@@ -179,8 +186,8 @@ def test_input_output_type_hints(_mock_log):
         
         # Check module creation call
         call_args = mock_create.call_args[1]
-        input_names = call_args['inputs']
-        output_names = call_args['outputs']
+        _input_names = call_args['inputs']
+        _output_names = call_args['outputs']
         input_types = call_args['input_types']
         output_types = call_args['output_types']
         
