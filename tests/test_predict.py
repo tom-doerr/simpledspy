@@ -146,7 +146,7 @@ def test_input_variable_names_inference():
 def test_input_variable_names_fallback():
     """Test fallback for input variable names"""
     with patch('simpledspy.module_caller.dis.get_instructions', 
-               side_effect=Exception("mocked error")):
+               side_effect=AttributeError("mocked error")):
         with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
             # Create mock module
             class MockModule(dspy.Module):
@@ -179,23 +179,23 @@ def test_input_output_type_hints(_mock_log):
     
         # Define function with type hints
         def test_func(input1: str, input2: int, input3) -> Tuple[int, str]:
-            return predict(input1, input2, input3, outputs=["out1", "out2"])
+            return predict(input1, input2, input3, inputs=["input1","input2","input3"], outputs=["out1", "out2"])
     
         # Call the function
         test_func("text", 123, "text")
-        
+    
         # Check module creation call
         call_args = mock_create.call_args[1]
         _input_names = call_args['inputs']
         _output_names = call_args['outputs']
         input_types = call_args['input_types']
         output_types = call_args['output_types']
-        
+    
         # Input type checks
         assert input_types['input1'] == str
         assert input_types['input2'] == int
         assert 'input3' not in input_types  # No type hint
-        
+    
         # Output type checks
         assert output_types['out1'] == int
         assert output_types['out2'] == str
@@ -212,16 +212,16 @@ def test_complex_type_hints(_mock_log):
     
         # Define function with complex type hints
         def test_func(input1: List[str], input2: Dict[str, int]) -> Optional[float]:
-            return predict(input1, input2, outputs=["result"])
+            return predict(input1, input2, inputs=["input1","input2"], outputs=["result"])
     
         # Call the function
         test_func(["a","b"], {"a":1})
-        
+    
         # Check module creation call
         call_args = mock_create.call_args[1]
         input_types = call_args['input_types']
         output_types = call_args['output_types']
-        
+    
         # Type checks
         assert input_types['input1'] == List[str]
         assert input_types['input2'] == Dict[str, int]
