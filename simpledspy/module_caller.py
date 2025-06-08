@@ -144,17 +144,23 @@ class BaseCaller:
                     break
             if current_instruction and current_instruction.opname == 'CALL_FUNCTION':
                 arg_names = []
-                for i in range(len(args)):
-                    # Look for LOAD_NAME or LOAD_FAST instructions before the call
-                    # We go backwards from the current instruction
-                    for j in range(i+1):
-                        prev_inst = instructions[i - j]
-                        if prev_inst.opname in ['LOAD_NAME', 'LOAD_FAST', 
-                                'LOAD_GLOBAL', 'LOAD_DEREF']:
-                            arg_names.append(prev_inst.argval)
-                            break
+                # Start from the instruction before the call and go backwards
+                start_index = i - 1
+                # We'll collect the argument instructions in reverse order
+                for j in range(len(args)):
+                    idx = start_index - j
+                    if idx < 0:
+                        break
+                    inst = instructions[idx]
+                    if inst.opname in ['LOAD_NAME', 'LOAD_FAST', 'LOAD_GLOBAL', 'LOAD_DEREF']:
+                        arg_names.append(inst.argval)
                     else:
-                        arg_names.append(f"arg{i}")
+                        break
+                # Reverse to get the correct left-to-right order
+                arg_names.reverse()
+                if len(arg_names) < len(args):
+                    # If we didn't get enough names, fill the rest with fallbacks
+                    arg_names += [f"arg{k}" for k in range(len(arg_names), len(args))]
                 return arg_names
             return [f"arg{i}" for i in range(len(args))]
         except (AttributeError, ValueError, IndexError, TypeError):
