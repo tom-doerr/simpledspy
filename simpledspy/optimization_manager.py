@@ -64,8 +64,8 @@ class OptimizationManager:
         if strategy == 'simba':
             return self._teleprompters[strategy](
                 metric=self._config['metric'],
-                max_steps=self._config['max_steps'],
-                max_demos=self._config['max_demos']
+                num_steps=self._config['max_steps'],
+                num_trials=self._config['max_demos']
             )
         return self._teleprompters[strategy](
             metric=self._config['metric']

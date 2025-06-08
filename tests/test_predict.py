@@ -21,7 +21,7 @@ def test_basic_string_output():
                 """Mock module for testing"""
                 def forward(self, **_):
                     """Mock forward method"""
-                    return dspy.Prediction(output="Mocked Hello")
+                    return dspy.Prediction(result="Mocked Hello")
                 
             mock_create.return_value = MockModule()
                 
@@ -127,12 +127,19 @@ def test_variable_name_preservation():
                 return dspy.Prediction(output="test")
             
         with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()):
-            # Define variables
-            poem_text = "Roses are red"
-            flag = True
+            # Enable logging for this test
+            original_logging_setting = global_settings.logging_enabled
+            global_settings.logging_enabled = True
+        
+            try:
+                # Define variables
+                poem_text = "Roses are red"
+                flag = True
                 
-            # Call predict and capture output
-            predict(poem_text, flag, description="Process poem", outputs=["output"])
+                # Call predict and capture output
+                predict(poem_text, flag, description="Process poem", outputs=["output"])
+            finally:
+                global_settings.logging_enabled = original_logging_setting
                 
             # Get the log call arguments
             args, _ = mock_log.call_args
@@ -178,7 +185,7 @@ def test_input_variable_name_inference():
         predict(args, kwargs, self)
         call_args = mock_create.call_args
         input_names = call_args[1]['inputs']
-        # Reserved names should be filtered out
+        # Sanitized names should be used
         assert input_names == ['arg0', 'arg1', 'arg2']
         
         # Test with unnamed values

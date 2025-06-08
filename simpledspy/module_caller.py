@@ -294,6 +294,12 @@ class BaseCaller:
             if len(inputs) != len(args):
                 raise ValueError(f"Expected {len(args)} input names, got {len(inputs)}")
             input_names = inputs
+
+        # Sanitize input names to avoid reserved words
+        reserved = ['args', 'kwargs', 'self']
+        for i, name in enumerate(input_names):
+            if name in reserved:
+                input_names[i] = f'arg{i}'
         
         # Infer output names if not provided
         if outputs is None:
