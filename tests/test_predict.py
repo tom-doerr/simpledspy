@@ -132,7 +132,7 @@ def test_variable_name_preservation():
             flag = True
             
             # Call predict and capture output
-            output = predict(poem_text, flag, description="Process poem")
+            predict(poem_text, flag, description="Process poem")
             
             # Verify captured names
             args, _ = mock_log.call_args
