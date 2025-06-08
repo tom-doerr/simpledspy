@@ -6,17 +6,17 @@ from simpledspy.logger import Logger
 
 def test_logger_init_creates_file():
     """Test that Logger creates the log file on init"""
-    with tempfile.TemporaryDirectory():
+    with tempfile.TemporaryDirectory() as tmpdir:
         module_name = "test_module"
-        logger = Logger(module_name)
+        logger = Logger(module_name, base_dir=tmpdir)
         assert os.path.exists(logger.logged_file)
         assert os.path.exists(logger.training_file)
 
 def test_logger_appends_data():
     """Test that log() appends JSON lines to file"""
-    with tempfile.TemporaryDirectory():
+    with tempfile.TemporaryDirectory() as tmpdir:
         module_name = "test_module"
-        logger = Logger(module_name)
+        logger = Logger(module_name, base_dir=tmpdir)
         
         # Add first log entry
         data1 = {"test": "data1"}
