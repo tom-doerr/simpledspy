@@ -38,4 +38,7 @@ def configure(**kwargs):
     for key, value in kwargs.items():
         setattr(global_settings, key, value)
 
-__all__ = ['predict', 'chain_of_thought', 'PipelineManager', 'ModuleFactory', 'configure']
+# Package version
+__version__ = "0.3.0"
+
+__all__ = ['predict', 'chain_of_thought', 'PipelineManager', 'ModuleFactory', 'configure', '__version__']
