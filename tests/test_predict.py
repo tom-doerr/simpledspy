@@ -186,6 +186,21 @@ def test_input_variable_name_inference():
         call_args = mock_create.call_args
         input_names = call_args[1]['inputs']
         assert input_names == ['arg0', 'arg1']
+        
+        # Test with instance variables
+        class TestClass:
+            def __init__(self):
+                self.context = "test context"
+                self.options = "test options"
+                
+            def test_method(self):
+                predict(self.context, self.options)
+                
+        test_obj = TestClass()
+        test_obj.test_method()
+        call_args = mock_create.call_args
+        input_names = call_args[1]['inputs']
+        assert input_names == ['context', 'options']
 
 
 @patch('simpledspy.module_caller.Logger.log')

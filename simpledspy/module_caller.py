@@ -125,6 +125,45 @@ class BaseCaller:
             if frame is None:
                 return [f"arg{i}" for i in range(len(args))]
             
+            # Get the code context of the call
+            context_lines = inspect.getframeinfo(frame).code_context
+            if not context_lines:
+                return [f"arg{i}" for i in range(len(args))]
+                
+            call_line = context_lines[0].strip()
+            
+            # Parse the call expression to get the argument expressions
+            try:
+                import ast
+                tree = ast.parse(call_line)
+                call_node = None
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Call):
+                        call_node = node
+                        break
+                if call_node is None:
+                    return [f"arg{i}" for i in range(len(args))]
+                    
+                arg_exprs = []
+                for arg in call_node.args:
+                    # Convert the AST node back to source
+                    arg_src = ast.unparse(arg).strip()
+                    arg_exprs.append(arg_src)
+            except (SyntaxError, ImportError, TypeError):
+                arg_exprs = []
+                
+            # If we have the same number of argument expressions as args, use them
+            if len(arg_exprs) == len(args):
+                arg_names = []
+                for expr in arg_exprs:
+                    # Handle instance variables: self.var -> var
+                    if expr.startswith('self.'):
+                        arg_names.append(expr.split('.', 1)[1])
+                    else:
+                        arg_names.append(expr)
+                return arg_names
+                
+            # Fallback to the old method
             # Get all local and global variables from the calling frame
             all_vars = {**frame.f_globals, **frame.f_locals}
             
