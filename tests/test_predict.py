@@ -116,32 +116,34 @@ def test_predict_unpack_error():
             _a, _b = predict("input1", "input2")
         assert "Output field" in str(exc_info.value)
 
-def test_input_variable_names_inference():
-    """Test input variable name inference"""
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+def test_variable_name_preservation():
+    """Test original variable names are preserved in logs"""
+    with patch('simpledspy.module_caller.Logger.log') as mock_log:
         # Create mock module
         class MockModule(dspy.Module):
             """Mock module for testing"""
             def forward(self, **_):
                 """Mock forward method"""
-                return dspy.Prediction(output="result")
-    
-        mock_create.return_value = MockModule()
-    
-        # Define variables with specific names
-        first_name = "John"
-        last_name = "Doe"
-    
-        # Call predict with variables
-        predict(first_name, last_name)
-    
-        # Get the input names passed to create_module
-        call_args = mock_create.call_args
-        input_names = call_args[1]['inputs']
-    
-        # In test environments, variable names may not be inferable
-        # Accept either the expected names or fallback names
-        assert input_names in (['first_name', 'last_name'], ['arg0', 'arg1'])
+                return dspy.Prediction(result="test")
+        
+        with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()):
+            # Define variables
+            poem_text = "Roses are red"
+            flag = True
+            
+            # Call predict
+            result = predict(poem_text, flag, description="Process poem")
+            
+            # Verify captured names
+            args, _ = mock_log.call_args
+            log_data = args[0]
+            inputs_data = log_data["inputs"]
+            # Check that inputs are logged with original names
+            assert len(inputs_data) == 2
+            assert inputs_data[0]['name'] == 'poem_text'
+            assert inputs_data[0]['value'] == "Roses are red"
+            assert inputs_data[1]['name'] == 'flag'
+            assert inputs_data[1]['value'] is True
 
 def test_input_variable_names_fallback():
     """Test fallback for input variable names"""

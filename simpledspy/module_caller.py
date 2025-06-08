@@ -226,10 +226,28 @@ class BaseCaller:
     def __call__(self, *args, inputs: List[str] = None, 
             outputs: List[str] = None, description: str = None, 
             lm_params: dict = None) -> Any:
+        # Inspect variables if names needed
+        captured_vars = {}
+        if inputs is None:
+            try:
+                # Capture possible local/global variables
+                frame = inspect.currentframe().f_back
+                captured_vars = {**frame.f_locals, **frame.f_globals} if frame else {}
+            except Exception:
+                captured_vars = {}
+        
         # Infer input names if not provided
         if inputs is None:
             try:
                 input_names = self._infer_input_names(args)
+                # Map from values to names for preserving original names
+                value_to_name = {id(v): name for name, v in captured_vars.items()}
+                # Try to map each argument to its original name
+                reserved = ['args', 'kwargs', 'self']
+                for idx, arg in enumerate(args):
+                    arg_id = id(arg)
+                    if arg_id in value_to_name and value_to_name[arg_id] not in reserved:
+                        input_names[idx] = value_to_name[arg_id]
             except (AttributeError, ValueError, IndexError, TypeError):
                 input_names = [f"arg{i}" for i in range(len(args))]
         else:
