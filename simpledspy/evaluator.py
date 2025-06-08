@@ -7,6 +7,7 @@ Features:
 
 import re
 import time
+import json
 from typing import Dict, List
 import dspy
 from .logger import Logger
@@ -80,13 +81,14 @@ class Evaluator:
         # Get current timestamp
         timestamp = time.time()
         
-        # Log to file
-        self.logger.log({
+        # Log to file - convert complex fields to JSON strings
+        log_data = {
             'module': module,
-            'inputs': inputs,
-            'outputs': outputs,
+            'inputs': json.dumps(inputs) if isinstance(inputs, dict) else str(inputs),
+            'outputs': json.dumps(outputs) if isinstance(outputs, dict) else str(outputs),
             'description': description,
-            'instructions': instructions,
+            'instructions': json.dumps(instructions) if isinstance(instructions, list) else str(instructions),
             'score': score,
             'timestamp': timestamp
-        })
+        }
+        self.logger.log(log_data)
