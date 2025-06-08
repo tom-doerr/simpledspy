@@ -1,7 +1,4 @@
-import pytest
-import subprocess
-import sys
-import dspy
+"""Tests for the CLI interface"""
 from unittest.mock import patch, MagicMock
 from simpledspy.cli import main
 
@@ -10,7 +7,7 @@ def test_cli_direct_input(capsys):
     # Mock the arguments
     with patch('sys.argv', ['cli.py', 'Hello, world!', '-d', 'extract the greeting']):
         # Mock the ModuleFactory and module
-        with patch('simpledspy.cli.ModuleFactory') as MockFactory:
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory:  # pylint: disable=invalid-name
             mock_factory = MockFactory.return_value
             mock_module = MagicMock()
             mock_factory.create_module.return_value = mock_module
@@ -26,9 +23,13 @@ def test_cli_direct_input(capsys):
 def test_cli_multiple_inputs(capsys):
     """Test CLI with multiple input arguments"""
     # Mock the arguments
-    with patch('sys.argv', ['cli.py', 'apple banana cherry', 'orange grape', '-d', 'extract the first word from each list']):
+    with patch(
+        'sys.argv', 
+        ['cli.py', 'apple banana cherry', 'orange grape', '-d', 
+         'extract the first word from each list']
+    ):
         # Mock the ModuleFactory and module
-        with patch('simpledspy.cli.ModuleFactory') as MockFactory:
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory:  # pylint: disable=invalid-name
             mock_factory = MockFactory.return_value
             mock_module = MagicMock()
             mock_factory.create_module.return_value = mock_module
@@ -42,7 +43,7 @@ def test_cli_multiple_inputs(capsys):
             assert "apple" in captured.out
             assert "orange" in captured.out
 
-def test_cli_stdin(capsys, monkeypatch):
+def test_cli_stdin(capsys):
     """Test CLI with stdin input"""
     # We cannot easily mock stdin by opening a file, so instead we mock sys.stdin.isatty and sys.stdin.read
     # The CLI uses sys.stdin.isatty() to check if there's data, and then reads sys.stdin.read()
@@ -51,7 +52,7 @@ def test_cli_stdin(capsys, monkeypatch):
         with patch('sys.stdin.read', return_value='Hello, world!'):
             with patch('sys.argv', ['cli.py', '-d', 'extract the first word']):
                 # Mock the ModuleFactory and module
-                with patch('simpledspy.cli.ModuleFactory') as MockFactory:
+                with patch('simpledspy.cli.ModuleFactory') as MockFactory:  # pylint: disable=invalid-name
                     mock_factory = MockFactory.return_value
                     mock_module = MagicMock()
                     mock_factory.create_module.return_value = mock_module
@@ -83,13 +84,13 @@ def test_cli_optimization(capsys):
     # Mock the arguments
     with patch('sys.argv', ['cli.py', 'Hello, world!', '-d', 'extract the greeting', '--optimize']):
         # Mock dependencies
-        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
-             patch('simpledspy.optimization_manager.OptimizationManager') as MockOptManager:
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \  # pylint: disable=invalid-name
+             patch('simpledspy.optimization_manager.OptimizationManager') as MockOptManager:  # pylint: disable=invalid-name
             
             # Setup mock module
             mock_factory = MockFactory.return_value
             mock_module = MagicMock()
-            mock_module._compiled = False
+            mock_module._compiled = False  # pylint: disable=protected-access
             mock_module.reset_copy = lambda: mock_module
             mock_factory.create_module.return_value = mock_module
             mock_module.return_value = MagicMock(output="Optimized Hello")
@@ -111,13 +112,13 @@ def test_cli_pipeline(capsys):
     with patch('sys.argv', ['cli.py', 'Hello, world!', '--pipeline', 
                            'Step 1 description', 'Step 2 description']):
         # Mock dependencies
-        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \
-             patch('simpledspy.cli.PipelineManager') as MockPipelineManager:
+        with patch('simpledspy.cli.ModuleFactory') as MockFactory, \  # pylint: disable=invalid-name
+             patch('simpledspy.cli.PipelineManager') as MockPipelineManager:  # pylint: disable=invalid-name
     
             # Setup mock module factory
             mock_factory = MockFactory.return_value
             # Create mock modules that return actual Prediction objects
-            class MockPrediction:
+            class MockPrediction:  # pylint: disable=missing-docstring
                 def __init__(self, result_dict):
                     for key, value in result_dict.items():
                         setattr(self, key, value)
@@ -147,7 +148,7 @@ def test_cli_pipeline(capsys):
                 
             # Assign the mock pipeline to the manager
             # Create a function that returns the SimpleResult directly
-            class SimpleResult:
+            class SimpleResult:  # pylint: disable=missing-docstring
                 def __init__(self, **kwargs):
                     for key, value in kwargs.items():
                         setattr(self, key, value)

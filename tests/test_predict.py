@@ -133,7 +133,7 @@ def test_input_variable_names_inference():
         last_name = "Doe"
             
         # Call predict with variables
-        result = predict(first_name, last_name)
+        predict(first_name, last_name)
             
         # Get the input names passed to create_module
         call_args = mock_create.call_args
@@ -158,7 +158,7 @@ def test_input_variable_names_fallback():
             mock_create.return_value = MockModule()
                 
             # Call predict with values
-            result = predict("John", "Doe")
+            predict("John", "Doe")
                 
             # Get the input names passed to create_module
             call_args = mock_create.call_args
@@ -179,7 +179,11 @@ def test_input_output_type_hints(_mock_log):
     
         # Define function with type hints
         def test_func(input1: str, input2: int, input3) -> Tuple[int, str]:
-            return predict(input1, input2, input3, inputs=["input1","input2","input3"], outputs=["out1", "out2"])
+            return predict(
+                input1, input2, input3, 
+                inputs=["input1","input2","input3"], 
+                outputs=["out1", "out2"]
+            )
     
         # Call the function
         test_func("text", 123, "text")

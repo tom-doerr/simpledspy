@@ -7,8 +7,8 @@ Features:
 
 import re
 import time
-import dspy
 from typing import Dict, List
+import dspy
 from .logger import Logger
 
 class Evaluator:
@@ -19,7 +19,12 @@ class Evaluator:
         self.evaluator_lm = dspy.LM(model="deepseek/deepseek-reasoner")
         dspy.configure(lm=self.evaluator_lm)
 
-    def evaluate(self, inputs: Dict, outputs: Dict, evaluation_instructions: List[str] = None) -> float:
+    def evaluate(
+        self, 
+        inputs: Dict, 
+        outputs: Dict, 
+        evaluation_instructions: List[str] = None
+    ) -> float:
         """Evaluate outputs on a scale of 1-10 using multiple instructions"""
         if evaluation_instructions is None:
             evaluation_instructions = []
@@ -55,7 +60,14 @@ class Evaluator:
                     
         return sum(scores) / len(scores) if scores else 0.0
 
-    def log_with_evaluation(self, module: str, inputs: Dict, outputs: Dict, description: str = "", evaluation_instructions: List[str] = None):
+    def log_with_evaluation(  # pylint: disable=too-many-arguments
+        self, 
+        module: str, 
+        inputs: Dict, 
+        outputs: Dict, 
+        description: str = "", 
+        evaluation_instructions: List[str] = None
+    ):
         """Log inputs/outputs with evaluation score"""
         score = self.evaluate(inputs, outputs, evaluation_instructions)
         

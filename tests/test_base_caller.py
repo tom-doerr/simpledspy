@@ -1,5 +1,4 @@
 """Tests for base_caller.py"""
-import pytest
 import dspy
 from unittest.mock import patch, MagicMock
 from simpledspy.module_caller import BaseCaller
@@ -19,7 +18,7 @@ def test_base_caller_module_creation():
     caller.module_factory = mock_factory
         
     # Create module with type hints
-    module = caller._create_module(
+    module = caller._create_module(  # pylint: disable=protected-access
         inputs=["text"],
         outputs=["result"],
         input_types={"text": str},
@@ -53,7 +52,7 @@ def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_curr
     caller.logger = mock_logger
         
     # Mock function signature
-    class MockSignature:
+    class MockSignature:  # pylint: disable=missing-docstring
         parameters = {
             'arg1': MagicMock(annotation=str),
             'arg2': MagicMock(annotation=int)
@@ -67,7 +66,7 @@ def test_base_caller_input_name_inference(mock_logger, mock_signature, mock_curr
     # Call predict with variables
     arg1 = "test1"
     arg2 = "test2"
-    result = caller(arg1, arg2)
+    caller(arg1, arg2)
         
     # Verify create_module was called
     assert mock_factory.create_module.call_args is not None
