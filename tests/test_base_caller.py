@@ -32,7 +32,7 @@ def test_base_caller_module_creation():
 @patch('inspect.currentframe')
 @patch('inspect.signature')
 @patch('simpledspy.module_caller.Logger')
-def test_input_name_inference_in_function_scope():
+def test_input_name_inference_in_function_scope(mock_logger, mock_signature, mock_current_frame):
     """Test input name inference in function scope"""
     caller = BaseCaller()
     mock_factory = MagicMock()

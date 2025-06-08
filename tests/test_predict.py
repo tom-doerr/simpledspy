@@ -130,10 +130,10 @@ def test_variable_name_preservation():
             # Define variables
             poem_text = "Roses are red"
             flag = True
-                
-            # Call predict
-            predict(poem_text, flag, description="Process poem")
-                
+            
+            # Call predict and capture output
+            output = predict(poem_text, flag, description="Process poem")
+            
             # Verify captured names
             args, _ = mock_log.call_args
             log_data = args[0]
