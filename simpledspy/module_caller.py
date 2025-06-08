@@ -42,29 +42,29 @@ class BaseCaller:
         if frame is None:
             return ["output"]
         
-        # Remove parentheses from the line
         try:
+            # Get the code context lines
             lines = inspect.getframeinfo(frame).code_context
             if not lines:
                 return ["output"]
-            line = lines[0].strip().replace('(', ' ').replace(')', ' ')
+            line = lines[0].strip()
+            
+            # Handle multi-line assignment
+            if '=' in line:
+                lhs = line.split('=')[0].strip()
+                # Handle tuple assignment: name1, name2 = ...
+                if ',' in lhs:
+                    output_names = [name.strip() for name in lhs.split(',')]
+                # Handle single assignment: name = ...
+                else:
+                    output_names = [lhs]
+            # Handle no assignment (standalone call)
+            else:
+                output_names = ["output"]
+                
+            return output_names
         except (AttributeError, IndexError, TypeError):
             return ["output"]
-        
-        # Handle single assignment without commas: names = predict(...)
-        if '=' in line:
-            lhs = line.split('=')[0].strip()
-            # Handle multi-assignment: name, another = predict(...)
-            if ',' in lhs:
-                output_names = [name.strip() for name in lhs.split(',')]
-            # Handle single assignment: result = predict(...)
-            else:
-                output_names = [lhs]
-        # Handle no assignment: predict(...)
-        else:
-            output_names = ["output"]
-            
-        return output_names
 
     def _process_return_annotation(self, return_ann, output_names, output_types):
         """Helper to process return annotation types"""
@@ -85,52 +85,34 @@ class BaseCaller:
             input_names: List[str], output_names: List[str]) -> Tuple[
                 Dict[str, type], Dict[str, type]]:
         """Get input/output types from function signature"""
-        input_types = {}
-        output_types = {}
+        input_types: Dict[str, type] = {}
+        output_types: Dict[str, type] = {}
         if frame is None:
             return input_types, output_types
 
-        caller_frame = frame
-        caller_locals = caller_frame.f_locals
-        caller_globals = caller_frame.f_globals
-        # Get the function where the call happened
-        func_name = caller_frame.f_code.co_name
         try:
-            # First try to get function from locals
-            func = caller_locals.get(func_name, None)
-            if not func:
-                # Then try globals
-                func = caller_globals.get(func_name, None)
-            if not func and hasattr(caller_frame, 'f_back'):
-                # Try to get from outer frames
-                outer_frame = caller_frame.f_back
-                while outer_frame and not func:
-                    func = outer_frame.f_locals.get(
-                        func_name, None) or outer_frame.f_globals.get(
-                        func_name, None)
-                    outer_frame = outer_frame.f_back
-            # If we found something that isn't callable, set to None
-            if not callable(func):
-                func = None
-        except (AttributeError, KeyError, TypeError):
-            func = None
+            # Get the function object from the frame
+            func_name = frame.f_code.co_name
+            func = frame.f_locals.get(func_name, frame.f_globals.get(func_name, None))
             
-        if func:
-            try:
-                signature = inspect.signature(func, follow_wrapped=True)
-                # Get the type hints for parameters in the calling function
-                for param_name in signature.parameters:
-                    if param_name in input_names:
-                        param = signature.parameters[param_name]
-                        if param.annotation != inspect.Parameter.empty:
+            if func and callable(func):
+                try:
+                    signature = inspect.signature(func, follow_wrapped=True)
+                    
+                    # Get input parameter types
+                    for param_name, param in signature.parameters.items():
+                        if param_name in input_names and param.annotation != inspect.Parameter.empty:
                             input_types[param_name] = param.annotation
-                # Get the type hints for return value
-                return_ann = signature.return_annotation
-                self._process_return_annotation(
-                    return_ann, output_names, output_types)
-            except (ValueError, TypeError):
-                # Skip signature issues in nested functions
-                pass
+                    
+                    # Get return type hints
+                    return_ann = signature.return_annotation
+                    self._process_return_annotation(return_ann, output_names, output_types)
+                except (ValueError, TypeError):
+                    # Skip if signature inspection fails
+                    pass
+        except (AttributeError, KeyError):
+            pass
+            
         return input_types, output_types
 
     def _infer_input_names(self, args) -> List[str]:
@@ -161,9 +143,13 @@ class BaseCaller:
                     name for name in candidate_names 
                     if name not in ['args', 'kwargs', 'self']
                 ]
+                # Filter out reserved names and see if any remain
+                filtered_names = [name for name in candidate_names 
+                    if name not in ['args', 'kwargs', 'self']]
+                
                 # Only use the variable name if there's exactly one candidate
-                if len(candidate_names) == 1:
-                    arg_names.append(candidate_names[0])
+                if len(filtered_names) == 1:
+                    arg_names.append(filtered_names[0])
                 else:
                     arg_names.append(f"arg{len(arg_names)}")
             

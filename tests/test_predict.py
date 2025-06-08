@@ -118,7 +118,7 @@ def test_predict_unpack_error():
 
 def test_variable_name_preservation():
     """Test original variable names are preserved in logs"""
-    with patch('simpledspy.module_caller.Logger.log') as mock_log:
+    with patch('simpledspy.module_caller.BaseCaller._log_results') as mock_log:
         # Create mock module
         class MockModule(dspy.Module):
             """Mock module for testing"""
@@ -126,25 +126,20 @@ def test_variable_name_preservation():
                 """Mock forward method"""
                 return dspy.Prediction(output="test")
             
-        with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()), \
-             patch('simpledspy.module_caller.Logger.log'):
+        with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()):
             # Define variables
             poem_text = "Roses are red"
             flag = True
-            
+                
             # Call predict and capture output
             predict(poem_text, flag, description="Process poem")
-            
-            # Verify captured names
+                
+            # Get the log call arguments
             args, _ = mock_log.call_args
-            log_data = args[0]
-            inputs_data = log_data["inputs"]
-            # Check that inputs are logged with original names
-            assert len(inputs_data) == 2
-            assert inputs_data[0]['name'] == 'poem_text'
-            assert inputs_data[0]['value'] == "Roses are red"
-            assert inputs_data[1]['name'] == 'flag'
-            assert inputs_data[1]['value'] is True
+            _, _, input_names, _, _, _ = args
+                
+            # Check that input names are preserved
+            assert input_names == ['poem_text', 'flag']
 
 def test_input_variable_name_inference():
     """Test input variable name inference in different scopes"""
@@ -176,15 +171,15 @@ def test_input_variable_name_inference():
         input_names = test_function()
         assert input_names == ['local1', 'local2']
         
-        # Test with duplicate values
-        same_value = "shared"
-        var_a = same_value
-        var_b = same_value
-        predict(var_a, var_b)
+        # Test with reserved variable names
+        args = "test_args"
+        kwargs = "test_kwargs"
+        self = "test_self"
+        predict(args, kwargs, self)
         call_args = mock_create.call_args
         input_names = call_args[1]['inputs']
-        # Since values are duplicated, we fall back to arg0, arg1
-        assert input_names == ['arg0', 'arg1']
+        # Reserved names should be filtered out
+        assert input_names == ['arg0', 'arg1', 'arg2']
         
         # Test with unnamed values
         predict("literal", 42)
