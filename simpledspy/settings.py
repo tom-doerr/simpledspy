@@ -9,6 +9,7 @@ class Settings:
         self.lm = None
         self.temperature = None
         self.max_tokens = None
+        self.logging_enabled = False  # Disabled by default
         # Add other settings as needed
 
 # Global settings instance

@@ -188,7 +188,7 @@ class BaseCaller:
         else:
             return module(**input_dict)
     
-    def _log_results(self, input_dict, input_names, output_names, output_values, description):
+    def _log_results(self, module_name, input_dict, input_names, output_names, output_values, description):
         """Log module inputs and outputs with meaningful names"""
         # Create input structure with both names and values
         inputs_data = []
@@ -207,8 +207,10 @@ class BaseCaller:
                 'value': output_values[i]
             })
         
-        self.logger.log({
-            'module': self.__class__.__name__.lower(),
+        # Create logger for this specific module
+        logger = Logger(module_name=module_name)
+        logger.log({
+            'module': module_name,
             'inputs': inputs_data,
             'outputs': outputs_data,
             'description': description
@@ -216,7 +218,7 @@ class BaseCaller:
     
     def __call__(self, *args, inputs: List[str] = None, 
             outputs: List[str] = None, description: str = None, 
-            lm_params: dict = None) -> Any:
+            lm_params: dict = None, name: str = None) -> Any:
         # Inspect variables if names needed
         captured_vars = {}
         if inputs is None:
@@ -283,8 +285,21 @@ class BaseCaller:
                 raise AttributeError(f"Output field '{name}' not found in prediction result")
         output_values = [getattr(prediction_result, name) for name in output_names]
         
-        # Log results with meaningful names
-        self._log_results(input_dict, input_names, output_names, output_values, description)
+        # Generate module name if not provided
+        if name is None:
+            output_part = '_'.join(output_names)
+            module_type = self.__class__.__name__.lower()
+            input_part = '_'.join(input_names)
+            name = f"{output_part}__{module_type}__{input_part}"
+        
+        # Check if logging is enabled globally or via lm_params
+        logging_enabled = global_settings.logging_enabled
+        if lm_params and 'logging_enabled' in lm_params:
+            logging_enabled = lm_params['logging_enabled']
+        
+        # Log results if enabled
+        if logging_enabled:
+            self._log_results(name, input_dict, input_names, output_names, output_values, description)
         
         # Return single value or tuple
         return output_values[0] if len(output_values) == 1 else tuple(output_values)
