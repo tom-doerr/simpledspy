@@ -1,10 +1,6 @@
 """Pipeline Manager for DSPy modules
 
-Provides:
-- Singleton access to pipeline manager
-- Step registration with input/output specifications
-- Pipeline assembly from registered steps
-- State reset functionality
+Provides pipeline construction and execution.
 """
 
 import threading
@@ -12,14 +8,7 @@ from typing import Any, List, Tuple, Dict
 import dspy
 
 class PipelineManager:
-    """Manages DSPy pipeline construction and execution
-    
-    Provides:
-    - Singleton access to pipeline manager
-    - Step registration with input/output specifications
-    - Pipeline assembly from registered steps
-    - State reset functionality
-    """
+    """Manages DSPy pipeline construction and execution"""
     
     _instance = None
     _lock = threading.Lock()
