@@ -1,5 +1,4 @@
 """Tests for optimization_manager.py"""
-"""Tests for optimization_manager.py"""
 import pytest
 from simpledspy.optimization_manager import OptimizationManager
 from dspy.teleprompt import BootstrapFewShot, MIPROv2

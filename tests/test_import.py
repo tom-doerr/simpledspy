@@ -1,12 +1,10 @@
 """Tests for import warnings"""
-"""Tests for import warnings"""
 import unittest
 import warnings
 import sys
 import types
 
 class TestImport(unittest.TestCase):
-    """Test cases for import warnings"""
     """Test cases for import warnings"""
     
     def test_correct_import_no_warning(self):
