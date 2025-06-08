@@ -183,8 +183,8 @@ def test_input_variable_name_inference():
         predict(var_a, var_b)
         call_args = mock_create.call_args
         input_names = call_args[1]['inputs']
-        # Should get first matching name for each value
-        assert input_names == ['var_a', 'var_b']
+        # Since values are duplicated, we fall back to arg0, arg1
+        assert input_names == ['arg0', 'arg1']
         
         # Test with unnamed values
         predict("literal", 42)

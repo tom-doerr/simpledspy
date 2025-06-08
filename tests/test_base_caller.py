@@ -29,10 +29,9 @@ def test_base_caller_module_creation():
     assert isinstance(module, dspy.Module)
     mock_factory.create_module.assert_called_once()
 
-@patch('inspect.currentframe')
 @patch('inspect.signature')
 @patch('simpledspy.module_caller.Logger')
-def test_input_name_inference_in_function_scope(_mock_logger, _mock_signature, _mock_current_frame):
+def test_input_name_inference_in_function_scope(_mock_logger, _mock_signature):
     """Test input name inference in function scope"""
     caller = BaseCaller()
     mock_factory = MagicMock()
@@ -40,15 +39,15 @@ def test_input_name_inference_in_function_scope(_mock_logger, _mock_signature, _
     mock_module.return_value = dspy.Prediction(output="test output")
     mock_factory.create_module.return_value = mock_module
     caller.module_factory = mock_factory
-        
+    
     # Define a function to test variable capture
     def test_function():
         local_var1 = "value1"
         local_var2 = "value2"
         caller(local_var1, local_var2)
-        
+    
     test_function()
-        
+    
     # Verify create_module was called with correct names
     call_kwargs = mock_factory.create_module.call_args[1]
     assert call_kwargs['inputs'] == ['local_var1', 'local_var2']

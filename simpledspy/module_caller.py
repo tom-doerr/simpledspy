@@ -152,23 +152,19 @@ class BaseCaller:
                     value_to_names[vid] = []
                 value_to_names[vid].append(name)
             
-            # Map each argument to a unique variable name
-            used_names = set()
+            # Map each argument to a variable name
             arg_names = []
             for arg in args:
                 vid = id(arg)
                 candidate_names = value_to_names.get(vid, [])
-                # Filter out reserved names and names we've already used
+                # Filter out reserved names
                 candidate_names = [
                     name for name in candidate_names 
-                    if name not in ['args', 'kwargs', 'self'] and name not in used_names
+                    if name not in ['args', 'kwargs', 'self']
                 ]
-                if candidate_names:
-                    # Sort to ensure deterministic order
-                    candidate_names.sort()
-                    chosen_name = candidate_names[0]
-                    arg_names.append(chosen_name)
-                    used_names.add(chosen_name)
+                # Only use the variable name if there's exactly one candidate
+                if len(candidate_names) == 1:
+                    arg_names.append(candidate_names[0])
                 else:
                     arg_names.append(f"arg{len(arg_names)}")
             
