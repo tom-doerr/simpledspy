@@ -28,6 +28,7 @@ class BaseCaller:
             dspy.configure(lm=instance.lm, cache=False)
         return cls._instances[cls]
     
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,
@@ -69,6 +70,7 @@ class BaseCaller:
             
         return output_names
 
+    # pylint: disable=too-many-locals,too-many-branches
     def _get_call_types_from_signature(self, frame: Any, 
             input_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
         """Get input/output types from function signature"""
@@ -146,8 +148,7 @@ class BaseCaller:
                 else:
                     arg_names.append(f"arg{i}")
             return arg_names
-        else:
-            return [f"arg{i}" for i in range(len(args))]
+        return [f"arg{i}" for i in range(len(args))]
     
     def _run_module(self, module, input_dict, lm_params):
         """Run the module with optional LM parameter overrides"""
@@ -238,11 +239,12 @@ class BaseCaller:
 
 class Predict(BaseCaller):
     """Predict module caller - replaces pipe() function"""
-    pass
 
+# pylint: disable=too-few-public-methods
 class ChainOfThought(BaseCaller):
     """ChainOfThought module caller"""
     
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def _create_module(self, inputs: List[str], outputs: List[str], 
                      input_types: Dict[str, type] = None,
                      output_types: Dict[str, type] = None,
