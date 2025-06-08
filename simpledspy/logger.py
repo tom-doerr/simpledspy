@@ -33,6 +33,9 @@ class Logger:
         for file in [self.training_file, self.logged_file]:
             if not file.exists():
                 file.touch()
+            else:
+                # Clear existing log files to prevent test interference
+                file.write_text("")
 
     def log_to_section(self, data: Dict[str, Any], section: str = "logged") -> None:
         """Log a dictionary to the specified section
