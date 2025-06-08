@@ -4,6 +4,7 @@ Provides base classes for Predict and ChainOfThought function calls
 """
 
 import inspect
+import ast
 from typing import List, Dict, Any, Tuple
 import dspy
 from .module_factory import ModuleFactory
@@ -105,7 +106,8 @@ class BaseCaller:
             # If not found, check the outer frame
             if func is None and frame.f_back:
                 outer_frame = frame.f_back
-                func = outer_frame.f_locals.get(func_name, outer_frame.f_globals.get(func_name, None))
+                func = outer_frame.f_locals.get(func_name, 
+                      outer_frame.f_globals.get(func_name, None))
             
             if func and callable(func):
                 try:
@@ -145,7 +147,6 @@ class BaseCaller:
             
             # Parse the call expression to get the argument expressions
             try:
-                import ast
                 tree = ast.parse(call_line)
                 call_node = None
                 for node in ast.walk(tree):
@@ -297,8 +298,8 @@ class BaseCaller:
 
         # Sanitize input names to avoid reserved words
         reserved = ['args', 'kwargs', 'self']
-        for i, name in enumerate(input_names):
-            if name in reserved:
+        for i, var_name in enumerate(input_names):
+            if var_name in reserved:
                 input_names[i] = f'arg{i}'
         
         # Infer output names if not provided

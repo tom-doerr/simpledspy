@@ -4,6 +4,7 @@ from typing import Tuple, List, Dict, Optional
 import pytest
 import dspy
 from simpledspy import predict, chain_of_thought
+from simpledspy.settings import global_settings
 
 def test_basic_string_output():
     """Test basic string output functionality"""
@@ -196,11 +197,13 @@ def test_input_variable_name_inference():
         
         # Test with instance variables
         class TestClass:
+            """Test class for instance variable testing"""
             def __init__(self):
                 self.context = "test context"
                 self.options = "test options"
                 
             def test_method(self):
+                """Test method for instance variables"""
                 predict(self.context, self.options)
                 
         test_obj = TestClass()

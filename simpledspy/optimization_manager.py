@@ -1,7 +1,8 @@
 """Optimization Manager for DSPy modules and pipelines
 
 This module provides the OptimizationManager class which:
-1. Configures optimization strategies (BootstrapFewShot, MIPROv2, or BootstrapFewShotWithRandomSearch)
+1. Configures optimization strategies (BootstrapFewShot, MIPROv2, 
+   BootstrapFewShotWithRandomSearch, or SIMBA)
 2. Provides a default exact-match metric function for evaluation
 3. Creates teleprompter instances
 4. Optimizes DSPy modules/pipelines
@@ -64,8 +65,8 @@ class OptimizationManager:
         if strategy == 'simba':
             return self._teleprompters[strategy](
                 metric=self._config['metric'],
-                num_steps=self._config['max_steps'],
-                num_trials=self._config['max_demos']
+                max_steps=self._config['max_steps'],
+                max_demos=self._config['max_demos']
             )
         return self._teleprompters[strategy](
             metric=self._config['metric']
