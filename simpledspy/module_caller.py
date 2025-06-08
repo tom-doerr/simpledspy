@@ -234,10 +234,6 @@ class BaseCaller:
 class Predict(BaseCaller):
     """Predict module caller - replaces pipe() function"""
 
-# pyl极gpt
-# This was broken implementation that needs to be removed
-# Replacing it with proper ChainOfThought implementation
-
 class ChainOfThought(BaseCaller):
     """ChainOfThought module caller"""
     
