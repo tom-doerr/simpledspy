@@ -1,4 +1,5 @@
 """Tests for module_factory.py"""
+"""Tests for module_factory.py"""
 import pytest
 from simpledspy.module_factory import ModuleFactory
 import dspy
