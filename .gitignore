@@ -181,3 +181,5 @@ mock_stdin.txt
 plex.md
 plex_mds_archive/
 poetry.lock
+
+.simpledspy
