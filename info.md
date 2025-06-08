@@ -29,7 +29,7 @@ there should be the possibility to set custom names for modules when called
 when no custom name for a module is set, the name consists out of ouputs, module type, and inputs: <ouput_0>_<ouput_1>__<moduletype>__<input_0>_<input_1>, e.g. finished__predict__context_steps
 we do need to save the datetime together with inputs and outputs 
 the datetime should be in human readable format, so maybe the T notation is best
-the description should not be saved in those datapoints
+the description should be saved in those datapoints
 if no other optimized model is saved/available, the trainset/optimization set should be used for the fewshot optimizer when the module is initilized so it has the trainset as few-shot examples
 
 
