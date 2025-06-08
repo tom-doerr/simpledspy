@@ -92,9 +92,20 @@ class BaseCaller:
             return input_types, output_types
 
         try:
-            # Get the function object from the frame
+            # Get the function object from the frame hierarchy
             func_name = frame.f_code.co_name
-            func = frame.f_locals.get(func_name, frame.f_globals.get(func_name, None))
+            func = None
+            
+            # Check current frame's locals
+            func = frame.f_locals.get(func_name, None)
+            if func is None:
+                # Check current frame's globals
+                func = frame.f_globals.get(func_name, None)
+                
+            # If not found, check the outer frame
+            if func is None and frame.f_back:
+                outer_frame = frame.f_back
+                func = outer_frame.f_locals.get(func_name, outer_frame.f_globals.get(func_name, None))
             
             if func and callable(func):
                 try:

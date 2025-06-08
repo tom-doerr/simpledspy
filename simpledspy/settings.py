@@ -1,6 +1,6 @@
 """Global settings for SimpleDSPy"""
 
-class Settings:
+class Settings:  # pylint: disable=too-few-public-methods
     """Holds global settings for SimpleDSPy"""
     def __init__(self):
         self.lm = None

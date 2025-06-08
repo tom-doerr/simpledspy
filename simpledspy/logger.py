@@ -20,9 +20,9 @@ class CustomJSONEncoder(json.JSONEncoder):
 class Logger:
     """Handles logging of DSPy inputs and outputs per module"""
     
-    def __init__(self, module_name: str) -> None:
+    def __init__(self, module_name: str, base_dir: str = ".simpledspy") -> None:
         # Create base directory
-        self.base_dir = Path(".simpledspy") / "modules" / module_name
+        self.base_dir = Path(base_dir) / "modules" / module_name
         self.base_dir.mkdir(parents=True, exist_ok=True)
         
         # Create files for training and logged data
