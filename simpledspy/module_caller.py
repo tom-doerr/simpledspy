@@ -7,7 +7,6 @@ import dis
 import inspect
 from typing import List, Dict, Any, Tuple
 import dspy
-from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
 from .logger import Logger
@@ -69,9 +68,24 @@ class BaseCaller:
             
         return output_names
 
+    def _process_return_annotation(self, return_ann, output_names, output_types):
+        """Helper to process return annotation types"""
+        if return_ann == inspect.Signature.empty:
+            return
+            
+        if len(output_names) == 1:
+            output_types[output_names[0]] = return_ann
+        elif hasattr(return_ann, '__args__') and \
+                len(return_ann.__args__) == len(output_names):
+            tuple_types = return_ann.__args__
+            for i, t in enumerate(tuple_types):
+                if i < len(output_names):
+                    output_types[output_names[i]] = t
+
     # pylint: disable=too-many-locals,too-many-branches
     def _get_call_types_from_signature(self, frame: Any, 
-            input_names: List[str], output_names: List[str]) -> Tuple[Dict[str, type], Dict[str, type]]:
+            input_names: List[str], output_names: List[str]) -> Tuple[
+                Dict[str, type], Dict[str, type]]:
         """Get input/output types from function signature"""
         input_types = {}
         output_types = {}
@@ -93,7 +107,9 @@ class BaseCaller:
                 # Try to get from outer frames
                 outer_frame = caller_frame.f_back
                 while outer_frame and not func:
-                    func = outer_frame.f_locals.get(func_name, None) or outer_frame.f_globals.get(func_name, None)
+                    func = outer_frame.f_locals.get(
+                        func_name, None) or outer_frame.f_globals.get(
+                        func_name, None)
                     outer_frame = outer_frame.f_back
             # If we found something that isn't callable, set to None
             if not callable(func):
@@ -112,16 +128,8 @@ class BaseCaller:
                             input_types[param_name] = param.annotation
                 # Get the type hints for return value
                 return_ann = signature.return_annotation
-                if return_ann != inspect.Signature.empty:
-                    # For single output, set type for the output name
-                    if len(output_names) == 1:
-                        output_types[output_names[0]] = return_ann
-                    # For multiple outputs with Tuple type hints
-                    elif hasattr(return_ann, '__args__') and len(return_ann.__args__) == len(output_names):
-                        tuple_types = return_ann.__args__
-                        for i, t in enumerate(tuple_types):
-                            if i < len(output_names):
-                                output_types[output_names[i]] = t
+                self._process_return_annotation(
+                    return_ann, output_names, output_types)
             except (ValueError, TypeError):
                 # Skip signature issues in nested functions
                 pass
@@ -140,14 +148,19 @@ class BaseCaller:
             call_index = frame.f_lasti
             instructions = list(dis.get_instructions(code))
             current_instruction = None
-            for i, inst in enumerate(instructions):
+            i = None
+            for idx, inst in enumerate(instructions):
                 if inst.offset == call_index:
                     current_instruction = inst
+                    i = idx
                     break
             if current_instruction and current_instruction.opname == 'CALL_FUNCTION':
                 arg_names = []
                 # Start from the instruction before the call and go backwards
-                start_index = i - 1
+                if i is not None:
+                    start_index = i - 1
+                else:
+                    start_index = -1
                 # We'll collect the argument instructions in reverse order
                 for j in range(len(args)):
                     idx = start_index - j
@@ -224,7 +237,8 @@ class BaseCaller:
             frame = inspect.currentframe().f_back
         except (AttributeError, ValueError, IndexError, TypeError):
             frame = None
-        input_types, output_types = self._get_call_types_from_signature(frame, input_names, output_names)
+        input_types, output_types = self._get_call_types_from_signature(
+            frame, input_names, output_names)
 
         # Create and run the module
         module = self._create_module(
