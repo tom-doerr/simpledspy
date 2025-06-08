@@ -84,17 +84,19 @@ class BaseCaller:
         # Get the function where the call happened
         func_name = caller_frame.f_code.co_name
         try:
-            if func_name in caller_globals and isinstance(
-                    caller_globals[func_name], type):
-                # It's a class, get the method
-                if func_name in caller_locals:
-                    func = caller_locals[func_name]
-                else:
-                    func = caller_globals[func_name]
-            else:
+            # First try to get function from locals
+            func = caller_locals.get(func_name, None)
+            if not func:
+                # Then try globals
                 func = caller_globals.get(func_name, None)
-            if not (callable(func) or (isinstance(func, type) and 
-                    hasattr(func, func_name))):
+            if not func and hasattr(caller_frame, 'f_back'):
+                # Try to get from outer frames
+                outer_frame = caller_frame.f_back
+                while outer_frame and not func:
+                    func = outer_frame.f_locals.get(func_name, None) or outer_frame.f_globals.get(func_name, None)
+                    outer_frame = outer_frame.f_back
+            # If we found something that isn't callable, set to None
+            if not callable(func):
                 func = None
         except (AttributeError, KeyError, TypeError):
             func = None
