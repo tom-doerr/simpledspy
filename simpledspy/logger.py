@@ -34,6 +34,15 @@ class Logger:
             if not file.exists():
                 file.touch()
 
+    def load_training_data(self) -> list:
+        """Load training data from the training file"""
+        examples = []
+        if self.training_file.exists():
+            with open(self.training_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    examples.append(json.loads(line))
+        return examples
+
     def log_to_section(self, data: Dict[str, Any], section: str = "logged") -> None:
         """Log a dictionary to the specified section
         

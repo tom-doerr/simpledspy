@@ -303,9 +303,8 @@ class BaseCaller:
             description=description
         )
         
-        # If a trainset is provided, set it as few-shot examples
+        # First priority: use explicitly passed trainset
         if trainset is not None:
-            # Convert the trainset to dspy.Example objects if they are dicts
             demos = []
             for example in trainset:
                 if isinstance(example, dict):
@@ -313,6 +312,22 @@ class BaseCaller:
                 else:
                     demos.append(example)
             module.demos = demos
+        # Second priority: load from training file
+        elif name is not None:
+            logger = Logger(module_name=name)
+            training_examples = logger.load_training_data()
+            if training_examples:
+                demos = []
+                for example in training_examples:
+                    if isinstance(example, dict):
+                        try:
+                            # Convert to dspy.Example
+                            demos.append(dspy.Example(**example))
+                        except TypeError:
+                            demos.append(example)
+                    else:
+                        demos.append(example)
+                module.demos = demos
         
         input_dict = dict(zip(input_names, args))
         prediction_result = self._run_module(module, input_dict, lm_params)
