@@ -314,7 +314,7 @@ def test_predict_loads_training_data_with_default_name(monkeypatch):
         
         # Check generated module name
         expected_name = "output__predict__arg0"
-        MockLogger.assert_called_with(module_name=expected_name)
+        MockLogger.assert_called_with(module_name=expected_name, base_dir=".simpledspy")
         
         # Check training data was loaded
         mock_logger.load_training_data.assert_called_once()
