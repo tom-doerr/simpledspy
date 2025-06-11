@@ -1,6 +1,7 @@
 """Tests for logger.py"""
 import os
 import json
+import re
 import tempfile
 from simpledspy.logger import Logger
 
@@ -36,7 +37,8 @@ def test_logger_appends_data():
             
             assert entry0["test"] == "data1"
             assert entry1["test"] == "data2"
-            assert isinstance(entry0["timestamp"], float)
+            # Check timestamp format is ISO 8601 with 'T'
+            assert re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z", entry0["timestamp"])
 
 def test_logger_handles_invalid_data():
     """Test that logger skips empty lines and invalid JSON when loading training data"""
@@ -56,3 +58,21 @@ def test_logger_handles_invalid_data():
         # Should only have the valid entry
         assert len(examples) == 1
         assert examples[0]["valid"] == "data"
+
+def test_timestamp_format():
+    """Test that timestamps use ISO 8601 format with T separator"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        module_name = "test_module"
+        logger = Logger(module_name, base_dir=tmpdir)
+        
+        # Log sample data
+        data = {"key": "value"}
+        logger.log(data)
+        
+        # Read log file
+        with open(logger.logged_file, "r", encoding="utf-8") as f:
+            line = f.readline().strip()
+            entry = json.loads(line)
+            
+            # Check timestamp format matches YYYY-MM-DDTHH:MM:SS.microsecondsZ
+            assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$", entry["timestamp"])

@@ -6,6 +6,7 @@ Features:
 """
 import json
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 
@@ -57,7 +58,8 @@ class Logger:
             data: Dictionary of data to log
             section: Either 'training' or 'logged'
         """
-        data['timestamp'] = time.time()
+        # Use ISO 8601 format with 'T' separator
+        data['timestamp'] = datetime.utcnow().isoformat() + 'Z'
         target_file = self.training_file if section == "training" else self.logged_file
         
         with open(target_file, "a", encoding="utf-8") as f:
