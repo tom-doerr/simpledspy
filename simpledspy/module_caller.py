@@ -329,12 +329,19 @@ class BaseCaller:
                     # Reformat to match DSPy Example structure
                     try:
                         formatted = {}
-                        # Process inputs
-                        for item in example.get('inputs', []):
-                            formatted[item['name']] = item['value']
-                        # Process outputs
-                        for item in example.get('outputs', []):
-                            formatted[item['name']] = item['value']
+                        # Handle both new and old data formats
+                        if 'inputs' in example and 'outputs' in example:
+                            # New format: process inputs/outputs arrays
+                            for item in example.get('inputs', []):
+                                formatted[item['name']] = item['value']
+                            for item in example.get('outputs', []):
+                                formatted[item['name']] = item['value']
+                        else:
+                            # Old format: use top-level keys
+                            reserved = ['section', 'timestamp', 'module', 'description']
+                            for key, value in example.items():
+                                if key not in reserved:
+                                    formatted[key] = value
                         demos.append(dspy.Example(**formatted))
                     except (TypeError, KeyError):
                         # Skip malformed entries
