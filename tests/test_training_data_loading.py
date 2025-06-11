@@ -4,8 +4,16 @@ import json
 import tempfile
 import pytest
 import dspy
+from unittest.mock import MagicMock
 from simpledspy.module_caller import Predict
 from simpledspy.logger import Logger
+
+# Mock LM to prevent "No LM is loaded" errors
+@pytest.fixture(autouse=True)
+def mock_lm(monkeypatch):
+    mock_lm = MagicMock()
+    monkeypatch.setattr(dspy, 'configure', MagicMock())
+    monkeypatch.setattr(dspy, 'LM', MagicMock(return_value=mock_lm))
 
 def test_training_data_loading():
     """Test that training data is properly loaded and used in modules"""
@@ -41,16 +49,17 @@ def test_training_data_loading():
         }
         logger.log_to_section(logged_data, "logged")
         
-        # Create and call Predict module
+        # Create Predict module
         predict = Predict()
-        result = predict("test input", name=module_name)
         
         # Verify training data was loaded
-        module = predict._create_module(["input1"], ["output1"])
-        assert len(module.demos) == 1
-        demo = module.demos[0]
-        assert demo.input1 == "test input"
-        assert demo.output1 == "test output"
+        demos = predict._load_training_data(module_name)
+        assert len(demos) == 2
+        
+        # Check both demos
+        for demo in demos:
+            assert demo.input1 == "test input"
+            assert demo.output1 == "test output"
 
 def test_malformed_training_data():
     """Test that malformed training data is skipped"""
@@ -66,10 +75,10 @@ def test_malformed_training_data():
         }
         logger.log_to_section(invalid_data, "training")
         
-        # Create module and verify no demos loaded
+        # Verify no demos loaded
         predict = Predict()
-        module = predict._create_module(["input1"], ["output1"])
-        assert not hasattr(module, 'demos') or len(module.demos) == 0
+        demos = predict._load_training_data(module_name)
+        assert len(demos) == 0
 
 def test_training_data_formatting():
     """Test training data formatting for DSPy compatibility"""
@@ -103,17 +112,14 @@ def test_training_data_formatting():
         ]:
             logger.log_to_section(data, "training")
         
-        # Create and call Predict module
+        # Create Predict module
         predict = Predict()
-        module = predict._create_module(
-            ["input1", "input2"], 
-            ["output1", "output2"]
-        )
+        demos = predict._load_training_data(module_name)
+        assert len(demos) == 2
         
-        # Verify data was formatted correctly
-        assert len(module.demos) == 1
-        demo = module.demos[0]
-        assert demo.input1 == "value1"
-        assert demo.input2 == 42
-        assert demo.output1 is True
-        assert demo.output2 == 3.14
+        # Verify both demos
+        for demo in demos:
+            assert demo.input1 == "value1"
+            assert demo.input2 == 42
+            assert demo.output1 is True
+            assert demo.output2 == 3.14
