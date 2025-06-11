@@ -294,6 +294,13 @@ class BaseCaller:
         input_types, output_types = self._get_call_types_from_signature(
             frame, input_names, output_names)
 
+        # Generate module name if not provided
+        if name is None:
+            output_part = '_'.join(output_names)
+            module_type = self.__class__.__name__.lower()
+            input_part = '_'.join(input_names)
+            name = f"{output_part}__{module_type}__{input_part}"
+
         # Create and run the module
         module = self._create_module(
             inputs=input_names, 
@@ -337,13 +344,6 @@ class BaseCaller:
             if not hasattr(prediction_result, output_name):
                 raise AttributeError(f"Output field '{output_name}' not found in prediction result")
         output_values = [getattr(prediction_result, output_name) for output_name in output_names]
-        
-        # Generate module name if not provided
-        if name is None:
-            output_part = '_'.join(output_names)
-            module_type = self.__class__.__name__.lower()
-            input_part = '_'.join(input_names)
-            name = f"{output_part}__{module_type}__{input_part}"
         
         # Check if logging is enabled globally or via lm_params
         logging_enabled = global_settings.logging_enabled
