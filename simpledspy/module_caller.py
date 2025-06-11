@@ -321,7 +321,7 @@ class BaseCaller:
             module.demos = demos
         # Second priority: load from training file
         elif name is not None:
-            logger = Logger(module_name=name)
+            logger = Logger(module_name=name, base_dir=".simpledspy")
             training_examples = logger.load_training_data()
             if training_examples:
                 demos = []
