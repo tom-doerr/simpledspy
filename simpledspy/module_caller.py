@@ -227,7 +227,7 @@ class BaseCaller:
             })
         
         # Create logger for this specific module
-        logger = Logger(module_name=module_name)
+        logger = Logger(module_name=module_name, base_dir=".simpledspy")
         logger.log({
             'module': module_name,
             'inputs': inputs_data,
