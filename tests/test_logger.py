@@ -37,3 +37,22 @@ def test_logger_appends_data():
             assert entry0["test"] == "data1"
             assert entry1["test"] == "data2"
             assert isinstance(entry0["timestamp"], float)
+
+def test_logger_handles_invalid_data():
+    """Test that logger skips empty lines and invalid JSON when loading training data"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        module_name = "test_module"
+        logger = Logger(module_name, base_dir=tmpdir)
+        
+        # Write invalid data to training file
+        with open(logger.training_file, "w", encoding="utf-8") as f:
+            f.write("\n")  # empty line
+            f.write("{invalid json}\n")  # invalid JSON
+            f.write(json.dumps({"valid": "data"}) + "\n")  # valid JSON
+        
+        # Load training data
+        examples = logger.load_training_data()
+        
+        # Should only have the valid entry
+        assert len(examples) == 1
+        assert examples[0]["valid"] == "data"

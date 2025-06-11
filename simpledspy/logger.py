@@ -35,12 +35,19 @@ class Logger:
                 file.touch()
 
     def load_training_data(self) -> list:
-        """Load training data from the training file"""
+        """Load training data from the training file, skipping empty lines and invalid JSON"""
         examples = []
         if self.training_file.exists():
             with open(self.training_file, "r", encoding="utf-8") as f:
                 for line in f:
-                    examples.append(json.loads(line))
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        examples.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        # Skip invalid JSON lines
+                        continue
         return examples
 
     def log_to_section(self, data: Dict[str, Any], section: str = "logged") -> None:
