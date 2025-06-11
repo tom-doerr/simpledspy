@@ -289,3 +289,41 @@ def test_complex_type_hints(_mock_log):
             assert input_types['input2'] == Dict[str, int]
         if 'result' in output_types:
             assert output_types['result'] == Optional[float]
+
+def test_predict_loads_training_data_with_default_name(monkeypatch):
+    """Test that training data is loaded from default-named folder when no name is provided"""
+    with patch('simpledspy.module_caller.Logger') as MockLogger, \
+         patch('simpledspy.module_caller.BaseCaller._create_module') as mock_create, \
+         patch('simpledspy.module_caller.BaseCaller._run_module') as mock_run, \
+         patch('simpledspy.module_caller.BaseCaller._infer_input_names', return_value=['arg0']), \
+         patch('simpledspy.module_caller.BaseCaller._infer_output_names', return_value=['output']):
+        
+        # Disable logging for this test
+        monkeypatch.setattr(global_settings, 'logging_enabled', False)
+        
+        # Set up mocks
+        mock_logger = MockLogger.return_value
+        mock_logger.load_training_data.return_value = [{'input': 'test input', 'output': 'test output'}]
+        
+        mock_module = MagicMock()
+        mock_create.return_value = mock_module
+        mock_run.return_value = MagicMock(output="test output")
+        
+        # Call predict without name
+        result = predict("test input")
+        
+        # Check generated module name
+        expected_name = "output__predict__arg0"
+        MockLogger.assert_called_with(module_name=expected_name)
+        
+        # Check training data was loaded
+        mock_logger.load_training_data.assert_called_once()
+        
+        # Check demos were set in module
+        assert len(mock_module.demos) == 1
+        example = mock_module.demos[0]
+        assert example.input == 'test input'
+        assert example.output == 'test output'
+        
+        # Check result
+        assert result == "test output"
