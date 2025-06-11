@@ -45,7 +45,10 @@ class Logger:
                     if not line:
                         continue
                     try:
-                        examples.append(json.loads(line))
+                        data = json.loads(line)
+                        # Only include entries that are marked as training data
+                        if data.get('section') == 'training':
+                            examples.append(data)
                     except json.JSONDecodeError:
                         # Skip invalid JSON lines
                         continue
@@ -58,6 +61,8 @@ class Logger:
             data: Dictionary of data to log
             section: Either 'training' or 'logged'
         """
+        # Add section marker
+        data['section'] = section
         # Use ISO 8601 format with 'T' separator
         data['timestamp'] = datetime.utcnow().isoformat() + 'Z'
         target_file = self.training_file if section == "training" else self.logged_file

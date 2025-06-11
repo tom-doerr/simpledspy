@@ -326,15 +326,21 @@ class BaseCaller:
             if training_examples:
                 demos = []
                 for example in training_examples:
-                    if isinstance(example, dict):
-                        try:
-                            # Convert to dspy.Example
-                            demos.append(dspy.Example(**example))
-                        except TypeError:
-                            demos.append(example)
-                    else:
-                        demos.append(example)
-                module.demos = demos
+                    # Reformat to match DSPy Example structure
+                    try:
+                        formatted = {}
+                        # Process inputs
+                        for item in example.get('inputs', []):
+                            formatted[item['name']] = item['value']
+                        # Process outputs
+                        for item in example.get('outputs', []):
+                            formatted[item['name']] = item['value']
+                        demos.append(dspy.Example(**formatted))
+                    except (TypeError, KeyError):
+                        # Skip malformed entries
+                        continue
+                if demos:
+                    module.demos = demos
         
         input_dict = dict(zip(input_names, args))
         prediction_result = self._run_module(module, input_dict, lm_params)
