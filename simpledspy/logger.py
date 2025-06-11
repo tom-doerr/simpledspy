@@ -46,9 +46,8 @@ class Logger:
                         continue
                     try:
                         data = json.loads(line)
-                        # Only include entries that are marked as training data
-                        if data.get('section') == 'training':
-                            examples.append(data)
+                        # Include any valid JSON in training file
+                        examples.append(data)
                     except json.JSONDecodeError:
                         # Skip invalid JSON lines
                         continue

@@ -16,13 +16,22 @@ def test_training_data_loading():
         base_dir = os.path.join(tmpdir, ".simpledspy")
         logger = Logger(module_name, base_dir)
         
-        # Create training data
-        training_data = {
-            'inputs': [{'name': 'input1', 'value': 'test input'}],
-            'outputs': [{'name': 'output1', 'value': 'test output'}],
-            'section': 'training'
-        }
-        logger.log_to_section(training_data, "training")
+        # Create training data in both formats
+        for data in [
+            # New format
+            {
+                'inputs': [{'name': 'input1', 'value': 'test input'}],
+                'outputs': [{'name': 'output1', 'value': 'test output'}],
+                'section': 'training'
+            },
+            # Old format
+            {
+                'input1': 'test input',
+                'output1': 'test output',
+                'section': 'training'
+            }
+        ]:
+            logger.log_to_section(data, "training")
         
         # Create logged data (should be ignored)
         logged_data = {
@@ -69,19 +78,30 @@ def test_training_data_formatting():
         base_dir = os.path.join(tmpdir, ".simpledspy")
         logger = Logger(module_name, base_dir)
         
-        # Create training data with multiple inputs/outputs
-        training_data = {
-            'inputs': [
-                {'name': 'input1', 'value': 'value1'},
-                {'name': 'input2', 'value': 42}
-            ],
-            'outputs': [
-                {'name': 'output1', 'value': True},
-                {'name': 'output2', 'value': 3.14}
-            ],
-            'section': 'training'
-        }
-        logger.log_to_section(training_data, "training")
+        # Create training data in both formats
+        for data in [
+            # New format
+            {
+                'inputs': [
+                    {'name': 'input1', 'value': 'value1'},
+                    {'name': 'input2', 'value': 42}
+                ],
+                'outputs': [
+                    {'name': 'output1', 'value': True},
+                    {'name': 'output2', 'value': 3.14}
+                ],
+                'section': 'training'
+            },
+            # Old format
+            {
+                'input1': 'value1',
+                'input2': 42,
+                'output1': True,
+                'output2': 3.14,
+                'section': 'training'
+            }
+        ]:
+            logger.log_to_section(data, "training")
         
         # Create and call Predict module
         predict = Predict()
