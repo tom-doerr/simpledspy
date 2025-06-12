@@ -289,3 +289,33 @@ def test_complex_type_hints(_mock_log):
             assert input_types['input2'] == Dict[str, int]
         if 'result' in output_types:
             assert output_types['result'] == Optional[float]
+
+
+def test_lm_params_override():
+    """Test LM parameter override and restoration"""
+    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        execution_temp = {}
+
+        class MockModule:
+            """Simple callable mock module"""
+
+            def __call__(self, **_):
+                execution_temp['temp'] = predict.lm.temperature
+                return dspy.Prediction(result="ok")
+
+        mock_create.return_value = MockModule()
+
+        class DummyLM:
+            def __init__(self):
+                self.temperature = 0.5
+
+        original_lm = predict.lm
+        predict.lm = DummyLM()
+
+        try:
+            result = predict("text", lm_params={"temperature": 1.0})
+            assert result == "ok"
+            assert execution_temp['temp'] == 1.0
+            assert predict.lm.temperature == 0.5
+        finally:
+            predict.lm = original_lm
