@@ -37,3 +37,18 @@ def test_logger_appends_data():
             assert entry0["test"] == "data1"
             assert entry1["test"] == "data2"
             assert isinstance(entry0["timestamp"], float)
+
+
+def test_log_to_section_training():
+    """Test log_to_section writes to the training file"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        logger = Logger("test_module", base_dir=tmpdir)
+        data = {"foo": "bar"}
+        logger.log_to_section(data, section="training")
+
+        with open(logger.training_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            assert len(lines) == 1
+            entry = json.loads(lines[0])
+            assert entry["foo"] == "bar"
+            assert isinstance(entry["timestamp"], float)

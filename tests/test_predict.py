@@ -289,3 +289,27 @@ def test_complex_type_hints(_mock_log):
             assert input_types['input2'] == Dict[str, int]
         if 'result' in output_types:
             assert output_types['result'] == Optional[float]
+
+
+def test_lm_param_override_and_restore():
+    """Test that lm_params temporarily override LM settings"""
+    # Reset instances so we get a fresh caller with patched LM
+    from simpledspy.module_caller import BaseCaller, Predict
+    BaseCaller._instances = {}
+
+    with patch('simpledspy.module_caller.dspy.LM') as MockLM:
+        mock_lm = MockLM.return_value
+        mock_lm.temperature = 0.2
+        captured = {}
+
+        class MockModule(dspy.Module):
+            def forward(self, **_):
+                captured['temp'] = mock_lm.temperature
+                return dspy.Prediction(result='ok')
+
+        with patch('simpledspy.module_caller.Predict._create_module', return_value=MockModule()):
+            caller = Predict()
+            result = caller('text', inputs=['text'], outputs=['result'], lm_params={'temperature': 0.9})
+            assert result == 'ok'
+            assert captured['temp'] == 0.9
+            assert caller.lm.temperature == 0.2
