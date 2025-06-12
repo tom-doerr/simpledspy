@@ -24,7 +24,7 @@ simpledspy should create some dot directory where we create all the files for th
 by default there should already be a seciotn for the training which of course is empty by default
 it then should be easy to move lines from logged input output to the train data section
 it should be easy for the user to adapt training samples by modifying input and output text of a samples
-the train data section should be abouve the log data section, which should be at the bottom since it likely will contain the most data
+the train data section should be above the log data section, which should be at the bottom since it likely will contain the most data
 there should be the possibility to set custom names for modules when called
 when no custom name for a module is set, the name consists out of ouputs, module type, and inputs: <ouput_0>_<ouput_1>__<moduletype>__<input_0>_<input_1>, e.g. finished__predict__context_steps
 we do need to save the datetime together with inputs and outputs 
