@@ -20,9 +20,16 @@ class Evaluator:
         logger: Logger instance for recording evaluations
         evaluator_lm: Language model for evaluation
     """
-    def __init__(self, evaluation_instruction: str = "", log_file: str = "dspy_logs.jsonl"):
+    def __init__(self, evaluation_instruction: str = "",
+                 log_file: str = "dspy_logs.jsonl"):
+        """Initialize the evaluator.
+
+        Args:
+            evaluation_instruction: Instruction used when evaluating outputs.
+            log_file: Path to a JSONL file where evaluations will be logged.
+        """
         self.evaluation_instruction = evaluation_instruction
-        self.logger = Logger(log_file)
+        self.logger = Logger(log_file=log_file)
         self.evaluator_lm = dspy.LM(model="deepseek/deepseek-reasoner")
         dspy.configure(lm=self.evaluator_lm)
 
