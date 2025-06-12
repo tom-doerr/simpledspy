@@ -13,8 +13,8 @@
   <a href="https://github.com/psf/black">
     <img src="https://img.shields.io/static/v1?style=for-the-badge&label=Code%20Style&message=Black&color=black" alt="Code style: black">
   </a>
-  <a href="https://github.com/tomdoerr/simpledspy/actions/workflows/tests.yml">
-    <img src="https://img.shields.io/static/v1?style=for-the-badge&label=Tests&message=Passing&color=green" alt="Tests">
+  <a href="https://github.com/tomdoerr/simpledspy/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/static/v1?style=for-the-badge&label=CI&message=Passing&color=green" alt="CI">
   </a>
 </p>
 
