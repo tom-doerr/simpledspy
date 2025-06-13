@@ -5,6 +5,7 @@ import dspy
 
 class ModuleFactory:
     """Factory for creating DSPy signatures and modules"""
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
     def create_signature(self, inputs: List[str], outputs: List[str], 
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,
@@ -44,6 +45,7 @@ class ModuleFactory:
             }
         )
 
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
     def create_module(self, inputs: List[str], outputs: List[str], 
                     input_types: Dict[str, type] = None,
                     output_types: Dict[str, type] = None,

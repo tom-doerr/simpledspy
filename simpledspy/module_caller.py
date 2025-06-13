@@ -227,7 +227,7 @@ class BaseCaller:
             })
         
         # Create logger for this specific module
-        logger = Logger(module_name=module_name)
+        logger = Logger(module_name=module_name, base_dir=".simpledspy")
         logger.log({
             'module': module_name,
             'inputs': inputs_data,
@@ -235,6 +235,41 @@ class BaseCaller:
             'description': description
         })
     
+    def _format_example(self, example: Dict[str, Any]) -> Dict[str, Any]:
+        """Formats a logged example into a DSPy Example compatible dictionary."""
+        formatted = {}
+        # New format with 'inputs' and 'outputs' keys
+        if 'inputs' in example and 'outputs' in example:
+            for item in example.get('inputs', []):
+                formatted[item['name']] = item['value']
+            for item in example.get('outputs', []):
+                formatted[item['name']] = item['value']
+        # Old format with top-level keys
+        else:
+            reserved = ['section', 'timestamp', 'module', 'description']
+            for key, value in example.items():
+                if key not in reserved:
+                    formatted[key] = value
+        return formatted
+
+    def _load_and_prepare_demos(self, name: str) -> List[dspy.Example]:
+        """Load and prepare training demonstrations from a log file."""
+        logger = Logger(module_name=name, base_dir=".simpledspy")
+        training_examples = logger.load_training_data()
+        if not training_examples:
+            return []
+
+        demos = []
+        for example in training_examples:
+            try:
+                formatted = self._format_example(example)
+                if formatted:
+                    demos.append(dspy.Example(**formatted))
+            except (TypeError, KeyError):
+                continue
+        return demos
+
+    # pylint: disable=too-many-statements
     def __call__(self, *args, inputs: List[str] = None, 
             outputs: List[str] = None, description: str = None, 
             lm_params: dict = None, name: str = None, 
@@ -294,6 +329,13 @@ class BaseCaller:
         input_types, output_types = self._get_call_types_from_signature(
             frame, input_names, output_names)
 
+        # Generate module name if not provided
+        if name is None:
+            output_part = '_'.join(output_names)
+            module_type = self.__class__.__name__.lower()
+            input_part = '_'.join(input_names)
+            name = f"{output_part}__{module_type}__{input_part}"
+
         # Create and run the module
         module = self._create_module(
             inputs=input_names, 
@@ -303,9 +345,8 @@ class BaseCaller:
             description=description
         )
         
-        # If a trainset is provided, set it as few-shot examples
+        # First priority: use explicitly passed trainset
         if trainset is not None:
-            # Convert the trainset to dspy.Example objects if they are dicts
             demos = []
             for example in trainset:
                 if isinstance(example, dict):
@@ -313,6 +354,11 @@ class BaseCaller:
                 else:
                     demos.append(example)
             module.demos = demos
+        # Second priority: load from training file
+        elif name is not None:
+            demos = self._load_and_prepare_demos(name)
+            if demos:
+                module.demos = demos
         
         input_dict = dict(zip(input_names, args))
         prediction_result = self._run_module(module, input_dict, lm_params)
@@ -322,13 +368,6 @@ class BaseCaller:
             if not hasattr(prediction_result, output_name):
                 raise AttributeError(f"Output field '{output_name}' not found in prediction result")
         output_values = [getattr(prediction_result, output_name) for output_name in output_names]
-        
-        # Generate module name if not provided
-        if name is None:
-            output_part = '_'.join(output_names)
-            module_type = self.__class__.__name__.lower()
-            input_part = '_'.join(input_names)
-            name = f"{output_part}__{module_type}__{input_part}"
         
         # Check if logging is enabled globally or via lm_params
         logging_enabled = global_settings.logging_enabled

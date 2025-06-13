@@ -7,7 +7,6 @@ Features:
 
 import re
 import time
-import json
 from typing import Dict, List
 import dspy
 from .logger import Logger
@@ -67,26 +66,26 @@ class Evaluator:
                     
         return sum(scores) / len(scores) if scores else 0.0
 
-    def log_with_evaluation(  # pylint: disable=too-many-arguments
-        self, 
-        module: str, 
-        inputs: Dict, 
-        outputs: Dict, 
-        description: str = "", 
+    def log_with_evaluation(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+        self,
+        module: str,
+        inputs: Dict,
+        outputs: Dict,
+        description: str = "",
         evaluation_instructions: List[str] = None
     ):
         """Log inputs/outputs with evaluation score"""
         score = self.evaluate(inputs, outputs, evaluation_instructions)
-        
+
         # Store individual instructions if provided
         if evaluation_instructions:
             instructions = evaluation_instructions
         else:
             instructions = [self.evaluation_instruction] if self.evaluation_instruction else []
-        
+
         # Get current timestamp
         timestamp = time.time()
-        
+
         # Log to file - store as is (the logger will handle serialization)
         log_data = {
             'module': module,

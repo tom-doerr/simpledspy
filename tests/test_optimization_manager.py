@@ -1,10 +1,14 @@
 """Tests for optimization_manager.py"""
-"""Tests for optimization_manager.py"""
-import pytest
 import dspy
+import pytest
+import os
+import sys
 from dspy.teleprompt import BootstrapFewShot, MIPROv2
-from simpledspy.optimization_manager import OptimizationManager
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from simpledspy.metrics import dict_exact_match_metric
+from simpledspy.optimization_manager import OptimizationManager
 
 def test_default_config() -> None:
     """Test default configuration"""
@@ -132,12 +136,13 @@ def test_optimize_module() -> None:
     # Mock the teleprompter compile method
     original_get_teleprompter = manager.get_teleprompter
     
-    class MockTeleprompter:
+    class MockTeleprompter:  # pylint: disable=too-few-public-methods
         """Mock teleprompter for testing"""
         def compile(self, module, trainset):  # pylint: disable=unused-argument
+            """Mock compile method."""
             return module
     
-    manager.get_teleprompter = lambda: MockTeleprompter()
+    manager.get_teleprompter = MockTeleprompter
     
     # Test optimization
     optimized_module = manager.optimize(module, trainset)
@@ -156,6 +161,7 @@ def test_configure_multiple_times() -> None:
     manager.configure(max_labeled_demos=8)
     
     # Check final values
+    # pylint: disable=protected-access
     assert manager._config['strategy'] == 'mipro'
     assert manager._config['max_bootstrapped_demos'] == 6
     assert manager._config['max_labeled_demos'] == 8

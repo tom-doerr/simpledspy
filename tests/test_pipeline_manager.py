@@ -1,8 +1,11 @@
 """Tests for pipeline_manager.py"""
-"""Tests for pipeline_manager.py"""
-import pytest
+import os
+import sys
 import dspy
-from unittest.mock import MagicMock, patch
+import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from simpledspy.pipeline_manager import PipelineManager
 
 class MockModule(dspy.Module):
@@ -14,6 +17,7 @@ class MockModule(dspy.Module):
         self.outputs = outputs
     
     def forward(self, **kwargs):  # pylint: disable=unused-argument
+        """Mock forward pass."""
         return dspy.Prediction(**self.outputs)
 
 def test_singleton_pattern():
@@ -44,8 +48,10 @@ def test_pipeline_reset():
         module=module
     )
     
+    # pylint: disable=protected-access
     assert len(manager._steps) == 1
     manager.reset()
+    # pylint: disable=protected-access
     assert len(manager._steps) == 0
     with pytest.raises(ValueError):
         _ = manager.assemble_pipeline()  # unused variable
@@ -102,6 +108,7 @@ def test_missing_output():
     class BadModule(dspy.Module):
         """Bad module that returns no output"""
         def forward(self, **kwargs):  # pylint: disable=unused-argument
+            """Mock forward pass that returns nothing."""
             return {}  # No output
     
     module = BadModule()

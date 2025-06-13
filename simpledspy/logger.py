@@ -5,7 +5,7 @@ Features:
 - Supports easy data collection for optimization datasets
 """
 import json
-import time
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 
@@ -34,6 +34,24 @@ class Logger:
             if not file.exists():
                 file.touch()
 
+    def load_training_data(self) -> list:
+        """Load training data from the training file, skipping empty lines and invalid JSON"""
+        examples = []
+        if self.training_file.exists():
+            with open(self.training_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                        # Include any valid JSON in training file
+                        examples.append(data)
+                    except json.JSONDecodeError:
+                        # Skip invalid JSON lines
+                        continue
+        return examples
+
     def log_to_section(self, data: Dict[str, Any], section: str = "logged") -> None:
         """Log a dictionary to the specified section
         
@@ -41,7 +59,10 @@ class Logger:
             data: Dictionary of data to log
             section: Either 'training' or 'logged'
         """
-        data['timestamp'] = time.time()
+        # Add section marker
+        data['section'] = section
+        # Use ISO 8601 format with 'T' separator
+        data['timestamp'] = datetime.utcnow().isoformat() + 'Z'
         target_file = self.training_file if section == "training" else self.logged_file
         
         with open(target_file, "a", encoding="utf-8") as f:

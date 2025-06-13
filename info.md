@@ -22,7 +22,7 @@ each module should write the logging info to a seperate file
 logging should not happen by default but should be required to be turned on in the code
 simpledspy should create some dot directory where we create all the files for the modules
 by default there should already be a seciotn for the training which of course is empty by default
-it then should be easy to move lines from logged input output to the train data section
+it then should be easy to move samples from logged input output to the train data section
 it should be easy for the user to adapt training samples by modifying input and output text of a samples
 the train data section should be abouve the log data section, which should be at the bottom since it likely will contain the most data
 there should be the possibility to set custom names for modules when called

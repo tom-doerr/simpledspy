@@ -41,4 +41,11 @@ def configure(**kwargs):
 # Package version
 __version__ = "0.3.1"
 
-__all__ = ['predict', 'chain_of_thought', 'PipelineManager', 'ModuleFactory', 'configure', '__version__']
+__all__ = [
+    'predict',
+    'chain_of_thought',
+    'PipelineManager',
+    'ModuleFactory',
+    'configure',
+    '__version__',
+]

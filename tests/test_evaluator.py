@@ -1,7 +1,10 @@
 """Tests for evaluator.py"""
-import pytest
-import dspy
-from unittest.mock import patch, MagicMock
+import os
+import sys
+from unittest.mock import patch
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from simpledspy.evaluator import Evaluator
 
 @patch('dspy.LM')
@@ -59,7 +62,7 @@ def test_log_with_evaluation(mock_logger, mock_lm):
     )
         
     # Check log data contains proper fields
-    args, kwargs = mock_logger.return_value.log.call_args
+    args, _ = mock_logger.return_value.log.call_args
     log_data = args[0]
         
     assert log_data["module"] == "test_module"

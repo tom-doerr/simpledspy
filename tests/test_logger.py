@@ -1,7 +1,12 @@
 """Tests for logger.py"""
-import os
 import json
+import os
+import re
+import sys
 import tempfile
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from simpledspy.logger import Logger
 
 def test_logger_init_creates_file():
@@ -36,9 +41,11 @@ def test_logger_appends_data():
             
             assert entry0["test"] == "data1"
             assert entry1["test"] == "data2"
-            assert isinstance(entry0["timestamp"], float)
+            # Check timestamp format is ISO 8601 with 'T'
+            assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$", entry0["timestamp"])
 
 
+# This function was in HEAD and not in develop, so we keep it and adapt its timestamp check
 def test_log_to_section_training():
     """Test log_to_section writes to the training file"""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -51,4 +58,44 @@ def test_log_to_section_training():
             assert len(lines) == 1
             entry = json.loads(lines[0])
             assert entry["foo"] == "bar"
-            assert isinstance(entry["timestamp"], float)
+            # Check timestamp format is ISO 8601 with 'T'
+            assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$", entry["timestamp"])
+
+# These functions were in develop and not in HEAD, so we keep them
+def test_logger_handles_invalid_data():
+    """Test that logger skips empty lines and invalid JSON when loading training data"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        module_name = "test_module"
+        logger = Logger(module_name, base_dir=tmpdir)
+        
+        # Write invalid data to training file
+        with open(logger.training_file, "w", encoding="utf-8") as f:
+            f.write("\n")  # empty line
+            f.write("{invalid json}\n")  # invalid JSON
+            f.write(json.dumps({"valid": "data"}) + "\n")  # valid JSON
+        
+        # Load training data
+        examples = logger.load_training_data()
+        
+        # Should only have the valid entry
+        assert len(examples) == 1
+        assert examples[0]["valid"] == "data"
+
+def test_timestamp_format():
+    """Test that timestamps use ISO 8601 format with T separator"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        module_name = "test_module"
+        logger = Logger(module_name, base_dir=tmpdir)
+        
+        # Log sample data
+        data = {"key": "value"}
+        logger.log(data)
+        
+        # Read log file
+        with open(logger.logged_file, "r", encoding="utf-8") as f:
+            line = f.readline().strip()
+            entry = json.loads(line)
+            
+            # Check timestamp format matches YYYY-MM-DDTHH:MM:SS.microsecondsZ
+            assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$", entry["timestamp"])
+
