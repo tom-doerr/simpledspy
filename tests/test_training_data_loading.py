@@ -2,7 +2,7 @@
 import os
 import sys
 import tempfile
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -171,15 +171,36 @@ def test_training_data_formatting():
         ]:
             logger.log_to_section(data, "training")
         
-        # Create Predict module
-        predict = Predict()
-        # pylint: disable=protected-access
-        demos = predict._load_training_data(module_name)
-        assert len(demos) == 2
-        
-        # Verify both demos
-        for demo in demos:
-            assert demo.input1 == "value1"
-            assert demo.input2 == 42
-            assert demo.output1 is True
-            assert demo.output2 == 3.14
+        # Monkeypatch global_settings.log_dir to use tmpdir
+        original_log_dir = global_settings.log_dir
+        global_settings.log_dir = base_dir # The .simpledspy folder within tmpdir
+
+        try:
+            with patch.object(BaseCaller, '_create_module') as mock_create_module:
+                mock_module_instance = MagicMock(spec=dspy.Module)
+                mock_module_instance.demos = [] # Initialize demos attribute
+                mock_create_module.return_value = mock_module_instance
+
+                predict_instance = Predict()
+
+                # Call predict to trigger demo loading. Module name must match logger's.
+                # Inputs/outputs for the call must be comprehensive enough for the logged data.
+                try:
+                    predict_instance("dummy_value1", 42, inputs=["input1", "input2"], outputs=["output1", "output2"], name=module_name)
+                except Exception as e:
+                    # Allow progression to demo assertion if LM call fails
+                    pass 
+
+                demos = mock_module_instance.demos
+                assert len(demos) == 2
+
+                # Verify formatting for DSPy compatibility
+                # Both logged examples (old and new format) should result in the same content after processing
+                expected_demo_content = {'input1': 'value1', 'input2': 42, 'output1': True, 'output2': 3.14}
+
+                for demo in demos:
+                    assert isinstance(demo, dspy.Example)
+                    demo_dict = {k: v for k, v in demo.items() if k in ['input1', 'input2', 'output1', 'output2']}
+                    assert demo_dict == expected_demo_content
+        finally:
+            global_settings.log_dir = original_log_dir
