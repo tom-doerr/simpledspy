@@ -83,4 +83,3 @@ class Pipeline(dspy.Module):
                 all_outputs[name] = value
         
         return dspy.Prediction(**all_outputs)
-

@@ -1,8 +1,12 @@
 """Tests for logger.py"""
-import os
 import json
+import os
 import re
+import sys
 import tempfile
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from simpledspy.logger import Logger
 
 def test_logger_init_creates_file():

@@ -25,7 +25,6 @@ class OptimizationManager:
             'metric': dict_exact_match_metric,
             'max_bootstrapped_demos': 4,
             'max_labeled_demos': 4,
-            'max_steps': 12,
             'max_demos': 10
         }
         self._teleprompters = {
@@ -65,8 +64,7 @@ class OptimizationManager:
         if strategy == 'simba':
             return self._teleprompters[strategy](
                 metric=self._config['metric'],
-                num_steps=self._config['max_steps'],
-                num_trials=self._config['max_demos']
+                max_bootstrapped_demos=self._config['max_demos']
             )
         return self._teleprompters[strategy](
             metric=self._config['metric']

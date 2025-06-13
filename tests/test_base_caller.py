@@ -1,6 +1,12 @@
 """Tests for base_caller.py"""
-from unittest.mock import patch, MagicMock
+import os
+import sys
+from unittest.mock import MagicMock, patch
+
 import dspy
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from simpledspy.module_caller import BaseCaller
 
 def test_base_caller_singleton():

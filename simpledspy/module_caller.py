@@ -235,6 +235,41 @@ class BaseCaller:
             'description': description
         })
     
+    def _format_example(self, example: Dict[str, Any]) -> Dict[str, Any]:
+        """Formats a logged example into a DSPy Example compatible dictionary."""
+        formatted = {}
+        # New format with 'inputs' and 'outputs' keys
+        if 'inputs' in example and 'outputs' in example:
+            for item in example.get('inputs', []):
+                formatted[item['name']] = item['value']
+            for item in example.get('outputs', []):
+                formatted[item['name']] = item['value']
+        # Old format with top-level keys
+        else:
+            reserved = ['section', 'timestamp', 'module', 'description']
+            for key, value in example.items():
+                if key not in reserved:
+                    formatted[key] = value
+        return formatted
+
+    def _load_and_prepare_demos(self, name: str) -> List[dspy.Example]:
+        """Load and prepare training demonstrations from a log file."""
+        logger = Logger(module_name=name, base_dir=".simpledspy")
+        training_examples = logger.load_training_data()
+        if not training_examples:
+            return []
+
+        demos = []
+        for example in training_examples:
+            try:
+                formatted = self._format_example(example)
+                if formatted:
+                    demos.append(dspy.Example(**formatted))
+            except (TypeError, KeyError):
+                continue
+        return demos
+
+    # pylint: disable=too-many-statements
     def __call__(self, *args, inputs: List[str] = None, 
             outputs: List[str] = None, description: str = None, 
             lm_params: dict = None, name: str = None, 
@@ -321,33 +356,9 @@ class BaseCaller:
             module.demos = demos
         # Second priority: load from training file
         elif name is not None:
-            logger = Logger(module_name=name, base_dir=".simpledspy")
-            training_examples = logger.load_training_data()
-            if training_examples:
-                demos = []
-                for example in training_examples:
-                    # Reformat to match DSPy Example structure
-                    try:
-                        formatted = {}
-                        # Handle both new and old data formats
-                        if 'inputs' in example and 'outputs' in example:
-                            # New format: process inputs/outputs arrays
-                            for item in example.get('inputs', []):
-                                formatted[item['name']] = item['value']
-                            for item in example.get('outputs', []):
-                                formatted[item['name']] = item['value']
-                        else:
-                            # Old format: use top-level keys
-                            reserved = ['section', 'timestamp', 'module', 'description']
-                            for key, value in example.items():
-                                if key not in reserved:
-                                    formatted[key] = value
-                        demos.append(dspy.Example(**formatted))
-                    except (TypeError, KeyError):
-                        # Skip malformed entries
-                        continue
-                if demos:
-                    module.demos = demos
+            demos = self._load_and_prepare_demos(name)
+            if demos:
+                module.demos = demos
         
         input_dict = dict(zip(input_names, args))
         prediction_result = self._run_module(module, input_dict, lm_params)

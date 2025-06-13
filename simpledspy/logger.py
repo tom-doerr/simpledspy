@@ -5,7 +5,6 @@ Features:
 - Supports easy data collection for optimization datasets
 """
 import json
-import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any

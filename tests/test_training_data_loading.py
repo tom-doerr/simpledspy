@@ -1,19 +1,26 @@
 """Tests for training data loading functionality"""
 import os
-import json
+import sys
 import tempfile
-import pytest
-import dspy
 from unittest.mock import MagicMock
-from simpledspy.module_caller import Predict
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import dspy
+import pytest
+
 from simpledspy.logger import Logger
+from simpledspy.module_caller import Predict
+
 
 # Mock LM to prevent "No LM is loaded" errors
 @pytest.fixture(autouse=True)
 def mock_lm(monkeypatch):
-    mock_lm = MagicMock()
+    """Mocks the dspy.LM for all tests."""
+    mock_lm_instance = MagicMock()
     monkeypatch.setattr(dspy, 'configure', MagicMock())
-    monkeypatch.setattr(dspy, 'LM', MagicMock(return_value=mock_lm))
+    monkeypatch.setattr(dspy, 'LM', MagicMock(return_value=mock_lm_instance))
+
 
 def test_training_data_loading():
     """Test that training data is properly loaded and used in modules"""
@@ -53,6 +60,7 @@ def test_training_data_loading():
         predict = Predict()
         
         # Verify training data was loaded
+        # pylint: disable=protected-access
         demos = predict._load_training_data(module_name)
         assert len(demos) == 2
         
@@ -77,6 +85,7 @@ def test_malformed_training_data():
         
         # Verify no demos loaded
         predict = Predict()
+        # pylint: disable=protected-access
         demos = predict._load_training_data(module_name)
         assert len(demos) == 0
 
@@ -114,6 +123,7 @@ def test_training_data_formatting():
         
         # Create Predict module
         predict = Predict()
+        # pylint: disable=protected-access
         demos = predict._load_training_data(module_name)
         assert len(demos) == 2
         
