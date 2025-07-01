@@ -53,47 +53,50 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     """Main function for the CLI."""
     parser = argparse.ArgumentParser(description="SimpleDSPy command line interface")
     parser.add_argument(
-        'inputs', nargs='*', help="Input strings to process (use - for stdin)"
+        "inputs", nargs="*", help="Input strings to process (use - for stdin)"
     )
     parser.add_argument(
-        '-d', '--description', help="Description of the processing task"
+        "-d", "--description", help="Description of the processing task"
     )
     parser.add_argument(
-        '-m', '--module', choices=['predict', 'chain_of_thought'], default='predict'
+        "-m", "--module", choices=["predict", "chain_of_thought"], default="predict"
     )
     parser.add_argument(
-        '--optimize', action='store_true', help="Enable pipeline optimization"
+        "--optimize", action="store_true", help="Enable pipeline optimization"
     )
     parser.add_argument(
-        '--strategy',
-        choices=['bootstrap_few_shot', 'mipro', 'bootstrap_random', 'simba'],
-        default='bootstrap_few_shot',
+        "--strategy",
+        choices=["bootstrap_few_shot", "mipro", "bootstrap_random", "simba"],
+        default="bootstrap_few_shot",
     )
     parser.add_argument(
-        '--max-demos', type=int, default=4, help="Maximum demonstrations for optimization"
+        "--max-demos",
+        type=int,
+        default=4,
+        help="Maximum demonstrations for optimization",
     )
     parser.add_argument(
-        '--trainset', type=str, help="Path to JSON file with training set"
+        "--trainset", type=str, help="Path to JSON file with training set"
     )
-    parser.add_argument('--json', action='store_true', help="Output in JSON format")
+    parser.add_argument("--json", action="store_true", help="Output in JSON format")
     parser.add_argument(
-        '--pipeline', nargs='+', help="Run a pipeline with multiple step descriptions"
+        "--pipeline", nargs="+", help="Run a pipeline with multiple step descriptions"
     )
     parser.add_argument(
-        '--evaluation-instruction',
+        "--evaluation-instruction",
         type=str,
         default="",
         help="Instruction for evaluating outputs",
     )
     parser.add_argument(
-        '--log-file', type=str, default="dspy_logs.jsonl", help="File to store logs"
+        "--log-file", type=str, default="dspy_logs.jsonl", help="File to store logs"
     )
     args = parser.parse_args()
 
     if args.inputs:
         inputs = args.inputs
     elif not sys.stdin.isatty():
-        inputs = sys.stdin.read().strip().split('\n')
+        inputs = sys.stdin.read().strip().split("\n")
     else:
         inputs = []
 
@@ -106,13 +109,11 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
 
     if args.optimize:
         manager = OptimizationManager()
-        manager.configure(
-            strategy=args.strategy, max_bootstrapped_demos=args.max_demos
-        )
+        manager.configure(strategy=args.strategy, max_bootstrapped_demos=args.max_demos)
         trainset = []
         if args.trainset:
             try:
-                with open(args.trainset, 'r', encoding='utf-8') as f:
+                with open(args.trainset, "r", encoding="utf-8") as f:
                     trainset = json.load(f)
             except OSError as e:
                 print(f"Error loading trainset: {e}")

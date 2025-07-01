@@ -14,7 +14,16 @@ import sys as _sys
 from .module_caller import Predict, ChainOfThought
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
+from .optimization_manager import OptimizationManager
 from .settings import settings as global_settings
+from .exceptions import (
+    SimpleDSPyError,
+    ConfigurationError,
+    ValidationError,
+    PipelineError,
+    ModuleError,
+    SecurityError
+)
 
 # Create the function instances
 predict = Predict()
@@ -23,11 +32,13 @@ chain_of_thought = ChainOfThought()
 # Check if the module is being imported incorrectly
 if not _sys.modules["simpledspy"].__name__.startswith("simpledspy"):
     import warnings as _warnings
+
     _warnings.warn(
         "It looks like you might be importing 'simpledspy' incorrectly. "
         "Please use 'import simpledspy' instead of 'import dspy'.",
-        ImportWarning
+        ImportWarning,
     )
+
 
 def configure(**kwargs):
     """Set global configuration settings for SimpleDSPy.
@@ -38,14 +49,23 @@ def configure(**kwargs):
     for key, value in kwargs.items():
         setattr(global_settings, key, value)
 
+
 # Package version
 __version__ = "0.3.1"
 
 __all__ = [
-    'predict',
-    'chain_of_thought',
-    'PipelineManager',
-    'ModuleFactory',
-    'configure',
-    '__version__',
+    "predict",
+    "chain_of_thought",
+    "PipelineManager",
+    "ModuleFactory",
+    "OptimizationManager",
+    "configure",
+    "__version__",
+    # Exceptions
+    "SimpleDSPyError",
+    "ConfigurationError",
+    "ValidationError",
+    "PipelineError",
+    "ModuleError",
+    "SecurityError",
 ]

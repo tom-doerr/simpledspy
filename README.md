@@ -22,6 +22,8 @@
   SimpleDSPy is a lightweight Python library that simplifies building and running DSPy pipelines with an intuitive interface.
 </p>
 
+> **⚠️ Careful, vibe coded project!**
+
 > **Note:** This project is currently a work in progress and is not officially affiliated with or endorsed by the DSPy project. It is an independent effort to create a simplified interface for working with DSPy pipelines.
 
 > **Important:** Always import this package as `import simpledspy`, not as `import dspy`. The latter will import the actual DSPy library instead of SimpleDSPy.

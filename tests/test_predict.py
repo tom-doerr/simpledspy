@@ -1,4 +1,5 @@
 """Tests for predict module"""
+
 import os
 import sys
 from typing import Dict, List, Optional, Tuple
@@ -7,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import dspy
 import pytest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # pylint: disable=import-error
 from simpledspy import chain_of_thought, predict
@@ -24,7 +25,7 @@ def test_basic_string_output():
         dspy.settings.lm = mock_lm
 
         # Mock module response
-        with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+        with patch("simpledspy.module_caller.Predict._create_module") as mock_create:
             # Create a mock module that returns a simple string
             class MockModule(dspy.Module):
                 """Mock module for testing"""
@@ -44,7 +45,7 @@ def test_basic_string_output():
 
 def test_chain_of_thought():
     """Test chain of thought functionality"""
-    with patch('simpledspy.module_caller.ChainOfThought._create_module') as mock_create:
+    with patch("simpledspy.module_caller.ChainOfThought._create_module") as mock_create:
         # Create a mock module that properly handles forward calls
         class MockModule(dspy.Module):
             """Mock module for testing"""
@@ -62,7 +63,7 @@ def test_chain_of_thought():
 
 def test_custom_input_output_names():
     """Test custom input/output names"""
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+    with patch("simpledspy.module_caller.Predict._create_module") as mock_create:
         # Create a mock module
         class MockModule(dspy.Module):
             """Mock module for testing"""
@@ -80,7 +81,7 @@ def test_custom_input_output_names():
             last,
             inputs=["first_name", "last_name"],
             outputs=["full_name", "age"],
-            description="Combine names and guess age"
+            description="Combine names and guess age",
         )
         assert full_name == "John Doe"
         assert age == 30
@@ -88,36 +89,33 @@ def test_custom_input_output_names():
 
 def test_predict_multiple_outputs():
     """Test multiple outputs functionality"""
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+    with patch("simpledspy.module_caller.Predict._create_module") as mock_create:
         # Create a mock module that returns multiple outputs
         class MockModule(dspy.Module):
             """Mock module for testing"""
 
             def forward(self, **_):
                 """Mock forward method"""
-                return dspy.Prediction(
-                    a_reversed='lkj',
-                    b_repeated='abcabc'
-                )
+                return dspy.Prediction(a_reversed="lkj", b_repeated="abcabc")
 
         mock_create.return_value = MockModule()
 
-        a = 'jkl'
-        b = 'abc'
+        a = "jkl"
+        b = "abc"
         a_reversed, b_repeated = predict(
             b,
             a,
             inputs=["b", "a"],
             outputs=["a_reversed", "b_repeated"],
-            description="Reverse a and repeat b"
+            description="Reverse a and repeat b",
         )
-        assert a_reversed == 'lkj'
-        assert b_repeated == 'abcabc'
+        assert a_reversed == "lkj"
+        assert b_repeated == "abcabc"
 
 
 def test_predict_unpack_error():
     """Test unpack error handling"""
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+    with patch("simpledspy.module_caller.Predict._create_module") as mock_create:
         # Create mock module that returns single output
         class MockModule(dspy.Module):
             """Mock module for testing"""
@@ -137,7 +135,7 @@ def test_predict_unpack_error():
 
 def test_variable_name_preservation():
     """Test original variable names are preserved in logs"""
-    with patch('simpledspy.module_caller.BaseCaller._log_results') as mock_log:
+    with patch("simpledspy.module_caller.BaseCaller._log_results") as mock_log:
         # Create mock module
         class MockModule(dspy.Module):
             """Mock module for testing"""
@@ -146,7 +144,10 @@ def test_variable_name_preservation():
                 """Mock forward method"""
                 return dspy.Prediction(output="test")
 
-        with patch('simpledspy.module_caller.BaseCaller._create_module', return_value=MockModule()):
+        with patch(
+            "simpledspy.module_caller.BaseCaller._create_module",
+            return_value=MockModule(),
+        ):
             # Enable logging for this test
             original_logging_setting = global_settings.logging_enabled
             global_settings.logging_enabled = True
@@ -166,39 +167,47 @@ def test_variable_name_preservation():
             _, _, input_names, _, _, _ = args
 
             # Check that input names are preserved
-            assert input_names == ['poem_text', 'flag']
+            assert input_names == ["poem_text", "flag"]
 
 
 def test_input_variable_name_inference():
     """Test input variable name inference in different scopes"""
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+    with patch("simpledspy.module_caller.Predict._create_module") as mock_create:
         # Create mock module
-        class MockModule(dspy.Module):
-            """Mock module for testing"""
+        # Create a more flexible mock that adapts to output names
+        def create_mock_module(**kwargs):
+            outputs = kwargs.get("outputs", ["output"])
 
-            def forward(self, **_):
-                """Mock forward method"""
-                return dspy.Prediction(output="result")
+            class MockModule(dspy.Module):
+                """Mock module for testing"""
 
-        mock_create.return_value = MockModule()
+                def forward(self, **_):
+                    """Mock forward method"""
+                    # Create a prediction with all expected output fields
+                    pred_kwargs = {name: "result" for name in outputs}
+                    return dspy.Prediction(**pred_kwargs)
+
+            return MockModule()
+
+        mock_create.side_effect = create_mock_module
 
         # Test in global scope
         global_var1 = "global1"
         global_var2 = "global2"
         predict(global_var1, global_var2)
         call_args = mock_create.call_args
-        input_names = call_args[1]['inputs']
-        assert input_names == ['global_var1', 'global_var2']
+        input_names = call_args[1]["inputs"]
+        assert input_names == ["global_var1", "global_var2"]
 
         # Test in function scope
         def test_function():
             local1 = "local1"
             local2 = "local2"
             predict(local1, local2)
-            return mock_create.call_args[1]['inputs']
+            return mock_create.call_args[1]["inputs"]
 
         input_names = test_function()
-        assert input_names == ['local1', 'local2']
+        assert input_names == ["local1", "local2"]
 
         # Test with reserved variable names
         args = "test_args"
@@ -206,15 +215,15 @@ def test_input_variable_name_inference():
         self = "test_self"  # pylint: disable=redefined-builtin
         predict(args, kwargs, self)
         call_args = mock_create.call_args
-        input_names = call_args[1]['inputs']
+        input_names = call_args[1]["inputs"]
         # Sanitized names should be used
-        assert input_names == ['arg0', 'arg1', 'arg2']
+        assert input_names == ["arg0", "arg1", "arg2"]
 
         # Test with unnamed values
         predict("literal", 42)
         call_args = mock_create.call_args
-        input_names = call_args[1]['inputs']
-        assert input_names == ['arg0', 'arg1']
+        input_names = call_args[1]["inputs"]
+        assert input_names == ["arg0", "arg1"]
 
         # Test with instance variables
         class TestClass:
@@ -231,14 +240,14 @@ def test_input_variable_name_inference():
         test_obj = TestClass()
         test_obj.test_method()
         call_args = mock_create.call_args
-        input_names = call_args[1]['inputs']
-        assert input_names == ['context', 'options']
+        input_names = call_args[1]["inputs"]
+        assert input_names == ["context", "options"]
 
 
-@patch('simpledspy.module_caller.Logger.log')
-def test_input_output_type_hints(_mock_log):
+@patch("simpledspy.logging_utils.Logger")
+def test_input_output_type_hints(mock_logger_class):
     """Test that type hints are properly propagated to module signatures"""
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+    with patch("simpledspy.module_caller.Predict._create_module") as mock_create:
         # Create mock module
         mock_module = MagicMock()
         mock_module.forward.return_value = dspy.Prediction(out1=1, out2="text")
@@ -247,9 +256,11 @@ def test_input_output_type_hints(_mock_log):
         # Define function with type hints
         def test_func(input1: str, input2: int, input3) -> Tuple[int, str]:
             return predict(
-                input1, input2, input3,
+                input1,
+                input2,
+                input3,
                 inputs=["input1", "input2", "input3"],
-                outputs=["out1", "out2"]
+                outputs=["out1", "out2"],
             )
 
         # Call the function
@@ -257,31 +268,31 @@ def test_input_output_type_hints(_mock_log):
 
         # Check module creation call
         call_args = mock_create.call_args[1]
-        _input_names = call_args['inputs']
-        _output_names = call_args['outputs']
-        input_types = call_args['input_types']
-        output_types = call_args['output_types']
+        _input_names = call_args["inputs"]
+        _output_names = call_args["outputs"]
+        input_types = call_args["input_types"]
+        output_types = call_args["output_types"]
 
         # Input type checks
         # Only assert that types exist if present
-        if 'input1' in input_types:
-            assert input_types['input1'] == str
-        if 'input2' in input_types:
-            assert input_types['input2'] == int
+        if "input1" in input_types:
+            assert input_types["input1"] == str
+        if "input2" in input_types:
+            assert input_types["input2"] == int
         # No type hint for input3
 
         # Output type checks
         # Only assert that types exist if present
-        if 'out1' in output_types:
-            assert output_types['out1'] == int
-        if 'out2' in output_types:
-            assert output_types['out2'] == str
+        if "out1" in output_types:
+            assert output_types["out1"] == int
+        if "out2" in output_types:
+            assert output_types["out2"] == str
 
 
-@patch('simpledspy.module_caller.Logger.log')
-def test_complex_type_hints(_mock_log):
+@patch("simpledspy.logging_utils.Logger")
+def test_complex_type_hints(mock_logger_class):
     """Test complex type hints like List and Optional"""
-    with patch('simpledspy.module_caller.Predict._create_module') as mock_create:
+    with patch("simpledspy.module_caller.Predict._create_module") as mock_create:
         # Create mock module
         mock_module = MagicMock()
         mock_module.forward.return_value = dspy.Prediction(result=1.0)
@@ -289,67 +300,82 @@ def test_complex_type_hints(_mock_log):
 
         # Define function with complex type hints
         def test_func(input1: List[str], input2: Dict[str, int]) -> Optional[float]:
-            return predict(input1, input2, inputs=["input1", "input2"], outputs=["result"])
+            return predict(
+                input1, input2, inputs=["input1", "input2"], outputs=["result"]
+            )
 
         # Call the function
         test_func(["a", "b"], {"a": 1})
 
         # Check module creation call
         call_args = mock_create.call_args[1]
-        input_types = call_args['input_types']
-        output_types = call_args['output_types']
+        input_types = call_args["input_types"]
+        output_types = call_args["output_types"]
 
         # Type checks
         # Only assert that types exist if present
-        if 'input1' in input_types:
-            assert input_types['input1'] == List[str]
-        if 'input2' in input_types:
-            assert input_types['input2'] == Dict[str, int]
-        if 'result' in output_types:
-            assert output_types['result'] == Optional[float]
-
+        if "input1" in input_types:
+            assert input_types["input1"] == List[str]
+        if "input2" in input_types:
+            assert input_types["input2"] == Dict[str, int]
+        if "result" in output_types:
+            assert output_types["result"] == Optional[float]
 
 
 def test_lm_param_override_and_restore():
     """Test that lm_params temporarily override LM settings"""
     # Reset instances so we get a fresh caller with patched LM
     from simpledspy.module_caller import BaseCaller, Predict
+
     BaseCaller._instances = {}
 
-    with patch('simpledspy.module_caller.dspy.LM') as MockLM:
+    with patch("simpledspy.module_caller.dspy.LM") as MockLM:
         mock_lm = MockLM.return_value
         mock_lm.temperature = 0.2
         captured = {}
 
         class MockModule(dspy.Module):
             def forward(self, **_):
-                captured['temp'] = mock_lm.temperature
-                return dspy.Prediction(result='ok')
+                captured["temp"] = mock_lm.temperature
+                return dspy.Prediction(result="ok")
 
-        with patch('simpledspy.module_caller.Predict._create_module', return_value=MockModule()):
+        with patch(
+            "simpledspy.module_caller.Predict._create_module", return_value=MockModule()
+        ):
             caller = Predict()
-            result = caller('text', inputs=['text'], outputs=['result'], lm_params={'temperature': 0.9})
-            assert result == 'ok'
-            assert captured['temp'] == 0.9
+            result = caller(
+                "text",
+                inputs=["text"],
+                outputs=["result"],
+                lm_params={"temperature": 0.9},
+            )
+            assert result == "ok"
+            assert captured["temp"] == 0.9
             assert caller.lm.temperature == 0.2
 
 
 def test_predict_loads_training_data_with_default_name(monkeypatch):
     """Test that training data is loaded from default-named folder."""
     with (
-        patch('simpledspy.module_caller.Logger') as mock_logger_class,
-        patch('simpledspy.module_caller.BaseCaller._create_module') as mock_create,
-        patch('simpledspy.module_caller.BaseCaller._run_module') as mock_run,
-        patch('simpledspy.module_caller.BaseCaller._infer_input_names', return_value=['arg0']),
-        patch('simpledspy.module_caller.BaseCaller._infer_output_names', return_value=['output'])
+        patch("simpledspy.training_utils.Logger") as mock_logger_class,
+        patch("simpledspy.module_caller.BaseCaller._create_module") as mock_create,
+        patch("simpledspy.module_caller.BaseCaller._run_module") as mock_run,
+        patch(
+            "simpledspy.module_caller.BaseCaller._infer_input_names",
+            return_value=["arg0"],
+        ),
+        patch(
+            "simpledspy.module_caller.BaseCaller._infer_output_names",
+            return_value=["output"],
+        ),
     ):
         # Disable logging for this test
-        monkeypatch.setattr(global_settings, 'logging_enabled', False)
+        monkeypatch.setattr(global_settings, "logging_enabled", False)
 
         # Set up mocks
         mock_logger = mock_logger_class.return_value
         mock_logger.load_training_data.return_value = [
-            {'input': 'test input', 'output': 'test output'}
+            {"input": "test input", "output": "test output"}
         ]
 
         mock_module = MagicMock()
@@ -371,9 +397,8 @@ def test_predict_loads_training_data_with_default_name(monkeypatch):
         # Check demos were set in module
         assert len(mock_module.demos) == 1
         example = mock_module.demos[0]
-        assert example.input == 'test input'
-        assert example.output == 'test output'
+        assert example.input == "test input"
+        assert example.output == "test output"
 
         # Check result
         assert result == "test output"
-
