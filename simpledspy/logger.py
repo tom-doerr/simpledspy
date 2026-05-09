@@ -7,7 +7,7 @@ Features:
 
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -90,8 +90,12 @@ class Logger:
         """
         # Add section marker
         data["section"] = section
-        # Use ISO 8601 format with 'T' separator
-        data["timestamp"] = datetime.utcnow().isoformat() + "Z"
+        # Use an aware UTC datetime while preserving the existing trailing-Z format.
+        data["timestamp"] = (
+            datetime.now(timezone.utc)
+            .isoformat(timespec="microseconds")
+            .replace("+00:00", "Z")
+        )
         target_file = (
             self.training_file
             if section == "training" and self.training_file is not None

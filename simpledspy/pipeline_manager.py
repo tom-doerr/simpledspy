@@ -38,7 +38,7 @@ class PipelineManager:
         """Assemble the pipeline from registered steps"""
         if not self._steps:
             raise PipelineError("No steps in pipeline")
-        return Pipeline(self._steps)
+        return Pipeline(list(self._steps))
 
     def reset(self) -> None:
         """Reset the pipeline steps and any module state"""
@@ -50,8 +50,8 @@ class Pipeline(dspy.Module):
 
     def __init__(self, steps: List[Tuple[List[str], List[str], Any]]) -> None:
         super().__init__()
-        self.step_tuples = steps  # store the full step tuples
-        for i, (_, _, module) in enumerate(steps):
+        self.step_tuples = list(steps)  # store the full step tuples
+        for i, (_, _, module) in enumerate(self.step_tuples):
             setattr(self, f"step_{i}", module)
 
     def forward(self, **inputs: Dict[str, Any]) -> dspy.Prediction:

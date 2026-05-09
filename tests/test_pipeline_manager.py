@@ -88,6 +88,33 @@ def test_pipeline_assembly():
     assert result.output2 == "step2 output"
 
 
+def test_assembled_pipeline_isolated_from_later_manager_updates():
+    """Test assembled pipelines do not change when the manager is reused."""
+    manager = PipelineManager()
+    manager.register_step(
+        inputs=["input1"],
+        outputs=["output1"],
+        module=MockModule(output1="step1 output"),
+    )
+
+    pipeline = manager.assemble_pipeline()
+
+    manager.register_step(
+        inputs=["output1"],
+        outputs=["output2"],
+        module=MockModule(output2="step2 output"),
+    )
+
+    assert len(pipeline.step_tuples) == 1
+    result = pipeline(input1="test input")
+    assert result.output1 == "step1 output"
+
+    updated_pipeline = manager.assemble_pipeline()
+    assert len(updated_pipeline.step_tuples) == 2
+    updated_result = updated_pipeline(input1="test input")
+    assert updated_result.output2 == "step2 output"
+
+
 def test_missing_input():
     """Test missing input in pipeline execution"""
     manager = PipelineManager()

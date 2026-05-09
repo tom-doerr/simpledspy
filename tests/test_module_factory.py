@@ -61,6 +61,9 @@ def test_create_module_with_types():
     assert signature.model_fields["name"].json_schema_extra["desc"] == "name"
     assert signature.model_fields["age"].json_schema_extra["desc"] == "age"
     assert signature.model_fields["greeting"].json_schema_extra["desc"] == "greeting"
+    assert signature.model_fields["name"].annotation == str
+    assert signature.model_fields["age"].annotation == int
+    assert signature.model_fields["greeting"].annotation == str
 
 
 def test_create_module_with_description():
