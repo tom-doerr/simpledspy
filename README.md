@@ -13,7 +13,7 @@
   <a href="https://github.com/psf/black">
     <img src="https://img.shields.io/static/v1?style=for-the-badge&label=Code%20Style&message=Black&color=black" alt="Code style: black">
   </a>
-  <a href="https://github.com/tomdoerr/simpledspy/actions/workflows/ci.yml">
+  <a href="https://github.com/tom-doerr/simpledspy/actions/workflows/ci.yml">
     <img src="https://img.shields.io/static/v1?style=for-the-badge&label=CI&message=Passing&color=green" alt="CI">
   </a>
 </p>
@@ -34,8 +34,6 @@
 - **Pipeline Manager**: Create complex pipelines of DSPy modules
 - **Optimization**: Use DSPy teleprompters to optimize your modules
 - **Evaluation**: Evaluate outputs on a scale of 1-10 and log inputs/outputs
-- **Reward Tracking**: Track cumulative discounted rewards over time
-- **Advice Generation**: Generate optimization advice from positive/negative examples
 - **CLI**: Command-line interface for running modules and pipelines
 - **Automatic Module Creation**: Generate DSPy modules from input/output specifications
 - **Type Hinting**: Support for flexible type annotations
@@ -53,7 +51,9 @@ Before using SimpleDSPy, configure your language model:
 
 ```python
 import dspy
-dspy.configure(lm=dspy.OpenAI(model='gpt-3.5-turbo'))
+import simpledspy
+
+simpledspy.configure(lm=dspy.LM(model="openai/gpt-3.5-turbo"))
 ```
 
 ## Usage
@@ -109,18 +109,27 @@ result = predict("Generate creative text",
 
 ### Pipeline Management
 ```python
-from simpledspy import PipelineManager, predict
+from simpledspy import ModuleFactory, PipelineManager
 
+factory = ModuleFactory()
 manager = PipelineManager()
 manager.register_step(
     inputs=["text"],
     outputs=["cleaned"],
-    module=predict("Clean text")
+    module=factory.create_module(
+        inputs=["text"],
+        outputs=["cleaned"],
+        description="Clean text"
+    )
 )
 manager.register_step(
     inputs=["cleaned"],
     outputs=["sentiment"],
-    module=predict("Analyze sentiment")
+    module=factory.create_module(
+        inputs=["cleaned"],
+        outputs=["sentiment"],
+        description="Analyze sentiment"
+    )
 )
 
 pipeline = manager.assemble_pipeline()
@@ -130,8 +139,15 @@ print(result.sentiment)  # "positive"
 
 ### Optimization
 ```python
-from simpledspy import predict
+from simpledspy import ModuleFactory
 from simpledspy.optimization_manager import OptimizationManager
+
+factory = ModuleFactory()
+module = factory.create_module(
+    inputs=["input"],
+    outputs=["output"],
+    description="Solve the arithmetic problem"
+)
 
 # Create training data
 trainset = [
@@ -141,32 +157,11 @@ trainset = [
 
 # Optimize the module
 manager = OptimizationManager()
-optimized_predict = manager.optimize(predict, trainset)
+optimized_module = manager.optimize(module, trainset)
 
 # Use optimized module
-result = optimized_predict("4*4")
-print(result)  # "16"
-```
-
-### Reward Tracking and Advice Generation
-```python
-from simpledspy.evaluator import Evaluator
-
-# Create evaluator with reward group
-evaluator = Evaluator("Rate output quality 1-10", reward_group="math")
-score = evaluator.evaluate(
-    {"question": "2+2"},
-    {"answer": "4"}
-)
-print(score)  # 10
-
-# Get cumulative reward
-cumulative = evaluator.get_cumulative_reward()
-print(f"Cumulative reward: {cumulative:.2f}")
-
-# Generate advice from examples
-advice = evaluator.get_advice()
-print(f"Optimization advice: {advice}")
+result = optimized_module(input="4*4")
+print(result.output)  # "16"
 ```
 
 ### Evaluation
@@ -208,7 +203,7 @@ SimpleDSPy provides:
 3. **Optimization**: Module optimization with training data
 4. **Evaluation**: 1-10 scoring with custom instructions
 5. **Logging**: Input/output logging for training data
-6. **Reward Function**: `evaluate()` method for cumulative rewards
+6. **Evaluation Function**: `evaluate()` method returns quality scores
 7. **Training Data**: Extract high-scoring examples from logs
 
 ## Contributing

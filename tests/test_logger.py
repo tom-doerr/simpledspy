@@ -69,6 +69,33 @@ def test_log_to_section_training():
             )
 
 
+def test_logger_direct_log_file():
+    """Test that Logger can write directly to a custom JSONL file"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        log_file = os.path.join(tmpdir, "evaluations", "scores.jsonl")
+        logger = Logger(log_file=log_file)
+
+        logger.log({"score": 9})
+
+        assert os.path.exists(log_file)
+        with open(log_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        assert len(lines) == 1
+        entry = json.loads(lines[0])
+        assert entry["score"] == 9
+        assert entry["section"] == "logged"
+        assert re.match(
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$", entry["timestamp"]
+        )
+
+
+def test_logger_direct_log_file_has_no_training_data():
+    """Test direct-file loggers do not try to read module training data."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        logger = Logger(log_file=os.path.join(tmpdir, "scores.jsonl"))
+        assert logger.load_training_data() == []
+
+
 # These functions were in develop and not in HEAD, so we keep them
 def test_logger_handles_invalid_data():
     """Test that logger skips empty lines and invalid JSON when loading training data"""

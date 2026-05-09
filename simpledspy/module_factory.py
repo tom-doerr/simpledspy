@@ -58,6 +58,7 @@ class ModuleFactory:
         input_types: Dict[str, type] = None,
         output_types: Dict[str, type] = None,
         description: str = "",
+        module_type: str = "predict",
     ) -> dspy.Module:
         """Create DSPy module with specified signature"""
         signature_class = self.create_signature(
@@ -68,4 +69,8 @@ class ModuleFactory:
             description=description,
         )
 
-        return dspy.Predict(signature_class)
+        if module_type == "predict":
+            return dspy.Predict(signature_class)
+        if module_type == "chain_of_thought":
+            return dspy.ChainOfThought(signature_class)
+        raise ValueError(f"Unknown module type: {module_type}")

@@ -30,23 +30,31 @@ class BaseCaller:
                 cls._instances[cls] = instance
                 instance.module_factory = ModuleFactory()
                 instance.optimization_manager = OptimizationManager()
-                # Use default LM from settings if available, otherwise use the global lm
-                if global_settings.default_lm:
-                    instance.lm = dspy.LM(model=global_settings.default_lm)
-                elif global_settings.lm:
-                    instance.lm = global_settings.lm
-                else:
-                    instance.lm = dspy.LM(model="openai/gpt-3.5-turbo")
-                dspy.configure(lm=instance.lm, cache=False)
-                
-                # Initialize retry config
-                retry_attempts = getattr(global_settings, 'retry_attempts', 3)
-                retry_delay = getattr(global_settings, 'retry_delay', 1.0)
-                instance.retry_config = RetryConfig(
-                    max_attempts=retry_attempts,
-                    initial_delay=retry_delay
-                )
+                instance.configure_from_settings()
             return cls._instances[cls]
+
+    def configure_from_settings(self) -> None:
+        """Refresh this caller from global settings."""
+        if global_settings.default_lm:
+            self.lm = dspy.LM(model=global_settings.default_lm)
+        elif global_settings.lm is not None:
+            self.lm = global_settings.lm
+        elif not hasattr(self, "lm"):
+            self.lm = dspy.LM(model="openai/gpt-3.5-turbo")
+
+        for key in ("temperature", "max_tokens"):
+            value = getattr(global_settings, key, None)
+            if value is not None and hasattr(self.lm, key):
+                setattr(self.lm, key, value)
+
+        retry_attempts = getattr(global_settings, "retry_attempts", 3)
+        retry_delay = getattr(global_settings, "retry_delay", 1.0)
+        self.retry_config = RetryConfig(
+            max_attempts=retry_attempts, initial_delay=retry_delay
+        )
+
+        if callable(self.lm):
+            dspy.configure(lm=self.lm, cache=False)
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def _create_module(

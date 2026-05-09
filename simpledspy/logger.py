@@ -9,7 +9,7 @@ import json
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -25,11 +25,28 @@ class CustomJSONEncoder(json.JSONEncoder):
 class Logger:
     """Handles logging of DSPy inputs and outputs per module"""
 
-    def __init__(self, module_name: str, base_dir: str = ".simpledspy") -> None:
+    def __init__(
+        self,
+        module_name: Optional[str] = None,
+        base_dir: str = ".simpledspy",
+        log_file: Optional[str] = None,
+    ) -> None:
+        if log_file is not None:
+            self.logged_file = Path(log_file)
+            self.base_dir = self.logged_file.parent
+            self.logged_file.parent.mkdir(parents=True, exist_ok=True)
+            if not self.logged_file.exists():
+                self.logged_file.touch()
+            self.training_file = None
+            return
+
+        if module_name is None:
+            raise ValueError("module_name is required when log_file is not set")
+
         # Sanitize module_name to prevent path traversal
         safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', module_name)
         safe_name = safe_name.replace('..', '_')
-        
+
         # Create base directory
         self.base_dir = Path(base_dir) / "modules" / safe_name
         self.base_dir.mkdir(parents=True, exist_ok=True)
@@ -46,7 +63,7 @@ class Logger:
     def load_training_data(self) -> list:
         """Load training data from the training file, skipping empty lines and invalid JSON"""
         examples = []
-        if self.training_file.exists():
+        if self.training_file is not None and self.training_file.exists():
             with open(self.training_file, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
@@ -75,7 +92,11 @@ class Logger:
         data["section"] = section
         # Use ISO 8601 format with 'T' separator
         data["timestamp"] = datetime.utcnow().isoformat() + "Z"
-        target_file = self.training_file if section == "training" else self.logged_file
+        target_file = (
+            self.training_file
+            if section == "training" and self.training_file is not None
+            else self.logged_file
+        )
 
         with open(target_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(data, cls=CustomJSONEncoder) + "\n")

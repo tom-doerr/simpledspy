@@ -28,6 +28,34 @@ def test_cli_direct_input(capsys):
             assert "Hello" in captured.out
 
 
+def test_cli_uses_requested_module_type(capsys):
+    """Test CLI passes --module through to ModuleFactory."""
+    argv = [
+        "cli.py",
+        "What is 2+2?",
+        "--module",
+        "chain_of_thought",
+        "-d",
+        "reason step by step",
+    ]
+    with patch("sys.argv", argv):
+        with patch("simpledspy.cli.ModuleFactory") as mock_factory_class:
+            mock_factory = mock_factory_class.return_value
+            mock_module = MagicMock()
+            mock_factory.create_module.return_value = mock_module
+            mock_module.return_value = MagicMock(output="4")
+
+            main()
+
+            captured = capsys.readouterr()
+            assert "4" in captured.out
+            mock_factory.create_module.assert_called_once()
+            assert (
+                mock_factory.create_module.call_args.kwargs["module_type"]
+                == "chain_of_thought"
+            )
+
+
 def test_cli_multiple_inputs(capsys):
     """Test CLI with multiple input arguments"""
     # Mock the arguments

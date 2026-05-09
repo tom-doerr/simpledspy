@@ -26,7 +26,7 @@ class Evaluator:
         self, evaluation_instruction: str = "", log_file: str = "dspy_logs.jsonl"
     ):
         self.evaluation_instruction = evaluation_instruction
-        self.logger = Logger(log_file)
+        self.logger = Logger(log_file=log_file)
         # Use evaluator LM from settings if available, otherwise use default
         if global_settings.evaluator_lm:
             self.evaluator_lm = dspy.LM(model=global_settings.evaluator_lm)

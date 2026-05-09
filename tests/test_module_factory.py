@@ -75,6 +75,18 @@ def test_create_module_with_description():
     assert description == module.signature.__doc__
 
 
+def test_create_chain_of_thought_module():
+    """Test creating a ChainOfThought module."""
+    factory = ModuleFactory()
+    module = factory.create_module(
+        inputs=["question"],
+        outputs=["answer"],
+        module_type="chain_of_thought",
+    )
+
+    assert isinstance(module, dspy.ChainOfThought)
+
+
 def test_create_module_with_missing_types():
     """Test module creation with partial type hints"""
     factory = ModuleFactory()

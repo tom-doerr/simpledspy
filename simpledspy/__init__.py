@@ -11,7 +11,7 @@ Provides:
 import sys as _sys
 
 # Import our own modules
-from .module_caller import Predict, ChainOfThought
+from .module_caller import BaseCaller, Predict, ChainOfThought
 from .pipeline_manager import PipelineManager
 from .module_factory import ModuleFactory
 from .optimization_manager import OptimizationManager
@@ -48,6 +48,14 @@ def configure(**kwargs):
     """
     for key, value in kwargs.items():
         setattr(global_settings, key, value)
+
+    callers = list(BaseCaller._instances.values()) + [predict, chain_of_thought]
+    seen = set()
+    for caller in callers:
+        if id(caller) in seen:
+            continue
+        seen.add(id(caller))
+        caller.configure_from_settings()
 
 
 # Package version

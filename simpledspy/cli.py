@@ -29,7 +29,10 @@ def _run_pipeline(args, factory, input_names, input_dict):
         step_outputs = [f"output_{i+1}"]
 
         step_module = factory.create_module(
-            inputs=step_inputs, outputs=step_outputs, description=desc
+            inputs=step_inputs,
+            outputs=step_outputs,
+            description=desc,
+            module_type=args.module,
         )
 
         manager.register_step(
@@ -104,7 +107,10 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     input_names = [f"input_{i+1}" for i in range(len(inputs))]
     output_names = ["output"]
     module = factory.create_module(
-        inputs=input_names, outputs=output_names, description=args.description
+        inputs=input_names,
+        outputs=output_names,
+        description=args.description,
+        module_type=args.module,
     )
 
     if args.optimize:
