@@ -11,6 +11,7 @@ SimpleDSPy is a lightweight wrapper around DSPy that simplifies the creation of 
 
    getting_started
    api_simple
+   api_reference
    examples
 
 Key Features
@@ -28,16 +29,16 @@ Quick Example
 
 .. code-block:: python
 
-   from simpledspy import Predict
+   from simpledspy import predict
 
    # Simple prediction
    question = "What is the capital of France?"
-   answer = Predict()(question)
+   answer = predict(question)
    print(answer)  # "Paris"
 
    # With type hints
    def qa_system(question: str) -> str:
-       answer = Predict()(question)
+       answer = predict(question)
        return answer
 
 Installation
@@ -59,4 +60,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

@@ -77,14 +77,14 @@ class BaseCaller:
         """Infer output names based on assignment context"""
         return InferenceUtils.infer_output_names(frame)
 
-
     def _get_call_types_from_signature(
         self, frame: Any, input_names: List[str], output_names: List[str]
     ) -> Tuple[Dict[str, type], Dict[str, type]]:
         """Get input/output types from function signature"""
-        return InferenceUtils.get_type_hints_from_signature(frame, input_names, output_names)
+        return InferenceUtils.get_type_hints_from_signature(
+            frame, input_names, output_names
+        )
 
-    
     def _infer_input_names(self, args) -> List[str]:
         """Infer input variable names using frame inspection"""
         try:
@@ -96,6 +96,7 @@ class BaseCaller:
 
     def _run_module(self, module, input_dict, lm_params):
         """Run the module with optional LM parameter overrides and retry logic"""
+
         @with_retry(self.retry_config)
         def _execute():
             if lm_params:
@@ -111,7 +112,7 @@ class BaseCaller:
                         setattr(self.lm, key, value)
             else:
                 return module(**input_dict)
-        
+
         return _execute()
 
     def _log_results(
@@ -125,9 +126,13 @@ class BaseCaller:
     ):
         """Log module inputs and outputs with meaningful names"""
         LoggingUtils.log_results(
-            module_name, input_dict, input_names, output_names, output_values, description
+            module_name,
+            input_dict,
+            input_names,
+            output_names,
+            output_values,
+            description,
         )
-
 
     def _prepare_input_names(self, args: tuple, inputs: List[str] = None) -> List[str]:
         """Prepare and sanitize input names"""
@@ -277,19 +282,19 @@ class BaseCaller:
         # Validate inputs
         if not args:
             raise ValidationError("At least one argument is required")
-        
+
         if lm_params is not None and not isinstance(lm_params, dict):
             raise ValidationError("lm_params must be a dictionary")
-        
+
         if inputs is not None and not isinstance(inputs, list):
             raise ValidationError("inputs must be a list of strings")
-        
+
         if outputs is not None and not isinstance(outputs, list):
             raise ValidationError("outputs must be a list of strings")
-        
+
         if trainset is not None and not isinstance(trainset, list):
             raise ValidationError("trainset must be a list")
-        
+
         # Prepare input and output names
         input_names = self._prepare_input_names(args, inputs)
         output_names = self._prepare_output_names(outputs)
@@ -302,9 +307,7 @@ class BaseCaller:
             name = f"{output_part}__{module_type}__{input_part}"
 
         # Create and configure module
-        module, _, _ = self._prepare_module(
-            input_names, output_names, description
-        )
+        module, _, _ = self._prepare_module(input_names, output_names, description)
 
         # Apply training data
         self._apply_training_data(module, trainset, name)

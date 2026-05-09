@@ -8,7 +8,7 @@ from .settings import settings as global_settings
 
 class TrainingUtils:
     """Utilities for loading and preparing training data"""
-    
+
     @staticmethod
     def format_example(example: Dict[str, Any]) -> Dict[str, Any]:
         """Formats a logged example into a DSPy Example compatible dictionary."""
@@ -26,7 +26,7 @@ class TrainingUtils:
                 if key not in reserved:
                     formatted[key] = value
         return formatted
-    
+
     @staticmethod
     def load_and_prepare_demos(name: str) -> List[dspy.Example]:
         """Load and prepare training demonstrations from a log file."""
@@ -46,7 +46,7 @@ class TrainingUtils:
             except (TypeError, KeyError):
                 continue
         return demos
-    
+
     @staticmethod
     def apply_training_data(
         module: dspy.Module, trainset: list = None, name: str = None

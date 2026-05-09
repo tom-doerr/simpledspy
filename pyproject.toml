@@ -30,6 +30,8 @@ pytest = "^7.0"
 black = "^23.0"
 mypy = "^1.0"
 twine = "^5.0.0"
+sphinx = "^7.0"
+sphinx-rtd-theme = "^2.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

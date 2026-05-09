@@ -7,7 +7,7 @@ from simpledspy.exceptions import (
     ValidationError,
     PipelineError,
     ModuleError,
-    SecurityError
+    SecurityError,
 )
 
 
@@ -23,15 +23,15 @@ def test_exception_hierarchy():
 def test_exception_messages():
     """Test exception messages"""
     msg = "Test error message"
-    
+
     with pytest.raises(SimpleDSPyError) as exc_info:
         raise SimpleDSPyError(msg)
     assert str(exc_info.value) == msg
-    
+
     with pytest.raises(ConfigurationError) as exc_info:
         raise ConfigurationError(msg)
     assert str(exc_info.value) == msg
-    
+
     with pytest.raises(ValidationError) as exc_info:
         raise ValidationError(msg)
     assert str(exc_info.value) == msg

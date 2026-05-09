@@ -139,6 +139,7 @@ print(result.sentiment)  # "positive"
 
 ### Optimization
 ```python
+import dspy
 from simpledspy import ModuleFactory
 from simpledspy.optimization_manager import OptimizationManager
 
@@ -151,8 +152,8 @@ module = factory.create_module(
 
 # Create training data
 trainset = [
-    {"input": "2+2", "output": "4"},
-    {"input": "3*3", "output": "9"}
+    dspy.Example(input="2+2", output="4").with_inputs("input"),
+    dspy.Example(input="3*3", output="9").with_inputs("input")
 ]
 
 # Optimize the module

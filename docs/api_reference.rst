@@ -11,14 +11,6 @@ Core Modules
    :undoc-members:
    :show-inheritance:
 
-simpledspy.base_caller
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: simpledspy.base_caller
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Factory Classes
 ---------------
 

@@ -3,7 +3,6 @@
 Provides pipeline construction and execution.
 """
 
-import threading
 from typing import Any, List, Tuple, Dict
 import dspy
 from .exceptions import PipelineError, ValidationError
@@ -12,20 +11,9 @@ from .exceptions import PipelineError, ValidationError
 class PipelineManager:
     """Manages DSPy pipeline construction and execution"""
 
-    _instance = None
-    _lock = threading.Lock()
-
-    def __new__(cls) -> "PipelineManager":
-        with cls._lock:
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-                cls._instance._steps = []
-        return cls._instance
-
     def __init__(self) -> None:
         """Initialize pipeline manager instance"""
-        if not hasattr(self, "_steps"):
-            self._steps = []
+        self._steps = []
 
     def register_step(self, inputs: List[str], outputs: List[str], module: Any) -> None:
         """Register a pipeline step with input/output specifications
@@ -37,11 +25,13 @@ class PipelineManager:
         """
         if not isinstance(inputs, list) or not all(isinstance(i, str) for i in inputs):
             raise ValidationError("inputs must be a list of strings")
-        if not isinstance(outputs, list) or not all(isinstance(o, str) for o in outputs):
+        if not isinstance(outputs, list) or not all(
+            isinstance(o, str) for o in outputs
+        ):
             raise ValidationError("outputs must be a list of strings")
-        if not hasattr(module, '__call__'):
+        if not hasattr(module, "__call__"):
             raise ValidationError("module must be callable")
-        
+
         self._steps.append((inputs, outputs, module))
 
     def assemble_pipeline(self) -> "Pipeline":

@@ -44,8 +44,8 @@ class Logger:
             raise ValueError("module_name is required when log_file is not set")
 
         # Sanitize module_name to prevent path traversal
-        safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', module_name)
-        safe_name = safe_name.replace('..', '_')
+        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", module_name)
+        safe_name = safe_name.replace("..", "_")
 
         # Create base directory
         self.base_dir = Path(base_dir) / "modules" / safe_name

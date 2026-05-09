@@ -25,15 +25,13 @@ Build multi-step processing pipelines:
 - Translation pipeline (multi-language round-trip)
 - Text analysis pipeline (extract, summarize, analyze)
 - Data processing pipeline (parse, clean, enrich)
-- Pipeline inspection and assembly
 
 ### 3. [optimization_example.py](optimization_example.py)
 Optimize your modules for better performance:
 - Basic module optimization with training data
 - Custom evaluation criteria
-- Different optimization strategies (Bootstrap, SIMBA)
+- Different optimization strategies (BootstrapFewShot, MIPRO, SIMBA)
 - Using logged data for continuous improvement
-- Validation sets for testing
 
 ### 4. [advanced_usage.py](advanced_usage.py)
 Advanced techniques and patterns:
@@ -82,7 +80,7 @@ Feel free to modify these examples for your use case:
 
 ## Need Help?
 
-- Check the [SimpleDSPy documentation](https://github.com/thompsonjeff/simpledspy)
+- Check the [SimpleDSPy documentation](https://github.com/tom-doerr/simpledspy)
 - Review the source code for more details on available features
 - Open an issue on GitHub for bugs or feature requests
 

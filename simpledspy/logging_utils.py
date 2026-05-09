@@ -7,7 +7,7 @@ from .settings import settings as global_settings
 
 class LoggingUtils:
     """Utilities for logging module execution results"""
-    
+
     @staticmethod
     def log_results(
         module_name: str,

@@ -22,7 +22,7 @@ from .exceptions import (
     ValidationError,
     PipelineError,
     ModuleError,
-    SecurityError
+    SecurityError,
 )
 
 # Create the function instances

@@ -8,20 +8,20 @@ from .exceptions import SecurityError
 
 class InferenceUtils:
     """Utilities for inferring variable names from calling context"""
-    
+
     @staticmethod
     def get_ast_depth(node: ast.AST, current_depth: int = 0) -> int:
         """Calculate the depth of an AST node"""
         if not isinstance(node, ast.AST):
             return current_depth
-        
+
         max_child_depth = current_depth
         for child in ast.iter_child_nodes(node):
             child_depth = InferenceUtils.get_ast_depth(child, current_depth + 1)
             max_child_depth = max(max_child_depth, child_depth)
-        
+
         return max_child_depth
-    
+
     @staticmethod
     def safe_parse_ast(code: str, max_depth: int = 10) -> ast.AST:
         """Safely parse AST with depth limiting"""
@@ -29,17 +29,17 @@ class InferenceUtils:
             # Limit code length to prevent DoS
             if len(code) > 1000:
                 raise SecurityError("Code too long for AST parsing")
-            
+
             tree = ast.parse(code)
-            
+
             # Check AST depth
             if InferenceUtils.get_ast_depth(tree) > max_depth:
                 raise SecurityError("AST too deep")
-            
+
             return tree
         except (SyntaxError, ValueError) as e:
             raise SecurityError(f"Failed to parse AST: {e}") from e
-    
+
     @staticmethod
     def infer_output_names(frame: Any) -> List[str]:
         """Infer output names based on assignment context"""
@@ -84,7 +84,7 @@ class InferenceUtils:
             return output_names
         except (AttributeError, IndexError, TypeError):
             return ["output"]
-    
+
     @staticmethod
     def infer_input_names(args: tuple, frame: Any) -> List[str]:
         """Infer input variable names using frame inspection"""
@@ -138,7 +138,7 @@ class InferenceUtils:
                 return [f"arg{i}" for i in range(len(args))]
         except (AttributeError, ValueError, IndexError, TypeError):
             return [f"arg{i}" for i in range(len(args))]
-    
+
     @staticmethod
     def get_type_hints_from_signature(
         frame: Any, input_names: List[str], output_names: List[str]
@@ -192,7 +192,7 @@ class InferenceUtils:
             pass
 
         return input_types, output_types
-    
+
     @staticmethod
     def _process_return_annotation(return_ann, output_names, output_types):
         """Helper to process return annotation types"""

@@ -1,11 +1,8 @@
 """Optimization Manager for DSPy modules and pipelines
 
-This module provides the OptimizationManager class which:
-1. Configures optimization strategies (BootstrapFewShot, MIPROv2,
-   BootstrapFewShotWithRandomSearch, or SIMBA)
-2. Provides a default exact-match metric function for evaluation
-3. Creates teleprompter instances
-4. Optimizes DSPy modules/pipelines
+This module provides the OptimizationManager class, which configures DSPy
+teleprompter strategies, supplies a default exact-match metric, creates
+teleprompter instances, and optimizes DSPy modules or pipelines.
 """
 
 import dspy

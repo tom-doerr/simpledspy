@@ -53,21 +53,15 @@ PipelineManager
 
    class PipelineManager:
        """Manages multi-step LLM pipelines."""
-       
-       def add_step(self, name, module, description=None):
-           """Add a step to the pipeline."""
-           
+
        def register_step(self, inputs, outputs, module):
            """Register a step with explicit inputs/outputs."""
-           
-       def step(self, func):
-           """Decorator to add a function as a pipeline step."""
-           
-       def run(self, **initial_inputs):
-           """Execute the pipeline with initial inputs."""
-           
+
        def assemble_pipeline(self):
            """Assemble steps into an executable pipeline."""
+
+       def reset(self):
+           """Remove all registered steps from this manager."""
 
 Optimization
 ------------
@@ -79,20 +73,23 @@ OptimizationManager
 
    class OptimizationManager:
        """Manages optimization of DSPy modules."""
-       
-       def optimize(self, module, trainset, valset=None, 
-                    metric=None, teleprompter="BootstrapFewShot",
-                    **kwargs):
+
+       def configure(self, **kwargs):
+           """Update optimization configuration."""
+
+       def get_teleprompter(self):
+           """Create the configured DSPy teleprompter."""
+
+       def optimize(self, module, trainset):
            """
            Optimize a module using DSPy teleprompters.
-           
+
            Args:
                module: Module to optimize
                trainset: Training examples
-               valset: Validation examples
-               metric: Evaluation metric function
-               teleprompter: Optimization strategy
-               **kwargs: Teleprompter-specific arguments
+
+           Supported strategies:
+               bootstrap_few_shot, mipro, bootstrap_random, simba
            """
 
 Evaluator
@@ -102,18 +99,19 @@ Evaluator
 
    class Evaluator:
        """Evaluates LLM outputs on a 1-10 scale."""
-       
-       def evaluate(self, prediction, expected=None, 
-                    criteria=None, strict=False):
+
+       def __init__(self, evaluation_instruction="", log_file="dspy_logs.jsonl"):
+           """Initialize evaluator and direct evaluation logs to log_file."""
+
+       def evaluate(self, inputs, outputs, evaluation_instructions=None):
            """
            Evaluate prediction quality.
-           
+
            Args:
-               prediction: Model output
-               expected: Expected output
-               criteria: Custom evaluation criteria
-               strict: Use strict evaluation
-               
+               inputs: Input dictionary used to produce the outputs
+               outputs: Output dictionary to score
+               evaluation_instructions: Optional list of instructions
+
            Returns:
                Score from 1-10
            """
@@ -132,17 +130,18 @@ Settings
        # LLM Configuration
        default_lm: str = None  # Default language model
        lm: Any = None  # DSPy LM instance
+       evaluator_lm: str = None
        
        # Logging
-       logging_enabled: bool = True
+       logging_enabled: bool = False
        log_dir: str = ".simpledspy"
        
        # Retry Configuration
        retry_attempts: int = 3
        retry_delay: float = 1.0
        
-       # Rate Limiting (deprecated)
-       rate_limit_calls: int = 60
+       # Rate Limiting
+       rate_limit_calls: int = 100
        rate_limit_window: int = 60
 
 Utilities
@@ -155,9 +154,9 @@ Logger
 
    class Logger:
        """Handles logging of module inputs/outputs."""
-       
-       def __init__(self, module_name, base_dir=".simpledspy"):
-           """Initialize logger for a specific module."""
+
+       def __init__(self, module_name=None, base_dir=".simpledspy", log_file=None):
+           """Initialize a module logger or direct JSONL file logger."""
            
        def log(self, data):
            """Log execution data."""

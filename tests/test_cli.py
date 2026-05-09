@@ -132,7 +132,6 @@ def test_cli_optimization(capsys):
         with patch("simpledspy.cli.ModuleFactory") as mock_factory_class, patch(
             "simpledspy.optimization_manager.OptimizationManager"
         ) as mock_opt_manager_class:
-
             # Setup mock module
             mock_factory = mock_factory_class.return_value
             mock_module = MagicMock()
@@ -198,7 +197,6 @@ def test_cli_pipeline(capsys):
     ) as mock_factory_class, patch(
         "simpledspy.cli.PipelineManager"
     ) as mock_pipeline_manager_class:
-
         # Setup mock module factory
         mock_factory = mock_factory_class.return_value
         mock_module = MagicMock()

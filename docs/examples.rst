@@ -11,24 +11,24 @@ Question Answering
 
 .. code-block:: python
 
-   from simpledspy import Predict
+   from simpledspy import predict
 
    # Simple Q&A
    question = "What is the speed of light?"
-   answer = Predict()(question)
+   answer = predict(question)
    print(f"Answer: {answer}")
 
    # With context
    context = "The speed of light in vacuum is exactly 299,792,458 meters per second."
    question = "How fast does light travel?"
-   answer = Predict()(context, question)
+   answer = predict(context, question)
 
 Text Summarization
 ~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from simpledspy import Predict
+   from simpledspy import predict
 
    article = """
    Artificial intelligence has transformed many industries over the past decade.
@@ -37,10 +37,11 @@ Text Summarization
    exclusively human domains.
    """
    
-   summary = Predict(
+   summary = predict(
+       article,
        outputs=["summary"],
-       description="Summarize the article in one sentence"
-   )(article)
+       description="Summarize the article in one sentence",
+   )
 
 Advanced Examples
 -----------------
@@ -50,53 +51,61 @@ Named Entity Recognition
 
 .. code-block:: python
 
-   from simpledspy import ChainOfThought
+   from simpledspy import chain_of_thought
 
    text = "Apple Inc. announced that Tim Cook will visit Paris next month."
    
    # Extract entities with reasoning
-   entities = ChainOfThought(
+   entities = chain_of_thought(
+       text,
        outputs=["entities"],
-       description="Extract all named entities and their types"
-   )(text)
+       description="Extract all named entities and their types",
+   )
 
 Multi-step Pipeline
 ~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from simpledspy import PipelineManager, Predict, ChainOfThought
+   from simpledspy import ModuleFactory, PipelineManager
 
-   # Create a document processing pipeline
+   factory = ModuleFactory()
    pipeline = PipelineManager()
 
-   @pipeline.step
-   def extract_key_points(document: str) -> str:
-       """Extract main points from document"""
-       points = ChainOfThought(
-           description="Extract 3-5 key points from the document"
-       )(document)
-       return points
-
-   @pipeline.step
-   def generate_summary(key_points: str) -> str:
-       """Generate executive summary"""
-       summary = Predict(
-           description="Create a concise executive summary"
-       )(key_points)
-       return summary
-
-   @pipeline.step
-   def create_action_items(key_points: str, summary: str) -> str:
-       """Create action items based on the document"""
-       action_items = ChainOfThought(
-           description="Generate actionable next steps"
-       )(key_points, summary)
-       return action_items
+   pipeline.register_step(
+       inputs=["document"],
+       outputs=["key_points"],
+       module=factory.create_module(
+           inputs=["document"],
+           outputs=["key_points"],
+           description="Extract 3-5 key points from the document",
+           module_type="chain_of_thought",
+       ),
+   )
+   pipeline.register_step(
+       inputs=["key_points"],
+       outputs=["summary"],
+       module=factory.create_module(
+           inputs=["key_points"],
+           outputs=["summary"],
+           description="Create a concise executive summary",
+       ),
+   )
+   pipeline.register_step(
+       inputs=["key_points", "summary"],
+       outputs=["action_items"],
+       module=factory.create_module(
+           inputs=["key_points", "summary"],
+           outputs=["action_items"],
+           description="Generate actionable next steps",
+           module_type="chain_of_thought",
+       ),
+   )
 
    # Process a document
    document = "..."  # Your document here
-   results = pipeline.run(document)
+   compiled_pipeline = pipeline.assemble_pipeline()
+   results = compiled_pipeline(document=document)
 
 Type-Guided Generation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -104,7 +113,7 @@ Type-Guided Generation
 .. code-block:: python
 
    from typing import List, Dict
-   from simpledspy import Predict
+   from simpledspy import predict
 
    def analyze_sentiment(reviews: List[str]) -> Dict[str, float]:
        """Analyze sentiment of multiple reviews"""
@@ -112,10 +121,11 @@ Type-Guided Generation
        sentiments = []
        for review in reviews:
            # Type hints guide the output format
-           sentiment_score = Predict(
+           sentiment_score = predict(
+               review,
                outputs=["score"],
-               description="Rate sentiment from 0.0 (negative) to 1.0 (positive)"
-           )(review)
+               description="Rate sentiment from 0.0 (negative) to 1.0 (positive)",
+           )
            sentiments.append(float(sentiment_score))
        
        return {
@@ -132,51 +142,54 @@ Collecting Training Data
 
 .. code-block:: python
 
-   from simpledspy import Predict, settings
+   import dspy
+   import simpledspy
+   from simpledspy import predict
 
    # Enable logging to collect training data
-   settings.logging_enabled = True
-   settings.log_dir = "./training_data"
+   simpledspy.configure(logging_enabled=True, log_dir="./training_data")
 
    # Use modules normally - data is automatically collected
    for question in questions:
-       answer = Predict(name="qa_module")(question)
+       answer = predict(question, name="qa_module")
 
    # Later, use collected data for optimization
-   from simpledspy import OptimizationManager
+   from simpledspy import ModuleFactory, OptimizationManager
 
+   trainset = [
+       dspy.Example(question="What is 2 + 2?", answer="4").with_inputs("question"),
+       dspy.Example(question="What is 3 * 3?", answer="9").with_inputs("question"),
+   ]
+   factory = ModuleFactory()
+   module = factory.create_module(inputs=["question"], outputs=["answer"])
    optimizer = OptimizationManager()
-   optimized_module = optimizer.optimize(
-       module_name="qa_module",
-       metric="accuracy"
-   )
+   optimized_module = optimizer.optimize(module=module, trainset=trainset)
 
 Custom Evaluation
 ~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from simpledspy import Evaluator, Predict
+   from simpledspy import predict
+   from simpledspy.evaluator import Evaluator
 
    # Create custom evaluation criteria
    evaluator = Evaluator()
 
    def evaluate_qa_response(question, answer, expected):
        score = evaluator.evaluate(
-           prediction=answer,
-           expected=expected,
-           criteria={
-               "accuracy": "How factually correct is the answer?",
-               "completeness": "Does it fully address the question?",
-               "clarity": "Is the answer clear and well-structured?"
-           }
+           inputs={"question": question, "expected": expected},
+           outputs={"answer": answer},
+           evaluation_instructions=[
+               "Rate accuracy, completeness, and clarity from 1-10"
+           ],
        )
        return score
 
    # Use in optimization
    results = []
    for q, expected_a in test_set:
-       predicted_a = Predict()(q)
+       predicted_a = predict(q)
        score = evaluate_qa_response(q, predicted_a, expected_a)
        results.append(score)
 
@@ -188,24 +201,24 @@ Retry Logic
 
 .. code-block:: python
 
-   from simpledspy import Predict, settings
+   import simpledspy
+   from simpledspy import predict
 
    # Configure retry behavior
-   settings.retry_attempts = 5
-   settings.retry_delay = 2.0  # seconds
+   simpledspy.configure(retry_attempts=5, retry_delay=2.0)
 
    # Automatic retry on failures
    try:
-       result = Predict()(complex_input)
+       result = predict(complex_input)
    except Exception as e:
-       print(f"Failed after {settings.retry_attempts} attempts: {e}")
+       print(f"Prediction failed: {e}")
 
 Custom Error Handling
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from simpledspy import Predict
+   from simpledspy import predict
    from simpledspy.exceptions import ValidationError, ModuleError
 
    try:
@@ -213,7 +226,7 @@ Custom Error Handling
        if not text:
            raise ValidationError("Input text cannot be empty")
        
-       result = Predict()(text)
+       result = predict(text)
        
    except ValidationError as e:
        print(f"Invalid input: {e}")

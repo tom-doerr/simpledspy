@@ -24,19 +24,25 @@ class MockModule(dspy.Module):
         return dspy.Prediction(**self.outputs)
 
 
-def test_singleton_pattern():
-    """Test that PipelineManager follows the singleton pattern"""
+def test_instances_are_independent():
+    """Test that PipelineManager instances do not share steps."""
     manager1 = PipelineManager()
     manager2 = PipelineManager()
-    assert manager1 is manager2
-    manager1.reset()
+
+    manager1.register_step(
+        inputs=["input1"], outputs=["output1"], module=MockModule(output1="one")
+    )
+
+    assert manager1 is not manager2
     # pylint: disable=protected-access
-    assert not manager2._steps  # Check empty list using boolean context
+    assert len(manager1._steps) == 1
+    assert not manager2._steps
 
 
 def test_empty_pipeline():
     """Test assembling an empty pipeline"""
     from simpledspy.exceptions import PipelineError
+
     manager = PipelineManager()
     manager.reset()
     with pytest.raises(PipelineError):
@@ -57,6 +63,7 @@ def test_pipeline_reset():
     # pylint: disable=protected-access
     assert len(manager._steps) == 0
     from simpledspy.exceptions import PipelineError
+
     with pytest.raises(PipelineError):
         _ = manager.assemble_pipeline()  # unused variable
 
